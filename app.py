@@ -46,8 +46,32 @@ def create_app():
 
     # --- Blueprints (Routes) ---
     # Register your Blueprints here (Day 2 and 3 focus)
-    # from auth import auth_bp
-    # app.register_blueprint(auth_bp, url_prefix='/auth')
+    from auth import auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+
+    #Main Blueprint (For simple index/redirects)
+    from flask import blueprint, render_template
+    from flask_login import  current_user,login_required
+
+    main_bp = Blueprint('main', __name__)
+
+    @main_bp.route('/')
+    def index():
+        return redirect(url_for('main.dashboard_redirect'))
+    
+    @main_bp.route('/dashboard')
+    @login_required
+    def dashboard_redirect():
+        
+        
+        if current_user.role == 'Admin':
+            return redirect(url_for('auth.admin_dashboard'))
+        elif current_user.role == 'Supervisor':
+            return redirect(url_for('auth.supervisor_dashboard'))
+        else:
+            return redirect(url_for('auth.champion_dashboard'))
+        
+    app.register_blueprint(main_bp)    
 
     # --- Database Setup/Migration ---
     with app.app_context():
