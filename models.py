@@ -1,19 +1,20 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
-from bcrypt import hashpw, gensalt
+from bcrypt import hashpw, gensalt, checkpw
 
 
 db = SQLAlchemy()
 
 #Helper function for password hashing
 def hash_password(password):
+  """Return a bcrypt hash (utf-8 string) for the given password."""
   return hashpw(password.encode('utf-8'), gensalt()).decode('utf-8')
 
 #Helper function to check password
 def check_password(password, hashed_password):
-  #Safe comparison using bcrypt
-  return hashpw(password.encode('utf-8'), hashed_password.encode('utf-8')) == hashed_password.encode('utf-8')
+  """Return True if password matches the stored bcrypt hashed password."""
+  return checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
 class User(db.Model, UserMixin):
@@ -21,11 +22,11 @@ class User(db.Model, UserMixin):
   user_id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.String(100), unique=True, nullable=False)
   password_hash = db.Column(db.String(255), nullable=False)
-  role = db.Column(db.String(50), nullable=False, Default='Champion')
+  role = db.Column(db.String(50), nullable=False, default='Champion')
 
-  champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='SETNULL'))
+  champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='SET NULL'))
 
-  supervised_champion_ids = db.column(db.JSON)
+  supervised_champion_ids = db.Column(db.JSON)
 
   #Implement UserMixin required methord
   def get_id(self):
@@ -40,12 +41,14 @@ class User(db.Model, UserMixin):
 class Champion(db.Model):
   __tablename__ = 'champions'
   champion_id = db.Column(db.Integer, primary_key=True)
+  # Link to user account (one-to-one)
+  user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
   
-  #Link back to user account
-  user = db.relationship('User', backref='champion_profile', uselist=False)
+  #Link back to user account (explicit foreign_keys to avoid ambiguity)
+  user = db.relationship('User', backref='champion_profile', uselist=False, foreign_keys=[user_id])
 
   #Supervisor link for assignment
-  supervisor_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SETNULL'))  
+  supervisor_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))  
 
   #Personal & Contact information
   full_name = db.Column(db.String(255), nullable=False)
@@ -109,7 +112,7 @@ class RefferalPathway(db.Model):
   #REFERRAL PATHWAY DATA
   youth_referred_number = db.Column(db.Integer)
   referral_reasons = db.Column(db.Text)
-  referral_destinations = db.Column(db.string(255))
+  referral_destinations = db.Column(db.String(255))
   referal_outcomes = db.Column(db.String(50))
   feedback_from_service_provider = db.Column(db.Text) 
 
