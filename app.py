@@ -52,6 +52,8 @@ def create_app(test_config=None):
     # Register your Blueprints here (Day 2 and 3 focus)
     from blueprints.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    from blueprints.admin import admin_bp
+    app.register_blueprint(admin_bp, url_prefix='/admin')
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
