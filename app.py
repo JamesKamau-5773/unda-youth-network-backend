@@ -12,14 +12,18 @@ load_dotenv()
 # Import models to ensure they are registered with SQLAlchemy
 
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
+
+    # Allow tests to override config before extensions are initialized
+    if test_config:
+        app.config.update(test_config)
 
     # --- Configuration ---
     app.config['SECRET_KEY'] = os.environ.get(
         'SECRET_KEY', 'default_secret_key')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-        'DATABASE_URL', 'postgresql://user:password@localhost/unda_db')
+    app.config.setdefault('SQLALCHEMY_DATABASE_URI', os.environ.get(
+        'DATABASE_URL', 'postgresql://user:password@localhost/unda_db'))
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # --- Initialization ---
@@ -46,11 +50,11 @@ def create_app():
 
     # --- Blueprints (Routes) ---
     # Register your Blueprints here (Day 2 and 3 focus)
-    from auth import auth_bp
+    from blueprints.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
 
     #Main Blueprint (For simple index/redirects)
-    from flask import blueprint, render_template
+    from flask import Blueprint, render_template
     from flask_login import  current_user,login_required
 
     main_bp = Blueprint('main', __name__)

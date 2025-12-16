@@ -1,18 +1,18 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, login_required
 from models import db, User, Champion
-from app import limiter
+from decorators import admin_required, supervisor_required, champion_required
 
 auth_bp = Blueprint ('auth', __name__, template_folder='templates')
 
 # --- Helper function for password hashing/checking is in models.py ---
 @auth_bp.route('/register', methods=['GET', 'POST'])
-@roles_required('Admin') # Only an Admin can register new users
+@admin_required # Only an Admin can register new users
 def register():
   if request.method == 'POST':
 
    #Create Champion Profile (Initial Static Data)
-    champion =champion(
+    champion = Champion(
       full_name=request.form.get('full_name'),
       email=request.form.get('email'),
       phone_number=request.form.get('phone_number'),
@@ -24,7 +24,8 @@ def register():
     #Create User Login Account
     username = request.form.get('username')
     password = request.form.get('password')
-    role = request.form.get('role', 'champion') # Default to Champion
+    role = request.form.get('role', 'Champion') # Default to Champion
+    role = role.capitalize()
 
     # Check for existing username/email
     if User.query.filter_by(username=username).first():
@@ -34,8 +35,7 @@ def register():
     user = User(
       username=username,
       role=role,
-      champion_id=champion.champion_id if role == 'champion' else None
-
+      champion_id=champion.champion_id if role == 'Champion' else None
     )
     user.set_password(password)
     db.session.add(user)
@@ -43,8 +43,8 @@ def register():
 
 
     # Update Champion FK link if the user is a Champion
-    if role == 'champion':
-      champion.user_id = user.id # Assuming User ID is added to Champion
+    if role == 'Champion':
+      champion.user_id = user.user_id # Link Champion to newly created User
       db.session.commit()
 
     flash(f'New {role} account for {champion.full_name} created successfully.', 'success')  
@@ -66,7 +66,7 @@ def login():
 
     if user and user.check_password(password):
       login_user(user, remember=True)
-      flash('Login successfully!', 'success')
+      flash('Logged in successfully', 'success')
 
       # Redirect user based on their role after successful login
       return redirect(url_for('main.dashboard_redirect'))
@@ -80,3 +80,25 @@ def logout():
   logout_user()
   flash('You have been logged out.', 'success')
   return redirect(url_for('auth.login'))
+
+
+# Minimal role dashboards so redirects have targets
+@auth_bp.route('/admin/dashboard')
+@login_required
+@admin_required
+def admin_dashboard():
+  return render_template('admin/dashboard.html') if False else 'Admin dashboard'
+
+
+@auth_bp.route('/supervisor/dashboard')
+@login_required
+@supervisor_required
+def supervisor_dashboard():
+  return render_template('supervisor/dashboard.html') if False else 'Supervisor dashboard'
+
+
+@auth_bp.route('/champion/dashboard')
+@login_required
+@champion_required
+def champion_dashboard():
+  return render_template('champion/dashboard.html') if False else 'Champion dashboard'

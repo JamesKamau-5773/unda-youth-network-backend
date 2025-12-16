@@ -6,9 +6,12 @@ def roles_required(*roles):
   def wrapper(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+      # Require authentication
       if not current_user.is_authenticated:
-        return f(*args, **kwargs)
-      
+        flash('Please log in to access this page.', 'warning')
+        return redirect(url_for('auth.login'))
+
+      # Role check (roles passed should match stored role strings)
       if current_user.role not in roles:
         flash('Access denied. You do not have the required permissions.', 'danger')
         return redirect(url_for('main.index'))
@@ -17,6 +20,7 @@ def roles_required(*roles):
   return wrapper
 
 #Convenience Decorators for clarity
-admin_required = roles_required('admin')
-supervisor_required = roles_required('admin', 'supervisor')
-champion_required = roles_required('admin', 'supervisor', 'champion')
+# Use canonical role strings (capitalized) throughout the app
+admin_required = roles_required('Admin')
+supervisor_required = roles_required('Admin', 'Supervisor')
+champion_required = roles_required('Admin', 'Supervisor', 'Champion')
