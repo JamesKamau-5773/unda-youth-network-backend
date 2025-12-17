@@ -4,3 +4,7 @@
 venv/
 __pycache__/
 *.pyc
+
+# Local notes/data
+todo
+rates
