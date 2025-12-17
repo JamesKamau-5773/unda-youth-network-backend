@@ -3,8 +3,7 @@ import os
 from flask import Flask, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from extensions import limiter
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,16 +14,18 @@ load_dotenv()
 def create_app(test_config=None):
     app = Flask(__name__)
 
-    # Allow tests to override config before extensions are initialized
-    if test_config:
-        app.config.update(test_config)
-
     # --- Configuration ---
     app.config['SECRET_KEY'] = os.environ.get(
         'SECRET_KEY', 'default_secret_key')
     app.config.setdefault('SQLALCHEMY_DATABASE_URI', os.environ.get(
         'DATABASE_URL', 'postgresql://user:password@localhost/unda_db'))
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config.setdefault('RATELIMIT_STORAGE_URL', os.environ.get(
+        'REDIS_URL', 'redis://localhost:6379'))
+
+    # Allow tests to override config before extensions are initialized
+    if test_config:
+        app.config.update(test_config)
 
     # --- Initialization ---
     db.init_app(app)
@@ -40,13 +41,11 @@ def create_app(test_config=None):
         return db.session.get(User, int(user_id))
 
     # Flask-Limiter setup (using Redis for persistent rate limits)
-    app.config['RATELIMIT_STORAGE_URL'] = os.environ.get(
-        'REDIS_URL', 'redis://localhost:6379')
-    limiter = Limiter(
-        key_func=get_remote_address,
+    limiter.init_app(
         app=app,
         default_limits=["200 per day", "50 per hour"]
     )
+
 
     # --- Blueprints (Routes) ---
     # Register your Blueprints here (Day 2 and 3 focus)
