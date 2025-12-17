@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Champion Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+	<h2 class="mb-4">👋 Welcome, {{ champion.full_name }}</h2>
+	<p class="text-muted">Assigned ID: <strong>{{ champion.assigned_champion_code }}</strong> | Cohort: {{ champion.assigned_cohort }}</p>
+
+	<hr>
+    
+	{# Check for pending report status based on current_reporting_date #}
+	{% set report_exists = reports|selectattr('reporting_period', 'eq', current_reporting_date)|list %}
+    
+	{% if not report_exists %}
+	<div class="alert alert-info">
+		<h4>Monthly Report Due: {{ current_reporting_date.strftime('%B %Y') }}</h4>
+		<p>Please submit your operational data to track your impact and support circle.</p>
+        
+		<form method="POST" action="{{ url_for('champion.submit_report') }}" class="card p-3 shadow-sm">
+			<h5 class="card-title">Operational Data Submission</h5>
+            
+			<div class="mb-3">
+				<label for="check_in_rate" class="form-label">Weekly Check-In Completion Rate (%)</label>
+				<input type="number" step="0.01" min="0" max="100" class="form-control" id="check_in_rate" name="check_in_rate" required>
+			</div>
+            
+			<div class="mb-3">
+				<label for="screenings_delivered" class="form-label">Monthly Mini-Screenings Delivered (PHQ-2, GAD-2)</label>
+				<input type="number" min="0" class="form-control" id="screenings_delivered" name="screenings_delivered" required>
+			</div>
+            
+			<div class="mb-3">
+				<label for="referrals_initiated" class="form-label">Referrals Initiated</label>
+				<input type="number" min="0" class="form-control" id="referrals_initiated" name="referrals_initiated" required>
+			</div>
+            
+			<div class="mb-3">
+				<label for="doc_quality" class="form-label">Documentation Quality Score</label>
+				<select class="form-select" id="doc_quality" name="doc_quality" required>
+					<option value="complete">Complete</option>
+					<option value="partial">Partial</option>
+					<option value="incomplete">Incomplete</option>
+				</select>
+			</div>
+            
+			<div class="mb-3">
+				<label for="wellbeing_check" class="form-label">Self-Reported Wellbeing Check (Monthly)</label>
+				<textarea class="form-control" id="wellbeing_check" name="wellbeing_check" rows="2" placeholder="Briefly describe your current wellbeing status."></textarea>
+			</div>
+            
+			<button type="submit" class="btn btn-primary">Submit Monthly Report</button>
+		</form>
+	</div>
+	{% else %}
+	<div class="alert alert-success">
+		Report for {{ current_reporting_date.strftime('%B %Y') }} has already been submitted. Thank you!
+	</div>
+	{% endif %}
+
+	<h4 class="mt-5">Recent Submissions</h4>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Period</th>
+				<th>Check-In Rate (%)</th>
+				<th>Screenings</th>
+				<th>Referrals</th>
+				<th>Quality Score</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for report in reports %}
+			<tr>
+				<td>{{ report.reporting_period.strftime('%Y-%m') }}</td>
+				<td>{{ report.weekly_check_in_completion_rate|default('N/A') }}</td>
+				<td>{{ report.monthly_mini_screenings_delivered|default('0') }}</td>
+				<td>{{ report.referrals_initiated|default('0') }}</td>
+				<td>{{ report.documentation_quality_score|default('N/A') }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %}

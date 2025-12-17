@@ -41,10 +41,7 @@ def create_app(test_config=None):
         return db.session.get(User, int(user_id))
 
     # Flask-Limiter setup (using Redis for persistent rate limits)
-    limiter.init_app(
-        app=app,
-        default_limits=["200 per day", "50 per hour"]
-    )
+    limiter.init_app(app)
 
 
     # --- Blueprints (Routes) ---
@@ -53,6 +50,8 @@ def create_app(test_config=None):
     app.register_blueprint(auth_bp, url_prefix='/auth')
     from blueprints.admin import admin_bp
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    from blueprints.champion import champion_bp
+    app.register_blueprint(champion_bp)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
