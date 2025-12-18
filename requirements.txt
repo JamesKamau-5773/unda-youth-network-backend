@@ -5,4 +5,5 @@ psycopg2-binary        # PostgreSQL adapter
 Flask-Login
 Flask-Limiter[redis]   # Using Redis for robust rate limiting storage
 Flask-Bcrypt           # For strong password hashing
+Flask-Migrate          # Database migrations
 python-dotenv
