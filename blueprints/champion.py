@@ -55,7 +55,13 @@ def submit_report():
 			referrals_initiated=int(request.form.get('referrals_initiated')),
 			documentation_quality_score=request.form.get('doc_quality'),
 			self_reported_wellbeing_check=request.form.get('wellbeing_check'),
+			flag_timestamp=None,
 		)
+
+		# If the champion raised referrals, capture the flag time for SLA tracking
+		if new_report.referrals_initiated and int(new_report.referrals_initiated) > 0:
+			from datetime import datetime
+			new_report.flag_timestamp = datetime.utcnow()
 
 		db.session.add(new_report)
 		db.session.commit()
