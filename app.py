@@ -4,6 +4,7 @@ from flask import Flask, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 from extensions import limiter
 from dotenv import load_dotenv
 
@@ -16,13 +17,32 @@ def create_app(test_config=None):
     app = Flask(__name__)
 
     # --- Configuration ---
-    app.config['SECRET_KEY'] = os.environ.get(
-        'SECRET_KEY', 'default_secret_key')
-    app.config.setdefault('SQLALCHEMY_DATABASE_URI', os.environ.get(
-        'DATABASE_URL', 'postgresql://james:james@localhost/unda_db'))
+    # SECRET_KEY is required - no fallback for production
+    secret_key = os.environ.get('SECRET_KEY')
+    if not secret_key:
+        raise ValueError("SECRET_KEY environment variable must be set")
+    app.config['SECRET_KEY'] = secret_key
+    
+    # Database URI from environment
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        raise ValueError("DATABASE_URL environment variable must be set")
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Rate limiting storage
     app.config.setdefault('RATELIMIT_STORAGE_URL', os.environ.get(
         'REDIS_URL', 'redis://localhost:6379'))
+    
+    # Session security settings
+    app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour
+    
+    # WTF-CSRF Protection
+    app.config['WTF_CSRF_ENABLED'] = True
+    app.config['WTF_CSRF_TIME_LIMIT'] = None  # No time limit for CSRF tokens
 
     # Allow tests to override config before extensions are initialized
     if test_config:
@@ -30,6 +50,9 @@ def create_app(test_config=None):
 
     # --- Initialization ---
     db.init_app(app)
+    
+    # CSRF Protection
+    csrf = CSRFProtect(app)
 
     # Flask-Login setup
     login_manager = LoginManager()
@@ -43,6 +66,22 @@ def create_app(test_config=None):
 
     # Flask-Limiter setup (using Redis for persistent rate limits)
     limiter.init_app(app)
+    
+    # Security headers
+    @app.after_request
+    def set_security_headers(response):
+        # Content Security Policy
+        response.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline';"
+        # Prevent clickjacking
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        # Prevent MIME type sniffing
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        # XSS Protection (legacy browsers)
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        # HSTS for HTTPS (only in production)
+        if os.environ.get('FLASK_ENV') == 'production':
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return response
 
 
     # --- Blueprints (Routes) ---

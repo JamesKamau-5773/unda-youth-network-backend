@@ -18,16 +18,16 @@ def seed_data():
         print("Creating users...")
         # Admin user
         admin = User(username='admin', role='Admin')
-        admin.set_password('admin123')
+        admin.set_password('Admin@123')
         db.session.add(admin)
         
         # Supervisor users
         sup1 = User(username='supervisor1', role='Supervisor')
-        sup1.set_password('super123')
+        sup1.set_password('Super@123')
         db.session.add(sup1)
         
         sup2 = User(username='supervisor2', role='Supervisor')
-        sup2.set_password('super123')
+        sup2.set_password('Super@123')
         db.session.add(sup2)
         
         db.session.commit()
@@ -143,15 +143,15 @@ def seed_data():
         print("Creating champion user accounts...")
         # Link champions to user accounts
         champ1_user = User(username='alice', role='Champion', champion_id=champ1.champion_id)
-        champ1_user.set_password('alice123')
+        champ1_user.set_password('Alice@123')
         db.session.add(champ1_user)
         
         champ2_user = User(username='brian', role='Champion', champion_id=champ2.champion_id)
-        champ2_user.set_password('brian123')
+        champ2_user.set_password('Brian@123')
         db.session.add(champ2_user)
         
         champ3_user = User(username='catherine', role='Champion', champion_id=champ3.champion_id)
-        champ3_user.set_password('cath123')
+        champ3_user.set_password('Cath@123')
         db.session.add(champ3_user)
         
         db.session.commit()
@@ -425,12 +425,12 @@ def seed_data():
         
         print("\nSeed data created successfully!")
         print("\nSample credentials:")
-        print("  Admin:       username='admin'        password='admin123'")
-        print("  Supervisor1: username='supervisor1'  password='super123'")
-        print("  Supervisor2: username='supervisor2'  password='super123'")
-        print("  Champion1:   username='alice'        password='alice123'")
-        print("  Champion2:   username='brian'        password='brian123'")
-        print("  Champion3:   username='catherine'    password='cath123'")
+        print("  Admin:       username='admin'        password='Admin@123'")
+        print("  Supervisor1: username='supervisor1'  password='Super@123'")
+        print("  Supervisor2: username='supervisor2'  password='Super@123'")
+        print("  Champion1:   username='alice'        password='Alice@123'")
+        print("  Champion2:   username='brian'        password='Brian@123'")
+        print("  Champion3:   username='catherine'    password='Cath@123'")
         print("\nData summary:")
         print(f"  Users: {User.query.count()}")
         print(f"  Champions: {Champion.query.count()}")
