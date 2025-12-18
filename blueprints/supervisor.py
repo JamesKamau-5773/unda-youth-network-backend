@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
-from models import db, Champion, YouthSupport, RefferalPathway
+from models import db, Champion, YouthSupport, RefferalPathway, AccessAuditLog
 from decorators import supervisor_required
 
 supervisor_bp = Blueprint('supervisor', __name__, url_prefix='/supervisor', template_folder='templates')
@@ -27,6 +27,17 @@ def review_champion(champion_id):
     abort(403, 'Unauthorized access')
 
   champion = Champion.query.get_or_404(champion_id)
+
+  # AUDIT LOG: Record sensitive data access
+  audit_entry = AccessAuditLog(
+    user_id=current_user.user_id,
+    champion_id=champion_id,
+    action='viewed_champion_profile',
+    ip_address=request.remote_addr,
+    details='Supervisor accessed champion detail page'
+  )
+  db.session.add(audit_entry)
+  db.session.commit()
 
   # Fetch history to monitor program impact
   history = (
