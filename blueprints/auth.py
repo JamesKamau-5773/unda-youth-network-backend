@@ -3,6 +3,8 @@ from flask_login import login_user, logout_user, current_user, login_required
 from models import db, User, Champion
 from decorators import admin_required, supervisor_required, champion_required
 from extensions import limiter
+from password_validator import validate_password_strength
+from datetime import datetime
 
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
 
@@ -11,6 +13,13 @@ auth_bp = Blueprint('auth', __name__, template_folder='templates')
 @admin_required  # Only an Admin can register new users
 def register():
     if request.method == 'POST':
+        # Get password and validate strength
+        password = request.form.get('password')
+        is_valid, error_message = validate_password_strength(password)
+        if not is_valid:
+            flash(error_message, 'danger')
+            return redirect(url_for('auth.register'))
+        
         # Create Champion Profile (Initial Static Data)
         champion = Champion(
             full_name=request.form.get('full_name'),
@@ -23,7 +32,6 @@ def register():
 
         # Create User Login Account
         username = request.form.get('username')
-        password = request.form.get('password')
         role = request.form.get('role', 'Champion')  # Default to Champion
         role = role.capitalize()
 
@@ -56,7 +64,7 @@ def register():
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
-@limiter.limit("4 per minute", methods=["POST"], exempt_when=lambda: False)
+@limiter.limit("10 per minute", methods=["POST"], exempt_when=lambda: False)
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard_redirect'))  # Redirect if already logged in
@@ -67,13 +75,30 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
-        if user and user.check_password(password):
-            login_user(user, remember=True)
-            flash('Logged in successfully', 'success')
-
-            # Redirect user based on their role after successful login
-            return redirect(url_for('main.dashboard_redirect'))
+        if user:
+            # Check if account is locked
+            if user.is_locked():
+                remaining_time = int((user.locked_until - datetime.utcnow()).total_seconds() / 60)
+                flash(f'Account is locked due to too many failed login attempts. Please try again in {remaining_time} minutes.', 'danger')
+                return render_template('auth/login.html')
+            
+            # Check password
+            if user.check_password(password):
+                # Successful login - reset failed attempts
+                user.reset_failed_logins()
+                login_user(user, remember=True)
+                flash('Logged in successfully', 'success')
+                return redirect(url_for('main.dashboard_redirect'))
+            else:
+                # Failed login - record attempt
+                user.record_failed_login()
+                remaining_attempts = 7 - (user.failed_login_attempts or 0)
+                if remaining_attempts > 0:
+                    flash(f'Invalid username or password. {remaining_attempts} attempts remaining before account lockout.', 'danger')
+                else:
+                    flash('Account locked due to too many failed login attempts. Please try again in 30 minutes.', 'danger')
         else:
+            # Username not found - don't reveal this info
             flash('Invalid username or password', 'danger')
 
     return render_template('auth/login.html')

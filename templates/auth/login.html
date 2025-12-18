@@ -181,6 +181,7 @@
     </div>
     
     <form method="POST" action="{{ url_for('auth.login') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="auth-form-group">
             <label for="username" class="auth-form-label">Username</label>
             <input type="text" class="auth-form-input" id="username" name="username" required autofocus>
@@ -197,9 +198,9 @@
     <div class="credentials-info">
         <div class="credentials-title">Test Credentials</div>
         <div class="credentials-list">
-            <strong>Admin:</strong> admin / admin123<br>
-            <strong>Supervisor:</strong> supervisor1 / super123<br>
-            <strong>Champion:</strong> alice / alice123
+            <strong>Admin:</strong> admin / Admin@123<br>
+            <strong>Supervisor:</strong> supervisor1 / Super@123<br>
+            <strong>Champion:</strong> alice / Alice@123
         </div>
     </div>
 </div>

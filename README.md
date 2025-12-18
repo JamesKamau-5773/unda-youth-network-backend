@@ -36,11 +36,16 @@ Unda Youth Network is a professional platform designed to support youth mental h
 - **Alert System**: Receive notifications for pending reports and important updates
 
 ### Security & Authentication
-- **Bcrypt Password Hashing**: Industry-standard password encryption
-- **Flask-Login Integration**: Secure session management
+- **Bcrypt Password Hashing**: Industry-standard password encryption with automatic salting
+- **Flask-Login Integration**: Secure session management with httpOnly and SameSite cookies
 - **Role-Based Access Control**: Three-tier permission system (Admin, Supervisor, Champion)
-- **Rate Limiting**: Redis-backed request throttling to prevent abuse
-- **CSRF Protection**: Built-in form security
+- **Rate Limiting**: Redis-backed request throttling (10 requests/minute on login)
+- **CSRF Protection**: Flask-WTF token-based form security on all POST requests
+- **Password Strength Requirements**: Minimum 8 characters with uppercase, lowercase, numbers, and special characters
+- **Account Lockout**: 7 failed login attempts trigger 30-minute account lockout
+- **Security Headers**: Content Security Policy, X-Frame-Options, X-Content-Type-Options, HSTS
+- **Environment-Based Configuration**: Secret keys and credentials stored in environment variables
+- **SQL Injection Protection**: SQLAlchemy ORM with parameterized queries
 
 ### Modern Professional Design
 - **Medical/SaaS Aesthetic**: Clean, professional interface with Deep Navy and Trust Blue color scheme
@@ -137,12 +142,27 @@ Unda Youth Network is a professional platform designed to support youth mental h
    ```
 
 5. **Configure environment variables**
-   Create a `.env` file in the project root:
-   ```env
-   SECRET_KEY=your-secret-key-here
-   DATABASE_URL=postgresql://username:password@localhost/unda_db
-   REDIS_URL=redis://localhost:6379
+   Copy the example environment file and update with your values:
+   ```bash
+   cp .env.example .env
    ```
+   
+   Edit `.env` with your configuration:
+   ```env
+   # Required: Generate a strong random secret key
+   SECRET_KEY=your-secret-key-here-use-random-string
+   
+   # Required: Database connection string
+   DATABASE_URL=postgresql://username:password@localhost/unda_db
+   
+   # Optional: Redis URL for rate limiting (defaults to localhost)
+   REDIS_URL=redis://localhost:6379
+   
+   # Environment: development or production
+   FLASK_ENV=development
+   ```
+   
+   **Security Note**: Never commit `.env` to version control. Use strong random values for SECRET_KEY in production.
 
 6. **Initialize the database**
    ```bash
@@ -178,29 +198,31 @@ After running `python seed.py`, the following test accounts are available:
 
 ### Administrator Account
 - **Username**: `admin`
-- **Password**: `admin123`
+- **Password**: `Admin@123`
 - **Access**: Full system access, user management, system-wide analytics with champion status tracking
 
 ### Supervisor Accounts
-- **Username**: `supervisor1` | **Password**: `super123`
-- **Username**: `supervisor2` | **Password**: `super123`
+- **Username**: `supervisor1` | **Password**: `Super@123`
+- **Username**: `supervisor2` | **Password**: `Super@123`
 - **Access**: Champion management, performance review, referrals, safeguarding notes
 
 ### Champion Accounts
-- **Champion 1 (Alice Wanjiru)**: `alice` / `alice123`
+- **Champion 1 (Alice Wanjiru)**: `alice` / `Alice@123`
   - Education: University of Nairobi, Psychology Year 3
   - Status: Active, 18 youth under support
   - Emergency Contact: Jane Wanjiru (Mother)
   
-- **Champion 2 (Brian Ochieng)**: `brian` / `brian123`
+- **Champion 2 (Brian Ochieng)**: `brian` / `Brian@123`
   - Education: Kisumu Technical College, Community Development Year 2
   - Status: Active, 12 youth under support
   - Emergency Contact: Peter Ochieng (Father)
   
-- **Champion 3 (Catherine Muthoni)**: `catherine` / `cath123`
+- **Champion 3 (Catherine Muthoni)**: `catherine` / `Cath@123`
   - Education: High School Graduate, Working at Nakuru Youth Center
   - Status: On Hold, 15 youth under support
   - Emergency Contact: Mary Muthoni (Sister)
+
+**Note**: All passwords meet security requirements (8+ characters, uppercase, lowercase, numbers, special characters)
 
 ## Project Structure
 

@@ -27,6 +27,11 @@ class User(db.Model, UserMixin):
   champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='SET NULL'))
 
   supervised_champion_ids = db.Column(db.JSON)
+  
+  # Account lockout fields
+  failed_login_attempts = db.Column(db.Integer, default=0)
+  account_locked = db.Column(db.Boolean, default=False)
+  locked_until = db.Column(db.DateTime)
 
   #Implement UserMixin required methord
   def get_id(self):
@@ -37,6 +42,36 @@ class User(db.Model, UserMixin):
 
   def check_password(self, password):
     return check_password(password, self.password_hash)
+  
+  def is_locked(self):
+    """Check if account is currently locked."""
+    if self.account_locked and self.locked_until:
+      if datetime.utcnow() < self.locked_until:
+        return True
+      else:
+        # Lock expired, reset
+        self.account_locked = False
+        self.failed_login_attempts = 0
+        self.locked_until = None
+        db.session.commit()
+        return False
+    return False
+  
+  def record_failed_login(self):
+    """Record failed login attempt and lock account if threshold reached."""
+    from datetime import timedelta
+    self.failed_login_attempts = (self.failed_login_attempts or 0) + 1
+    if self.failed_login_attempts >= 7:
+      self.account_locked = True
+      self.locked_until = datetime.utcnow() + timedelta(minutes=30)
+    db.session.commit()
+  
+  def reset_failed_logins(self):
+    """Reset failed login counter after successful login."""
+    self.failed_login_attempts = 0
+    self.account_locked = False
+    self.locked_until = None
+    db.session.commit()
   
 class Champion(db.Model):
   __tablename__ = 'champions'
