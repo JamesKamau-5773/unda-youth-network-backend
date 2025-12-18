@@ -153,6 +153,165 @@
     
     .password-strength-text {
         font-size: 0.8125rem;
+        margin-top: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .password-strength-text.weak { color: #ef4444; }
+    .password-strength-text.medium { color: #f59e0b; }
+    .password-strength-text.strong { color: #10b981; }
+    
+    /* Form Field Validation Indicators */
+    .form-field-wrapper {
+        position: relative;
+    }
+    
+    .form-field-wrapper .validation-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        display: none;
+    }
+    
+    .form-field-wrapper.valid .validation-icon.checkmark,
+    .form-field-wrapper.invalid .validation-icon.x-mark {
+        display: block;
+    }
+    
+    .validation-icon.checkmark {
+        color: #10b981;
+    }
+    
+    .validation-icon.x-mark {
+        color: #ef4444;
+    }
+    
+    .form-field-wrapper.valid input,
+    .form-field-wrapper.valid select,
+    .form-field-wrapper.valid textarea {
+        border-color: #10b981;
+        padding-right: 2.75rem;
+    }
+    
+    .form-field-wrapper.invalid input,
+    .form-field-wrapper.invalid select,
+    .form-field-wrapper.invalid textarea {
+        border-color: #ef4444;
+        padding-right: 2.75rem;
+    }
+    
+    .field-error-message {
+        display: none;
+        font-size: 0.8125rem;
+        color: #ef4444;
+        margin-top: 0.375rem;
+        font-weight: 500;
+    }
+    
+    .form-field-wrapper.invalid .field-error-message {
+        display: block;
+    }
+    
+    /* Toast Notification Styles */
+    .toast-container {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 9999;
+        max-width: 400px;
+        pointer-events: none;
+    }
+    
+    .toast {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        border-left: 4px solid;
+        pointer-events: auto;
+        animation: slideIn 0.3s ease-out;
+        max-width: 100%;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .toast.toast-success {
+        border-left-color: #10b981;
+    }
+    
+    .toast.toast-error {
+        border-left-color: #ef4444;
+    }
+    
+    .toast.toast-warning {
+        border-left-color: #f59e0b;
+    }
+    
+    .toast.toast-info {
+        border-left-color: #3b82f6;
+    }
+    
+    .toast-icon {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+    }
+    
+    .toast-success .toast-icon { color: #10b981; }
+    .toast-error .toast-icon { color: #ef4444; }
+    .toast-warning .toast-icon { color: #f59e0b; }
+    .toast-info .toast-icon { color: #3b82f6; }
+    
+    .toast-content {
+        flex: 1;
+    }
+    
+    .toast-title {
+        font-weight: 600;
+        font-size: 0.9375rem;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+    
+    .toast-message {
+        font-size: 0.875rem;
+        color: #64748b;
+        line-height: 1.5;
+    }
+    
+    .toast-close {
+        flex-shrink: 0;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: color 0.2s;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .toast-close:hover {
+        color: #64748b;
+    }
+    .password-strength-bar.medium { width: 66%; background-color: #f59e0b; }
+    .password-strength-bar.strong { width: 100%; background-color: #10b981; }
+    
+    .password-strength-text {
+        font-size: 0.8125rem;
         margin-top: 0.25rem;
         font-weight: 500;
     }
@@ -268,6 +427,134 @@
                 }
             });
         });
+        
+        // Toast Notification System
+        window.showToast = function(message, type = 'info', title = '') {
+            const container = document.getElementById('toastContainer');
+            if (!container) {
+                const newContainer = document.createElement('div');
+                newContainer.id = 'toastContainer';
+                newContainer.className = 'toast-container';
+                document.body.appendChild(newContainer);
+            }
+            
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icons = {
+                success: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+                error: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+                warning: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+                info: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+            };
+            
+            const titleHTML = title ? `<div class="toast-title">${title}</div>` : '';
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    ${titleHTML}
+                    <div class="toast-message">${message}</div>
+                </div>
+                <div class="toast-close">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            });
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        };
+        
+        // Form Validation Functions
+        window.validateUsername = function(username) {
+            if (!username || username.length < 3) {
+                return { valid: false, message: 'Username must be at least 3 characters' };
+            }
+            if (username.length > 50) {
+                return { valid: false, message: 'Username must be less than 50 characters' };
+            }
+            return { valid: true, message: '' };
+        };
+        
+        window.validateEmail = function(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) {
+                return { valid: false, message: 'Email is required' };
+            }
+            if (!emailRegex.test(email)) {
+                return { valid: false, message: 'Please enter a valid email address' };
+            }
+            return { valid: true, message: '' };
+        };
+        
+        window.validateRequired = function(value, fieldName) {
+            if (!value || value.trim() === '') {
+                return { valid: false, message: `${fieldName} is required` };
+            }
+            return { valid: true, message: '' };
+        };
+        
+        window.addValidationToField = function(inputElement, validationFn) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'form-field-wrapper';
+            inputElement.parentNode.insertBefore(wrapper, inputElement);
+            wrapper.appendChild(inputElement);
+            
+            const checkmark = document.createElement('div');
+            checkmark.className = 'validation-icon checkmark';
+            checkmark.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            wrapper.appendChild(checkmark);
+            
+            const xMark = document.createElement('div');
+            xMark.className = 'validation-icon x-mark';
+            xMark.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            wrapper.appendChild(xMark);
+            
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'field-error-message';
+            wrapper.appendChild(errorMsg);
+            
+            inputElement.addEventListener('input', () => {
+                const result = validationFn(inputElement.value);
+                if (inputElement.value.trim() === '') {
+                    wrapper.classList.remove('valid', 'invalid');
+                    errorMsg.textContent = '';
+                } else if (result.valid) {
+                    wrapper.classList.remove('invalid');
+                    wrapper.classList.add('valid');
+                    errorMsg.textContent = '';
+                } else {
+                    wrapper.classList.remove('valid');
+                    wrapper.classList.add('invalid');
+                    errorMsg.textContent = result.message;
+                }
+            });
+            
+            inputElement.addEventListener('blur', () => {
+                if (inputElement.value.trim() !== '') {
+                    const result = validationFn(inputElement.value);
+                    if (!result.valid) {
+                        wrapper.classList.add('invalid');
+                        errorMsg.textContent = result.message;
+                    }
+                }
+            });
+        };
     });
     </script>
     {% block extra_js %}{% endblock %}
