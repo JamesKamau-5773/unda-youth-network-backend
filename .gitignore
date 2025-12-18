@@ -1,10 +1,74 @@
+# Environment variables and secrets
 .env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.crt
+*.csr
 
 # Virtual environment
 venv/
+env/
+ENV/
+.venv/
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.Python
+
+# Flask
+instance/
+.webassets-cache
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
 
 # Local notes/data
 todo
 rates
+notes.txt
+scratch.py
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Database backups
+*.dump
+*.sql.gz
+
+# Redis dumps
+dump.rdb
