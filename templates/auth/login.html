@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Unda Youth Network{% endblock %}
+
+{% block extra_css %}
+<style>
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e1b4b 0%, #2563eb 100%);
+    padding: 2rem;
+}
+
+.login-card {
+    background-color: white;
+    border-radius: 1rem;
+    padding: 3rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 440px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.login-brand {
+    margin-bottom: 2rem;
+}
+
+.login-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+}
+
+.login-logo svg {
+    width: 32px;
+    height: 32px;
+    color: white;
+}
+
+.brand-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1e1b4b 0%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.025em;
+    margin-bottom: 0.25rem;
+}
+
+.brand-tagline {
+    font-size: 0.8125rem;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.login-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e1b4b;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.025em;
+}
+
+.login-subtitle {
+    color: #64748b;
+    font-size: 0.9375rem;
+}
+
+.auth-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.auth-form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 0.5rem;
+}
+
+.auth-form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    background-color: #f8fafc;
+}
+
+.auth-form-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.auth-btn-primary {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+}
+
+.auth-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+}
+
+.auth-btn-primary:active {
+    transform: translateY(0);
+}
+
+.credentials-info {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.credentials-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    text-align: center;
+}
+
+.credentials-list {
+    font-size: 0.8125rem;
+    color: #64748b;
+    line-height: 1.8;
+    text-align: center;
+}
+
+.credentials-list strong {
+    color: #334155;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-card">
+    <div class="login-header">
+        <div class="login-brand">
+            <div class="login-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+            </div>
+            <div class="brand-name">Unda Youth Network</div>
+            <div class="brand-tagline">Empowering Communities Through Youth Engagement</div>
+        </div>
+        <h1 class="login-title">Welcome Back</h1>
+        <p class="login-subtitle">Sign in to access your dashboard</p>
+    </div>
+    
+    <form method="POST" action="{{ url_for('auth.login') }}">
+        <div class="auth-form-group">
+            <label for="username" class="auth-form-label">Username</label>
+            <input type="text" class="auth-form-input" id="username" name="username" required autofocus>
+        </div>
+        
+        <div class="auth-form-group">
+            <label for="password" class="auth-form-label">Password</label>
+            <input type="password" class="auth-form-input" id="password" name="password" required>
+        </div>
+        
+        <button type="submit" class="auth-btn-primary">Sign In</button>
+    </form>
+    
+    <div class="credentials-info">
+        <div class="credentials-title">Test Credentials</div>
+        <div class="credentials-list">
+            <strong>Admin:</strong> admin / admin123<br>
+            <strong>Supervisor:</strong> supervisor1 / super123<br>
+            <strong>Champion:</strong> alice / alice123
+        </div>
+    </div>
+</div>
+{% endblock %}

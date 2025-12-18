@@ -2,83 +2,150 @@
 {% block title %}Champion Dashboard{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-	<h2 class="mb-4">Welcome, {{ champion.full_name }}</h2>
-	<p class="text-muted">Assigned ID: <strong>{{ champion.assigned_champion_code }}</strong> | Cohort: {{ champion.assigned_cohort }}</p>
+<div class="dashboard-header">
+	<h1 class="dashboard-title">Welcome, {{ champion.full_name }}</h1>
+	<p class="dashboard-subtitle">
+		<span class="badge badge--primary">{{ champion.assigned_champion_code }}</span>
+		<span class="badge badge--secondary" style="margin-left: 0.5rem;">{{ champion.assigned_cohort }}</span>
+	</p>
+</div>
 
-	<hr>
-    
-	{# Check for pending report status based on current_reporting_date #}
-	{% set report_exists = reports|selectattr('reporting_period', 'eq', current_reporting_date)|list %}
-    
-	{% if not report_exists %}
-	<div class="alert alert-info">
-		<h4>Monthly Report Due: {{ current_reporting_date.strftime('%B %Y') }}</h4>
-		<p>Please submit your operational data to track your impact and support circle.</p>
-        
-		<form method="POST" action="{{ url_for('champion.submit_report') }}" class="card p-3 shadow-sm">
-			<h5 class="card-title">Operational Data Submission</h5>
-            
-			<div class="mb-3">
+{# Check for pending report status #}
+{% set report_exists = reports|selectattr('reporting_period', 'eq', current_reporting_date)|list %}
+
+<!-- Report Submission Status -->
+{% if not report_exists %}
+<div class="alert-card alert-card--warning" style="border-left-width: 4px; margin-bottom: 2rem;">
+	<div class="alert-header">
+		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<circle cx="12" cy="12" r="10"></circle>
+			<line x1="12" y1="8" x2="12" y2="12"></line>
+			<line x1="12" y1="16" x2="12.01" y2="16"></line>
+		</svg>
+		<span class="alert-title">Monthly Report Due: {{ current_reporting_date.strftime('%B %Y') }}</span>
+	</div>
+	<div class="alert-description" style="margin-top: 0.5rem;">
+		Please submit your operational data to track your impact and support circle.
+	</div>
+</div>
+
+<!-- Report Submission Form -->
+<div class="section-header">
+	<h2 class="section-title">Submit Monthly Report</h2>
+	<p class="section-subtitle">Track your operational data and impact metrics</p>
+</div>
+
+<div class="data-card">
+	<form method="POST" action="{{ url_for('champion.submit_report') }}" class="report-form">
+		<div class="form-grid">
+			<div class="form-group">
 				<label for="check_in_rate" class="form-label">Weekly Check-In Completion Rate (%)</label>
-				<input type="number" step="0.01" min="0" max="100" class="form-control" id="check_in_rate" name="check_in_rate" required>
+				<input type="number" step="0.01" min="0" max="100" class="form-input" id="check_in_rate" name="check_in_rate" required>
+				<span class="form-hint">Percentage of completed check-ins this week</span>
 			</div>
-            
-			<div class="mb-3">
-				<label for="screenings_delivered" class="form-label">Monthly Mini-Screenings Delivered (PHQ-2, GAD-2)</label>
-				<input type="number" min="0" class="form-control" id="screenings_delivered" name="screenings_delivered" required>
+			
+			<div class="form-group">
+				<label for="screenings_delivered" class="form-label">Monthly Mini-Screenings Delivered</label>
+				<input type="number" min="0" class="form-input" id="screenings_delivered" name="screenings_delivered" required>
+				<span class="form-hint">PHQ-2, GAD-2 screenings completed</span>
 			</div>
-            
-			<div class="mb-3">
+			
+			<div class="form-group">
 				<label for="referrals_initiated" class="form-label">Referrals Initiated</label>
-				<input type="number" min="0" class="form-control" id="referrals_initiated" name="referrals_initiated" required>
+				<input type="number" min="0" class="form-input" id="referrals_initiated" name="referrals_initiated" required>
+				<span class="form-hint">New referrals to professional care</span>
 			</div>
-            
-			<div class="mb-3">
+			
+			<div class="form-group">
 				<label for="doc_quality" class="form-label">Documentation Quality Score</label>
-				<select class="form-select" id="doc_quality" name="doc_quality" required>
+				<select class="form-input" id="doc_quality" name="doc_quality" required>
+					<option value="">Select quality level</option>
 					<option value="complete">Complete</option>
 					<option value="partial">Partial</option>
 					<option value="incomplete">Incomplete</option>
 				</select>
+				<span class="form-hint">Self-assessment of record completeness</span>
 			</div>
-            
-			<div class="mb-3">
-				<label for="wellbeing_check" class="form-label">Self-Reported Wellbeing Check (Monthly)</label>
-				<textarea class="form-control" id="wellbeing_check" name="wellbeing_check" rows="2" placeholder="Briefly describe your current wellbeing status."></textarea>
-			</div>
-            
-			<button type="submit" class="btn btn-primary">Submit Monthly Report</button>
-		</form>
-	</div>
-	{% else %}
-	<div class="alert alert-success">
-		Report for {{ current_reporting_date.strftime('%B %Y') }} has already been submitted. Thank you!
-	</div>
-	{% endif %}
-
-	<h4 class="mt-5">Recent Submissions</h4>
-	<table class="table table-striped">
-		<thead>
-			<tr>
-				<th>Period</th>
-				<th>Check-In Rate (%)</th>
-				<th>Screenings</th>
-				<th>Referrals</th>
-				<th>Quality Score</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for report in reports %}
-			<tr>
-				<td>{{ report.reporting_period.strftime('%Y-%m') }}</td>
-				<td>{{ report.weekly_check_in_completion_rate|default('N/A') }}</td>
-				<td>{{ report.monthly_mini_screenings_delivered|default('0') }}</td>
-				<td>{{ report.referrals_initiated|default('0') }}</td>
-				<td>{{ report.documentation_quality_score|default('N/A') }}</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
+		</div>
+		
+		<div class="form-group" style="margin-top: 1.5rem;">
+			<label for="wellbeing_check" class="form-label">Self-Reported Wellbeing Check (Monthly)</label>
+			<textarea class="form-input" id="wellbeing_check" name="wellbeing_check" rows="3" placeholder="Briefly describe your current wellbeing status..."></textarea>
+			<span class="form-hint">Your personal wellbeing and support needs</span>
+		</div>
+		
+		<div style="margin-top: 2rem;">
+			<button type="submit" class="submit-button">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+					<polyline points="17 21 17 13 7 13 7 21"></polyline>
+					<polyline points="7 3 7 8 15 8"></polyline>
+				</svg>
+				Submit Monthly Report
+			</button>
+		</div>
+	</form>
 </div>
+{% else %}
+<div class="safety-section safety-section--success">
+	<h3 class="safety-section-title">
+		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+			<path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
+			<polyline points="22 4 12 14.01 9 11.01"></polyline>
+		</svg>
+		Report Submitted Successfully
+	</h3>
+	<p class="safety-section-text">Your report for {{ current_reporting_date.strftime('%B %Y') }} has been submitted. Thank you for your timely contribution!</p>
+</div>
+{% endif %}
+
+<!-- Recent Submissions -->
+<div class="section-header" style="margin-top: 3rem;">
+	<h2 class="section-title">Recent Submissions</h2>
+	<p class="section-subtitle">Your historical reporting data</p>
+</div>
+
+<div class="data-card">
+	<div class="data-table-container">
+		<table class="data-table">
+			<thead>
+				<tr>
+					<th>Reporting Period</th>
+					<th class="text-right">Check-In Rate</th>
+					<th class="text-right">Screenings</th>
+					<th class="text-right">Referrals</th>
+					<th>Quality Score</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for report in reports %}
+				<tr>
+					<td><span class="badge badge--secondary">{{ report.reporting_period.strftime('%B %Y') }}</span></td>
+					<td class="text-right">
+						<span class="metric-badge">{{ report.weekly_check_in_completion_rate|default('N/A') }}{% if report.weekly_check_in_completion_rate %}%{% endif %}</span>
+					</td>
+					<td class="text-right">
+						<span class="metric-badge">{{ report.monthly_mini_screenings_delivered|default('0') }}</span>
+					</td>
+					<td class="text-right">
+						<span class="metric-badge">{{ report.referrals_initiated|default('0') }}</span>
+					</td>
+					<td>
+						{% if report.documentation_quality_score == 'complete' %}
+							<span class="badge badge--success">Complete</span>
+						{% elif report.documentation_quality_score == 'partial' %}
+							<span class="badge badge--warning">Partial</span>
+						{% elif report.documentation_quality_score == 'incomplete' %}
+							<span class="badge badge--danger">Incomplete</span>
+						{% else %}
+							<span class="badge badge--secondary">N/A</span>
+						{% endif %}
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+
 {% endblock %}
