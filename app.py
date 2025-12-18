@@ -90,6 +90,6 @@ def create_app(test_config=None):
 if __name__ == '__main__':
     app, limiter = create_app()
     app.run(debug=True)
-
-# For Flask CLI commands (flask db init, etc.)
-app, _ = create_app()
+else:
+    # For Flask CLI commands (flask db init, etc.)
+    app, _ = create_app()

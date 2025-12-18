@@ -2,35 +2,79 @@
 {% block title %}Supervisor Dashboard{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-	<h2 class="mb-3">Supervisor Dashboard</h2>
-	<p class="text-muted">Only champions assigned to you are visible below.</p>
-
-	{% if champions %}
-	<table class="table table-striped">
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Cohort</th>
-				<th>Champion Code</th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for champion in champions %}
-			<tr>
-				<td>{{ champion.full_name }}</td>
-				<td>{{ champion.assigned_cohort }}</td>
-				<td>{{ champion.assigned_champion_code }}</td>
-				<td>
-					<a class="btn btn-sm btn-primary" href="{{ url_for('supervisor.review_champion', champion_id=champion.champion_id) }}">Open</a>
-				</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-	{% else %}
-		<div class="alert alert-info">No champions assigned to you yet.</div>
-	{% endif %}
+<div class="dashboard-header">
+	<h1 class="dashboard-title">Supervisor Dashboard</h1>
+	<p class="dashboard-subtitle">Manage and monitor your assigned champions</p>
 </div>
+
+<!-- Quick Stats -->
+<div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+	<div class="metric-card metric-card--primary">
+		<div class="metric-icon">
+			<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+				<circle cx="9" cy="7" r="4"></circle>
+				<path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
+			</svg>
+		</div>
+		<div class="metric-content">
+			<div class="metric-label">Total Champions</div>
+			<div class="metric-value">{{ champions|length }}</div>
+			<div class="metric-description">Under supervision</div>
+		</div>
+	</div>
+</div>
+
+<!-- Champions Table -->
+<div class="section-header">
+	<h2 class="section-title">Your Champions</h2>
+	<p class="section-subtitle">View and manage champion performance</p>
+</div>
+
+{% if champions %}
+<div class="data-card">
+	<div class="data-table-container">
+		<table class="data-table">
+			<thead>
+				<tr>
+					<th>Champion Name</th>
+					<th>Champion Code</th>
+					<th>Cohort</th>
+					<th class="text-right">Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for champion in champions %}
+				<tr>
+					<td class="font-medium">{{ champion.full_name }}</td>
+					<td><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
+					<td><span class="badge badge--secondary">{{ champion.assigned_cohort }}</span></td>
+					<td class="text-right">
+						<a class="action-button action-button--primary" href="{{ url_for('supervisor.review_champion', champion_id=champion.champion_id) }}">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+								<circle cx="12" cy="12" r="3"></circle>
+							</svg>
+							Review
+						</a>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+{% else %}
+<div class="data-card">
+	<div class="empty-state">
+		<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+			<circle cx="9" cy="7" r="4"></circle>
+			<path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
+		</svg>
+		<p class="empty-state-text">No champions assigned to you yet</p>
+	</div>
+</div>
+{% endif %}
+
 {% endblock %}
