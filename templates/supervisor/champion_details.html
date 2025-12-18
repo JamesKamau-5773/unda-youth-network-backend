@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Champion Review{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+	<a href="{{ url_for('supervisor.dashboard') }}" class="btn btn-link">← Back to dashboard</a>
+	<h2 class="mb-1">{{ champion.full_name }}</h2>
+	<p class="text-muted">Code: <strong>{{ champion.assigned_champion_code }}</strong> | Cohort: {{ champion.assigned_cohort }}</p>
+
+	<hr>
+
+	<div class="row">
+		<div class="col-md-8">
+			<h4 class="mt-3">Operational Reports</h4>
+			{% if history %}
+			<div class="accordion" id="reportAccordion">
+				{% for report in history %}
+				<div class="card mb-2">
+					<div class="card-header" id="heading{{ loop.index }}">
+						<h5 class="mb-0 d-flex justify-content-between align-items-center">
+							<span>{{ report.reporting_period.strftime('%B %Y') }}</span>
+							<small class="text-muted">Referrals Initiated: {{ report.referrals_initiated or 0 }}</small>
+						</h5>
+					</div>
+					<div class="card-body">
+						<div class="row mb-3">
+							<div class="col-sm-4"><strong>Check-In Completion:</strong> {{ report.weekly_check_in_completion_rate or 'N/A' }}%</div>
+							<div class="col-sm-4"><strong>Mini-Screenings:</strong> {{ report.monthly_mini_screenings_delivered or 0 }}</div>
+							<div class="col-sm-4"><strong>Documentation Quality:</strong> {{ report.documentation_quality_score or 'Unrated' }}</div>
+						</div>
+						<div class="mb-3">
+							<strong>Wellbeing Check:</strong>
+							<div class="border rounded p-2 bg-light">{{ report.self_reported_wellbeing_check or 'No entry' }}</div>
+						</div>
+
+						<form method="POST" class="mb-3">
+							<input type="hidden" name="action" value="update_notes">
+							<input type="hidden" name="report_id" value="{{ report.support_id }}">
+							<label class="form-label">Supervisor Notes (follow-up / safeguarding)</label>
+							<textarea name="notes" class="form-control" rows="2" placeholder="Log follow-up actions or concerns">{{ report.supervisor_notes or '' }}</textarea>
+							<div class="mt-2 text-end">
+								<button class="btn btn-secondary btn-sm" type="submit">Save Notes</button>
+							</div>
+						</form>
+
+						<form method="POST" class="mb-2">
+							<input type="hidden" name="action" value="update_quality">
+							<input type="hidden" name="report_id" value="{{ report.support_id }}">
+							<label class="form-label">Documentation Quality Score</label>
+							<select class="form-select" name="doc_quality" required>
+								<option value="">Select score</option>
+								{% for option in ['complete','partial','incomplete'] %}
+									<option value="{{ option }}" {% if report.documentation_quality_score == option %}selected{% endif %}>{{ option|capitalize }}</option>
+								{% endfor %}
+							</select>
+							<div class="mt-2 text-end">
+								<button class="btn btn-primary btn-sm" type="submit">Update Quality</button>
+							</div>
+						</form>
+					</div>
+				</div>
+				{% endfor %}
+			</div>
+			{% else %}
+				<div class="alert alert-info">No reports submitted yet.</div>
+			{% endif %}
+		</div>
+
+		<div class="col-md-4">
+			<h4 class="mt-3">Referral Pathways</h4>
+			<form method="POST" class="card p-3 shadow-sm mb-3">
+				<input type="hidden" name="action" value="add_referral">
+				<div class="mb-2">
+					<label class="form-label">Youth Referred (number)</label>
+					<input type="number" min="0" class="form-control" name="youth_referred_number" placeholder="e.g., {{ history[0].referrals_initiated if history else 0 }}">
+				</div>
+				<div class="mb-2">
+					<label class="form-label">Referral Destination</label>
+					<input type="text" class="form-control" name="referral_destination" placeholder="Partner therapist / service">
+				</div>
+				<div class="mb-2">
+					<label class="form-label">Referral Outcome</label>
+					<select class="form-select" name="referral_outcome">
+						<option value="">Select outcome</option>
+						<option value="Attended">Attended</option>
+						<option value="Pending">Pending</option>
+						<option value="Declined">Declined</option>
+					</select>
+				</div>
+				<div class="text-end">
+					<button class="btn btn-primary btn-sm" type="submit">Add Referral</button>
+				</div>
+			</form>
+
+			{% if referrals %}
+			<ul class="list-group">
+				{% for referral in referrals %}
+				<li class="list-group-item">
+					<div class="d-flex justify-content-between">
+						<span>{{ referral.date_initiated.strftime('%Y-%m-%d') }}</span>
+						<span class="badge bg-secondary">{{ referral.referal_outcomes or 'Pending' }}</span>
+					</div>
+					<div><strong>Destination:</strong> {{ referral.referral_destinations or 'N/A' }}</div>
+					<div><strong>Youth referred:</strong> {{ referral.youth_referred_number or 0 }}</div>
+				</li>
+				{% endfor %}
+			</ul>
+			{% else %}
+				<div class="alert alert-light border">No referral pathways recorded yet.</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock %}
