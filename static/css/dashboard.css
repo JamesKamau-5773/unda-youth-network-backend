@@ -13,6 +13,11 @@
     --text-secondary: #64748b;
     --text-muted: #94a3b8;
     
+    /* Improved Sidebar Colors (WCAG AA Compliant) */
+    --sidebar-text: rgba(255, 255, 255, 0.95);
+    --sidebar-text-hover: #ffffff;
+    --sidebar-text-muted: rgba(255, 255, 255, 0.75);
+    
     /* Status Colors - Unda Blue Variations */
     --status-certified: #2563eb;
     --status-pending: #60a5fa;
@@ -44,9 +49,15 @@
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     
     /* Sidebar */
     --sidebar-width: 260px;
+    
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ========================================
@@ -70,6 +81,33 @@ body {
 }
 
 /* ========================================
+   Focus Management (Accessibility)
+   ======================================== */
+
+/* Remove default outline for mouse users */
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Enhanced focus for keyboard users */
+*:focus-visible {
+    outline: 3px solid var(--trust-blue);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* Special focus styles for interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid var(--trust-blue);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+/* ========================================
    Layout Architecture
    ======================================== */
 
@@ -82,15 +120,17 @@ body {
 .sidebar {
     width: var(--sidebar-width);
     background-color: var(--deep-navy);
-    color: var(--white);
+    color: var(--sidebar-text);
     padding: var(--spacing-xl) var(--spacing-lg);
     position: fixed;
     left: 0;
     top: 0;
     height: 100vh;
     overflow-y: auto;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
     z-index: 1000;
+    transition: transform var(--transition-base);
+    will-change: transform;
 }
 
 .sidebar-logo {
@@ -99,6 +139,50 @@ body {
     margin-bottom: var(--spacing-2xl);
     color: var(--white);
     letter-spacing: -0.025em;
+}
+
+/* Mobile Sidebar Toggle */
+.sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    z-index: 1001;
+    background: var(--deep-navy);
+    color: var(--white);
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-fast);
+}
+
+.sidebar-toggle:hover {
+    background: var(--trust-blue);
+    transform: scale(1.05);
+}
+
+.sidebar-toggle:active {
+    transform: scale(0.95);
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
 }
 
 .sidebar-nav {
@@ -113,22 +197,26 @@ body {
     display: flex;
     align-items: center;
     padding: var(--spacing-sm) var(--spacing-md);
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--sidebar-text);
     text-decoration: none;
     border-radius: var(--border-radius);
-    transition: all 0.2s ease;
+    transition: all var(--transition-fast);
     font-weight: 500;
     min-height: 44px; /* Touch-friendly minimum */
+    transform: translateZ(0);
+    will-change: background-color, transform;
 }
 
 .sidebar-nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--white);
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--sidebar-text-hover);
+    transform: translateX(4px) translateZ(0);
 }
 
 .sidebar-nav-link.active {
     background-color: var(--trust-blue);
     color: var(--white);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 /* Touch-friendly interaction */
@@ -144,12 +232,12 @@ body {
 .sidebar-user {
     margin-top: auto;
     padding-top: var(--spacing-xl);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .sidebar-user-name {
     font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--sidebar-text-muted);
 }
 
 /* Main Content Area */
@@ -211,12 +299,14 @@ body {
     padding: var(--spacing-xl);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-color);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    transform: translateZ(0);
+    will-change: transform, box-shadow;
 }
 
 .metric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px) translateZ(0);
+    box-shadow: var(--shadow-xl);
 }
 
 .metric-card-label {
@@ -1032,8 +1122,10 @@ select.form-input {
     font-weight: 500;
     border-radius: var(--border-radius);
     text-decoration: none;
-    transition: all 0.15s ease;
+    transition: all var(--transition-fast);
     border: 1px solid transparent;
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .action-button--primary {
@@ -1045,7 +1137,7 @@ select.form-input {
 .action-button--primary:hover {
     background: #1d4ed8;
     border-color: #1d4ed8;
-    transform: translateY(-1px);
+    transform: translateY(-2px) translateZ(0);
     box-shadow: var(--shadow-md);
 }
 
@@ -1078,17 +1170,19 @@ select.form-input {
     border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base);
     box-shadow: var(--shadow-sm);
+    transform: translateZ(0);
+    will-change: transform, box-shadow;
 }
 
 .submit-button:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) translateZ(0);
     box-shadow: var(--shadow-lg);
 }
 
 .submit-button:active {
-    transform: translateY(0);
+    transform: translateY(0) translateZ(0);
 }
 
 .submit-button svg {
@@ -1149,49 +1243,36 @@ select.form-input {
    ======================================== */
 
 @media (max-width: 768px) {
-    /* Layout adjustments */
-    .dashboard-layout {
-        flex-direction: column;
-    }
-    
+    /* Mobile Sidebar Drawer */
     .sidebar {
-        width: 100%;
-        height: auto;
-        position: sticky;
-        top: 0;
-        padding: var(--spacing-lg) var(--spacing-md);
-        z-index: 1000;
+        transform: translateX(-100%);
+        width: 280px;
+        box-shadow: var(--shadow-xl);
     }
     
-    .sidebar-logo {
-        font-size: 1.25rem;
-        margin-bottom: var(--spacing-lg);
+    .sidebar.active {
+        transform: translateX(0);
     }
     
-    .sidebar-nav {
+    .sidebar-toggle {
         display: flex;
-        flex-wrap: wrap;
-        gap: var(--spacing-xs);
+        align-items: center;
+        justify-content: center;
     }
     
-    .sidebar-nav-item {
-        flex: 0 0 auto;
+    .sidebar-overlay {
+        display: block;
     }
     
-    .sidebar-nav-link {
-        padding: var(--spacing-xs) var(--spacing-md);
-        font-size: 0.875rem;
-    }
-    
-    .sidebar-user {
-        margin-top: var(--spacing-lg);
-        padding-top: var(--spacing-md);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    .sidebar-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
     }
     
     .main-content {
         margin-left: 0;
-        padding: var(--spacing-md);
+        padding: calc(var(--spacing-md) + 64px) var(--spacing-md) var(--spacing-md);
+        width: 100%;
     }
     
     /* Dashboard header */
