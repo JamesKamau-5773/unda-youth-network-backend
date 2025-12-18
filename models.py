@@ -64,6 +64,15 @@ class Champion(db.Model):
   recruitment_source = db.Column(db.String(100))
   assigned_cohort = db.Column(db.String(100))
 
+  # CONSENT & LEGAL COMPLIANCE
+  consent_obtained = db.Column(db.Boolean, default=False)
+  consent_date = db.Column(db.Date)
+  consent_document_link = db.Column(db.String(500))  # URL/path to signed consent form
+  legal_guardian_name = db.Column(db.String(255))  # if applicable for minors or institutional consent
+  institution_name = db.Column(db.String(255))  # school or church name
+  institution_consent_obtained = db.Column(db.Boolean, default=False)
+  institution_consent_date = db.Column(db.Date)
+
   #Relationships to data tables
   support_records = db.relationship('YouthSupport', backref='champion', lazy='dynamic')
   training_records = db.relationship('TrainingRecord', backref='champion', lazy='dynamic')
@@ -119,7 +128,32 @@ class RefferalPathway(db.Model):
   referral_destinations = db.Column(db.String(255))
   referal_outcomes = db.Column(db.String(50))
   flag_to_referral_days = db.Column(db.Integer)  # SLA measurement from flag to referral
-  feedback_from_service_provider = db.Column(db.Text) 
+  feedback_from_service_provider = db.Column(db.Text)
+
+
+class AccessAuditLog(db.Model):
+  """Tracks who accessed sensitive champion data for privacy compliance."""
+  __tablename__ = 'access_audit_logs'
+  log_id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='CASCADE'))
+  action = db.Column(db.String(100), nullable=False)  # e.g. 'viewed_profile', 'edited_report'
+  timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+  ip_address = db.Column(db.String(50))
+  details = db.Column(db.Text)  # additional context
+
+
+def get_champions_needing_refresher(days_ahead=30):
+  """Return champions whose next_refresher_due_date is within `days_ahead` days."""
+  from datetime import timedelta
+  cutoff = date.today() + timedelta(days=days_ahead)
+  return (
+    db.session.query(Champion, TrainingRecord)
+    .join(TrainingRecord, Champion.champion_id == TrainingRecord.champion_id)
+    .filter(TrainingRecord.next_refresher_due_date <= cutoff)
+    .filter(TrainingRecord.next_refresher_due_date >= date.today())
+    .all()
+  ) 
 
 
 
