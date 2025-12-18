@@ -25,7 +25,10 @@
             </svg>
         </div>
         <div class="metric-content">
-            <div class="metric-label">Active Champions</div>
+            <div class="metric-label">
+                Active Champions
+                <span class="tooltip-trigger" data-tooltip="Champions currently engaged in youth support activities with 'Active' status">?</span>
+            </div>
             <div class="metric-value">{{ active_champions }}</div>
             <div class="metric-description">Currently supporting youth</div>
         </div>
@@ -72,7 +75,10 @@
             </svg>
         </div>
         <div class="metric-content">
-            <div class="metric-label">Screening Completion</div>
+            <div class="metric-label">
+                Screening Completion
+                <span class="tooltip-trigger" data-tooltip="Percentage of champions who completed initial assessment and background checks">?</span>
+            </div>
             <div class="metric-value">{{ avg_screening_completion_rate }}%</div>
             <div class="metric-description">Background checks & assessments</div>
         </div>
@@ -90,7 +96,10 @@
             </svg>
         </div>
         <div class="metric-content">
-            <div class="metric-label">Check-In Completion</div>
+            <div class="metric-label">
+                Check-In Completion
+                <span class="tooltip-trigger" data-tooltip="Average percentage of weekly youth check-ins completed by champions">?</span>
+            </div>
             <div class="metric-value">{{ avg_check_in }}%</div>
             <div class="metric-description">Youth support records</div>
         </div>
@@ -106,7 +115,10 @@
             </svg>
         </div>
         <div class="metric-content">
-            <div class="metric-label">Referral Conversion</div>
+            <div class="metric-label">
+                Referral Conversion
+                <span class="tooltip-trigger" data-tooltip="Percentage of flagged concerns that resulted in professional care referrals">?</span>
+            </div>
             <div class="metric-value">{{ conversion_rate }}%</div>
             <div class="metric-description">Flag to professional care</div>
         </div>
@@ -121,7 +133,10 @@
             </svg>
         </div>
         <div class="metric-content">
-            <div class="metric-label">Training Compliance</div>
+            <div class="metric-label">
+                Training Compliance
+                <span class="tooltip-trigger" data-tooltip="Percentage of champions who completed mandatory training modules and have valid certifications">?</span>
+            </div>
             <div class="metric-value">{{ training_compliance_rate }}%</div>
             <div class="metric-description">{{ champions_with_core_training }}/{{ total_champions }} certified champions</div>
         </div>
@@ -139,7 +154,10 @@
             </svg>
         </div>
         <div class="metric-content">
-            <div class="metric-label">Youth Satisfaction</div>
+            <div class="metric-label">
+                Youth Satisfaction
+                <span class="tooltip-trigger" data-tooltip="Average youth feedback score from quarterly wellbeing assessments (1-10 scale)">?</span>
+            </div>
             <div class="metric-value">{{ quarterly_satisfaction }}<span style="font-size: 1.5rem; font-weight: 400;">/10</span></div>
             <div class="metric-description">Quarterly wellbeing score</div>
         </div>
@@ -185,6 +203,26 @@
 </div>
 
 <div class="data-card">
+    {% if youth_per_champion|length == 0 %}
+    <div class="empty-state">
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
+        </svg>
+        <div class="empty-state-title">No Champions Yet</div>
+        <div class="empty-state-text">
+            Start building your network by registering champions who will support youth in their communities.
+        </div>
+        <a href="{{ url_for('auth.register') }}" class="empty-state-action">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Register First Champion
+        </a>
+    </div>
+    {% else %}
     <div class="data-table-container">
         <table class="data-table">
             <thead>
@@ -207,6 +245,7 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
 </div>
 
 <!-- Recruitment Analytics -->
