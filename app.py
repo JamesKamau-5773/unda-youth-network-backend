@@ -52,7 +52,9 @@ def create_app(test_config=None):
     from blueprints.admin import admin_bp
     app.register_blueprint(admin_bp, url_prefix='/admin')
     from blueprints.champion import champion_bp
-    app.register_blueprint(champion_bp)
+    app.register_blueprint(champion_bp, url_prefix='/champion')
+    from blueprints.supervisor import supervisor_bp
+    app.register_blueprint(supervisor_bp, url_prefix='/supervisor')
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Unda Youth Network{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    
+    <!-- System Summary Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="h4 mb-3">System Summary (Calculated Data)</h2>
+        </div>
+        
+        <!-- Average Check-In Completion Rate -->
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Average Check-In Completion Rate</h5>
+                    <p class="display-4">{{ avg_check_in }}%</p>
+                    <p class="text-muted">Based on all current youth support records</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Referral Conversion Rate -->
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Referral Conversion Rate</h5>
+                    <p class="display-4">{{ conversion_rate }}%</p>
+                    <p class="text-muted">Youth who reached professional care after being flagged</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Training Compliance Rate -->
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Training Compliance Rate</h5>
+                    <p class="display-4">{{ training_compliance_rate }}%</p>
+                    <p class="text-muted">Champions with "Certified" status</p>
+                    <small>Core Training (Safeguarding & Referrals): {{ champions_with_core_training }}/{{ total_champions }} champions</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Program Impact Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="h4 mb-3">Program Impact Metrics</h2>
+        </div>
+        
+        <!-- Quarterly Satisfaction Score -->
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quarterly Satisfaction Score</h5>
+                    <p class="display-4">{{ quarterly_satisfaction }}/10</p>
+                    <p class="text-muted">Average youth feedback score (self-reported wellbeing)</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Clinical Reliability -->
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Average Flag-to-Referral Time</h5>
+                    <p class="display-4">{{ avg_flag_to_referral }} days</p>
+                    <p class="text-muted">Clinical reliability: Time from red flag to completed referral</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Youth Reached per Champion -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="h4 mb-3">Total Youth Reached per Champion</h2>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Champion Code</th>
+                                <th>Full Name</th>
+                                <th>Total Youth Reached</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for champion in youth_per_champion %}
+                            <tr>
+                                <td>{{ champion.assigned_champion_code }}</td>
+                                <td>{{ champion.full_name }}</td>
+                                <td>{{ champion.total_youth }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operational Clarity - Recruitment Sources -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="h4 mb-3">Operational Clarity: Recruitment Sources</h2>
+            <div class="card">
+                <div class="card-body">
+                    <p class="text-muted">Which recruitment sources provide the most active champions</p>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Recruitment Source</th>
+                                <th>Number of Champions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for source in recruitment_sources %}
+                            <tr>
+                                <td>{{ source.recruitment_source or 'Not Specified' }}</td>
+                                <td>{{ source.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compliance Alerts -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="h4 mb-3">Compliance & Training Alerts</h2>
+        </div>
+        
+        <!-- Consent Compliance -->
+        <div class="col-md-6 mb-3">
+            <div class="card {% if champions_missing_consent > 0 %}border-warning{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">Personal Consent Missing</h5>
+                    <p class="display-4">{{ champions_missing_consent }}</p>
+                    <p class="text-muted">Champions without personal consent</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Institution Consent -->
+        <div class="col-md-6 mb-3">
+            <div class="card {% if champions_missing_institution > 0 %}border-warning{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">Institution Consent Missing</h5>
+                    <p class="display-4">{{ champions_missing_institution }}</p>
+                    <p class="text-muted">Champions without institution consent</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Refresher Alerts -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="h4 mb-3">Training Refresher Alerts (Next 30 Days)</h2>
+            <div class="card">
+                <div class="card-body">
+                    {% if upcoming_refreshers %}
+                    <table class="table table-warning">
+                        <thead>
+                            <tr>
+                                <th>Champion</th>
+                                <th>Training Module</th>
+                                <th>Next Refresher Due</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for champion, training in upcoming_refreshers %}
+                            <tr>
+                                <td>{{ champion.full_name }} ({{ champion.assigned_champion_code }})</td>
+                                <td>{{ training.training_module }}</td>
+                                <td>{{ training.next_refresher_due_date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-success">All champions are up to date with their training refreshers.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Program Sustainability Statement -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <h4 class="alert-heading">Data Safe Environment</h4>
+                <p>The Unda Youth Network operates within a secure, privacy-compliant framework that protects sensitive adolescent information while demonstrating measurable program impact to donors and clinical partners.</p>
+                <hr>
+                <p class="mb-0"><strong>Total Champions:</strong> {{ total_champions }} | <strong>Active Referrals:</strong> Tracked with {{ avg_flag_to_referral }} day average response time</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
