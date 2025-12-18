@@ -19,7 +19,7 @@ def create_app(test_config=None):
     app.config['SECRET_KEY'] = os.environ.get(
         'SECRET_KEY', 'default_secret_key')
     app.config.setdefault('SQLALCHEMY_DATABASE_URI', os.environ.get(
-        'DATABASE_URL', 'sqlite:///unda.db'))
+        'DATABASE_URL', 'postgresql://james:james@localhost/unda_db'))
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config.setdefault('RATELIMIT_STORAGE_URL', os.environ.get(
         'REDIS_URL', 'redis://localhost:6379'))

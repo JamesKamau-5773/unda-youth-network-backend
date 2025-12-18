@@ -11,8 +11,9 @@ def seed_data():
     
     with app.app_context():
         print("Clearing existing data...")
-        db.drop_all()
-        db.create_all()
+        # Disable foreign key checks for PostgreSQL to handle circular dependencies
+        db.session.execute(db.text('TRUNCATE users, champions, youth_supports, training_records, refferal_pathways, access_audit_logs RESTART IDENTITY CASCADE;'))
+        db.session.commit()
         
         print("Creating users...")
         # Admin user
