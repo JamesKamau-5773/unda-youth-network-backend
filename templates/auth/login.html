@@ -180,7 +180,7 @@
         <p class="login-subtitle">Sign in to access your dashboard</p>
     </div>
     
-    <form method="POST" action="{{ url_for('auth.login') }}">
+    <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="auth-form-group">
             <label for="username" class="auth-form-label">Username</label>
@@ -194,6 +194,41 @@
         
         <button type="submit" class="auth-btn-primary">Sign In</button>
     </form>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginForm = document.getElementById('loginForm');
+        
+        // Add real-time validation
+        if (usernameInput && window.addValidationToField) {
+            addValidationToField(usernameInput, validateUsername);
+        }
+        
+        if (passwordInput && window.addValidationToField) {
+            addValidationToField(passwordInput, (value) => {
+                if (!value || value.trim() === '') {
+                    return { valid: false, message: 'Password is required' };
+                }
+                return { valid: true, message: '' };
+            });
+        }
+        
+        // Show toast on form submission errors
+        loginForm.addEventListener('submit', function(e) {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            if (!username || !password) {
+                e.preventDefault();
+                if (window.showToast) {
+                    showToast('Please fill in all fields', 'error', 'Login Error');
+                }
+            }
+        });
+    });
+    </script>
     
     <div class="credentials-info">
         <div class="credentials-title">Test Credentials</div>

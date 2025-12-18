@@ -18,7 +18,10 @@
 			</svg>
 		</div>
 		<div class="metric-content">
-			<div class="metric-label">Total Champions</div>
+			<div class="metric-label">
+				Total Champions
+				<span class="tooltip-trigger" data-tooltip="Number of champions currently assigned to you for supervision and performance monitoring">?</span>
+			</div>
 			<div class="metric-value">{{ champions|length }}</div>
 			<div class="metric-description">Under supervision</div>
 		</div>
@@ -67,12 +70,22 @@
 {% else %}
 <div class="data-card">
 	<div class="empty-state">
-		<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+		<svg class="empty-state-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 			<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
 			<circle cx="9" cy="7" r="4"></circle>
 			<path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
 		</svg>
-		<p class="empty-state-text">No champions assigned to you yet</p>
+		<div class="empty-state-title">No Champions Assigned Yet</div>
+		<p class="empty-state-text">
+			You don't have any champions assigned to you for supervision. 
+			Champions will appear here once they are assigned by an administrator.
+		</p>
+		<a href="{{ url_for('admin.dashboard') }}" class="empty-state-action">
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M3 12h18M12 5l7 7-7 7"></path>
+			</svg>
+			Go to Admin Dashboard
+		</a>
 	</div>
 </div>
 {% endif %}

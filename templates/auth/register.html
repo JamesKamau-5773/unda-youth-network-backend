@@ -134,7 +134,7 @@
         <p class="register-subtitle">Create a new account for the Unda Youth Network</p>
     </div>
     
-    <form method="POST" action="{{ url_for('auth.register') }}">
+    <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="register-form-group">
             <label for="username" class="register-form-label">Username</label>
@@ -171,10 +171,29 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
+    const roleSelect = document.getElementById('role');
     const strengthBar = document.getElementById('strengthBar');
     const strengthText = document.getElementById('strengthText');
+    const registerForm = document.getElementById('registerForm');
     
+    // Add validation to username
+    if (usernameInput && window.addValidationToField) {
+        addValidationToField(usernameInput, validateUsername);
+    }
+    
+    // Add validation to role
+    if (roleSelect && window.addValidationToField) {
+        addValidationToField(roleSelect, (value) => {
+            if (!value || value === '') {
+                return { valid: false, message: 'Please select a role' };
+            }
+            return { valid: true, message: '' };
+        });
+    }
+    
+    // Password strength indicator with validation
     if (passwordInput && strengthBar && strengthText) {
         passwordInput.addEventListener('input', function() {
             const password = this.value;
@@ -217,6 +236,54 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             strengthText.textContent = feedback;
+        });
+    }
+    
+    // Form submission validation
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+            const role = roleSelect.value;
+            
+            // Validate username
+            const usernameResult = window.validateUsername ? validateUsername(username) : { valid: true };
+            if (!usernameResult.valid) {
+                e.preventDefault();
+                if (window.showToast) {
+                    showToast(usernameResult.message, 'error', 'Validation Error');
+                }
+                return;
+            }
+            
+            // Validate password strength
+            const hasLength = password.length >= 8;
+            const hasUpper = /[A-Z]/.test(password);
+            const hasLower = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSpecial = /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password);
+            
+            if (!hasLength || !hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+                e.preventDefault();
+                if (window.showToast) {
+                    showToast('Password must meet all requirements', 'error', 'Weak Password');
+                }
+                return;
+            }
+            
+            // Validate role
+            if (!role || role === '') {
+                e.preventDefault();
+                if (window.showToast) {
+                    showToast('Please select a role', 'error', 'Validation Error');
+                }
+                return;
+            }
+            
+            // Success toast
+            if (window.showToast) {
+                showToast('Creating user account...', 'info', 'Processing');
+            }
         });
     }
 });
