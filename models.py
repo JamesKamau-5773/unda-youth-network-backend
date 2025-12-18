@@ -53,16 +53,32 @@ class Champion(db.Model):
   #Personal & Contact information
   full_name = db.Column(db.String(255), nullable=False)
   gender = db.Column(db.String(20), nullable=False)
-  date_of_birth = db.Column(db.Date )
+  date_of_birth = db.Column(db.Date)
   phone_number = db.Column(db.String(20), unique=True, nullable=False)
+  alternative_phone_number = db.Column(db.String(20))
   email = db.Column(db.String(100), unique=True, nullable=False)
   county_sub_county = db.Column(db.String(100))
   assigned_champion_code = db.Column(db.String(20), unique=True, nullable=False)
+  
+  # Emergency Contacts
+  emergency_contact_name = db.Column(db.String(255))
+  emergency_contact_relationship = db.Column(db.String(100))
+  emergency_contact_phone = db.Column(db.String(20))
+
+  # EDUCATION & OCCUPATION
+  current_education_level = db.Column(db.String(100))  # High School, TVET, College, University, Graduate
+  education_institution_name = db.Column(db.String(255))
+  course_field_of_study = db.Column(db.String(255))
+  year_of_study = db.Column(db.String(50))
+  workplace_organization = db.Column(db.String(255))  # If out of school
 
   #UMV PROGRAM ENROLLMENT DATA
   date_of_application = db.Column(db.Date)
-  recruitment_source = db.Column(db.String(100))
+  recruitment_source = db.Column(db.String(100))  # Campus Edition, Mtaani, Referral, Social Media
+  application_status = db.Column(db.String(50), default='Pending')  # Pending, Shortlisted, Recruited, Dropped
+  screening_status = db.Column(db.String(100))  # Initial Assessment Completed / Missing
   assigned_cohort = db.Column(db.String(100))
+  champion_status = db.Column(db.String(50), default='Active')  # Active, Inactive, On Hold
 
   # CONSENT & LEGAL COMPLIANCE
   consent_obtained = db.Column(db.Boolean, default=False)
@@ -77,6 +93,14 @@ class Champion(db.Model):
   support_records = db.relationship('YouthSupport', backref='champion', lazy='dynamic')
   training_records = db.relationship('TrainingRecord', backref='champion', lazy='dynamic')
   refferal_pathways = db.relationship('RefferalPathway', backref='champion', lazy='dynamic')
+  
+  @property
+  def age(self):
+    """Calculate age from date of birth."""
+    if self.date_of_birth:
+      today = date.today()
+      return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
+    return None
 
 
 class TrainingRecord(db.Model):
@@ -85,7 +109,10 @@ class TrainingRecord(db.Model):
   champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='CASCADE'), nullable=False)
   training_module = db.Column(db.String(255), nullable=False)
   training_date = db.Column(db.Date)
+  trainer_name = db.Column(db.String(255))
+  training_location = db.Column(db.String(255))
   certification_status = db.Column(db.String(50))
+  certificate_number = db.Column(db.String(100))
   next_refresher_due_date = db.Column(db.Date)
 
   __table_args__ = (db.UniqueConstraint('champion_id', 'training_module', name='_champion_module_uc'),)
@@ -97,21 +124,37 @@ class YouthSupport(db.Model):
   champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='CASCADE'), nullable=False)
   reporting_period = db.Column(db.Date, nullable=False, default=datetime.utcnow)  
 
-  #OPERATIONAL DATA
+  #ROLE ASSIGNMENTS & OPERATIONAL DATA
+  assigned_youth_group_cluster = db.Column(db.String(255))
+  number_of_youth_under_support = db.Column(db.Integer)
+  check_in_frequency = db.Column(db.String(50))  # Daily, Weekly, Bi-weekly
   weekly_check_in_completion_rate = db.Column(db.Numeric(5,2))
   monthly_mini_screenings_delivered = db.Column(db.Integer)
   referrals_initiated = db.Column(db.Integer)
+  follow_up_actions_completed = db.Column(db.Integer)
+  engagement_style = db.Column(db.String(100))  # one-on-one, small group, digital circles
 
   # FLAGGING & SAFEGUARDING
   flag_timestamp = db.Column(db.DateTime)  # when champion raised a flag/referral need
 
-  #PERFOMANCE & ENGAGEMENT METRICS
+  #PERFORMANCE & ENGAGEMENT METRICS
   documentation_quality_score = db.Column(db.String(50))
+  attendance_monthly_forums_percent = db.Column(db.Numeric(5,2))
+  participation_in_umv_events = db.Column(db.Text)  # JSON or text list of events
+  youth_feedback_score = db.Column(db.Numeric(3,2))  # Quarterly score
+  peer_champion_rating = db.Column(db.Numeric(3,2))  # Internal scoring
+  outstanding_contributions = db.Column(db.Text)
+  flags_and_concerns_logged = db.Column(db.Text)  # lateness, absenteeism, breach
 
   #SAFEGUARDING & WELLBEING MONITORING
+  safeguarding_training_completed = db.Column(db.Boolean, default=False)
   self_reported_wellbeing_check = db.Column(db.Integer)
+  availability_for_duty = db.Column(db.Boolean, default=True)
+  reported_incidents = db.Column(db.Text)
   supervisor_notes = db.Column(db.Text)
   safeguarding_notes = db.Column(db.Text)  # confidential supervisor-only notes
+  referral_escalation_made = db.Column(db.Boolean, default=False)
+  follow_up_status = db.Column(db.String(100))
 
   __table_args__ = (db.UniqueConstraint('champion_id', 'reporting_period', name='_champion_period_uc'),)
 

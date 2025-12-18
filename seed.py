@@ -39,16 +39,31 @@ def seed_data():
             gender='Female',
             date_of_birth=date(1998, 5, 15),
             phone_number='+254700123456',
+            alternative_phone_number='+254711111111',
             email='alice.wanjiru@example.com',
             county_sub_county='Nairobi/Westlands',
             assigned_champion_code='CH001',
+            # Emergency Contacts
+            emergency_contact_name='Jane Wanjiru',
+            emergency_contact_relationship='Mother',
+            emergency_contact_phone='+254722222222',
+            # Education & Occupation
+            current_education_level='University',
+            education_institution_name='University of Nairobi',
+            course_field_of_study='Psychology',
+            year_of_study='Year 3',
+            # Enrollment Data
             date_of_application=date(2024, 1, 10),
-            recruitment_source='Community Health Worker',
+            recruitment_source='Campus Edition',
+            application_status='Recruited',
+            screening_status='Initial Assessment Completed',
             assigned_cohort='Cohort 2024-A',
+            champion_status='Active',
+            # Consent & Legal
             consent_obtained=True,
             consent_date=date(2024, 1, 15),
             consent_document_link='/documents/consent_ch001.pdf',
-            institution_name='St. Mary\'s School',
+            institution_name='University of Nairobi',
             institution_consent_obtained=True,
             institution_consent_date=date(2024, 1, 20)
         )
@@ -60,12 +75,27 @@ def seed_data():
             gender='Male',
             date_of_birth=date(1999, 8, 22),
             phone_number='+254700234567',
+            alternative_phone_number='+254733333333',
             email='brian.ochieng@example.com',
             county_sub_county='Kisumu/Kisumu East',
             assigned_champion_code='CH002',
+            # Emergency Contacts
+            emergency_contact_name='Peter Ochieng',
+            emergency_contact_relationship='Father',
+            emergency_contact_phone='+254744444444',
+            # Education & Occupation
+            current_education_level='College',
+            education_institution_name='Kisumu Technical College',
+            course_field_of_study='Community Development',
+            year_of_study='Year 2',
+            # Enrollment Data
             date_of_application=date(2024, 2, 5),
-            recruitment_source='Church Partnership',
+            recruitment_source='Mtaani',
+            application_status='Recruited',
+            screening_status='Initial Assessment Completed',
             assigned_cohort='Cohort 2024-A',
+            champion_status='Active',
+            # Consent & Legal
             consent_obtained=True,
             consent_date=date(2024, 2, 10),
             consent_document_link='/documents/consent_ch002.pdf',
@@ -80,13 +110,28 @@ def seed_data():
             gender='Female',
             date_of_birth=date(1997, 11, 30),
             phone_number='+254700345678',
+            alternative_phone_number='+254755555555',
             email='catherine.muthoni@example.com',
             county_sub_county='Nakuru/Nakuru West',
             assigned_champion_code='CH003',
+            # Emergency Contacts
+            emergency_contact_name='Mary Muthoni',
+            emergency_contact_relationship='Sister',
+            emergency_contact_phone='+254766666666',
+            # Education & Occupation
+            current_education_level='High School Graduate',
+            education_institution_name='Hope Secondary School',
+            course_field_of_study='N/A',
+            workplace_organization='Nakuru Youth Center',
+            # Enrollment Data
             date_of_application=date(2024, 1, 20),
-            recruitment_source='NGO Referral',
+            recruitment_source='Referral',
+            application_status='Recruited',
+            screening_status='Background Check Completed',
             assigned_cohort='Cohort 2024-B',
-            consent_obtained=False,  # Missing consent
+            champion_status='On Hold',  # On Hold status for variety
+            # Consent & Legal
+            consent_obtained=False,  # Missing consent - to be followed up
             institution_name='Hope Secondary School',
             institution_consent_obtained=True,
             institution_consent_date=date(2024, 2, 1)
@@ -123,7 +168,10 @@ def seed_data():
             training_module='Safeguarding & Child Protection',
             training_date=date(2024, 1, 25),
             certification_status='Certified',
-            next_refresher_due_date=date.today() + timedelta(days=15)  # Due soon
+            next_refresher_due_date=date.today() + timedelta(days=15),  # Due soon
+            trainer_name='Dr. Sarah Johnson',
+            training_location='Nairobi Training Center',
+            certificate_number='CERT-2024-001'
         )
         db.session.add(training1)
         
@@ -132,7 +180,10 @@ def seed_data():
             training_module='Mental Health First Aid',
             training_date=date(2024, 2, 10),
             certification_status='Certified',
-            next_refresher_due_date=date.today() + timedelta(days=90)
+            next_refresher_due_date=date.today() + timedelta(days=90),
+            trainer_name='Prof. Michael Otieno',
+            training_location='Virtual',
+            certificate_number='CERT-2024-002'
         )
         db.session.add(training2)
         
@@ -142,7 +193,10 @@ def seed_data():
             training_module='Safeguarding & Child Protection',
             training_date=date(2024, 2, 15),
             certification_status='Certified',
-            next_refresher_due_date=date.today() + timedelta(days=5)  # Urgent
+            next_refresher_due_date=date.today() + timedelta(days=5),  # Urgent
+            trainer_name='Dr. Sarah Johnson',
+            training_location='Kisumu Regional Center',
+            certificate_number='CERT-2024-003'
         )
         db.session.add(training3)
         
@@ -152,7 +206,10 @@ def seed_data():
             training_module='Safeguarding & Child Protection',
             training_date=date(2024, 1, 30),
             certification_status='Pending',
-            next_refresher_due_date=date.today() + timedelta(days=120)
+            next_refresher_due_date=date.today() + timedelta(days=120),
+            trainer_name='Ms. Grace Wanjiku',
+            training_location='Nakuru Training Hub',
+            certificate_number=None  # Pending certification
         )
         db.session.add(training4)
         
@@ -169,7 +226,26 @@ def seed_data():
             flag_timestamp=datetime(2024, 11, 12, 10, 30),
             documentation_quality_score='complete',
             self_reported_wellbeing_check=8,
-            supervisor_notes='Excellent performance. Consistently meeting targets.'
+            supervisor_notes='Excellent performance. Consistently meeting targets.',
+            # Operational Fields
+            assigned_youth_group_cluster='Nairobi Central',
+            number_of_youth_under_support=18,
+            check_in_frequency='Weekly',
+            follow_up_actions_completed=15,
+            engagement_style='One-on-one + group sessions',
+            # Performance Metrics
+            attendance_monthly_forums_percent=95.0,
+            participation_in_umv_events=8,
+            youth_feedback_score=4.5,
+            peer_champion_rating=4.8,
+            outstanding_contributions='Led 3 community workshops on mental health awareness',
+            flags_and_concerns_logged=1,
+            # Safeguarding & Compliance
+            safeguarding_training_completed=True,
+            availability_for_duty=True,
+            reported_incidents=0,
+            referral_escalation_made=True,
+            follow_up_status='Completed'
         )
         db.session.add(report1)
         
@@ -181,7 +257,26 @@ def seed_data():
             referrals_initiated=2,
             flag_timestamp=datetime.utcnow(),
             documentation_quality_score='complete',
-            self_reported_wellbeing_check=7
+            self_reported_wellbeing_check=7,
+            # Operational Fields
+            assigned_youth_group_cluster='Nairobi Central',
+            number_of_youth_under_support=18,
+            check_in_frequency='Weekly',
+            follow_up_actions_completed=10,
+            engagement_style='One-on-one',
+            # Performance Metrics
+            attendance_monthly_forums_percent=90.0,
+            participation_in_umv_events=6,
+            youth_feedback_score=4.3,
+            peer_champion_rating=4.6,
+            outstanding_contributions='Organized peer support group',
+            flags_and_concerns_logged=2,
+            # Safeguarding & Compliance
+            safeguarding_training_completed=True,
+            availability_for_duty=True,
+            reported_incidents=0,
+            referral_escalation_made=True,
+            follow_up_status='In Progress'
         )
         db.session.add(report2)
         
@@ -196,7 +291,26 @@ def seed_data():
             documentation_quality_score='partial',
             self_reported_wellbeing_check=5,
             supervisor_notes='Needs support with documentation. Follow-up scheduled.',
-            safeguarding_notes='Champion reported feeling overwhelmed. Monitoring closely.'
+            safeguarding_notes='Champion reported feeling overwhelmed. Monitoring closely.',
+            # Operational Fields
+            assigned_youth_group_cluster='Kisumu East',
+            number_of_youth_under_support=12,
+            check_in_frequency='Bi-weekly',
+            follow_up_actions_completed=5,
+            engagement_style='Small group sessions',
+            # Performance Metrics
+            attendance_monthly_forums_percent=70.0,
+            participation_in_umv_events=4,
+            youth_feedback_score=3.8,
+            peer_champion_rating=4.0,
+            outstanding_contributions='Engaged 2 new youth groups',
+            flags_and_concerns_logged=3,
+            # Safeguarding & Compliance
+            safeguarding_training_completed=True,
+            availability_for_duty=True,
+            reported_incidents=1,
+            referral_escalation_made=False,
+            follow_up_status='Pending'
         )
         db.session.add(report3)
         
@@ -209,7 +323,26 @@ def seed_data():
             referrals_initiated=4,
             flag_timestamp=datetime(2024, 11, 8, 9, 0),
             documentation_quality_score='complete',
-            self_reported_wellbeing_check=9
+            self_reported_wellbeing_check=9,
+            # Operational Fields
+            assigned_youth_group_cluster='Nakuru West',
+            number_of_youth_under_support=15,
+            check_in_frequency='Weekly',
+            follow_up_actions_completed=16,
+            engagement_style='Mixed (one-on-one and group)',
+            # Performance Metrics
+            attendance_monthly_forums_percent=98.0,
+            participation_in_umv_events=10,
+            youth_feedback_score=4.9,
+            peer_champion_rating=5.0,
+            outstanding_contributions='Developed youth mentorship program',
+            flags_and_concerns_logged=0,
+            # Safeguarding & Compliance
+            safeguarding_training_completed=False,  # On hold, training pending
+            availability_for_duty=False,  # On hold status
+            reported_incidents=0,
+            referral_escalation_made=True,
+            follow_up_status='Completed'
         )
         db.session.add(report4)
         
