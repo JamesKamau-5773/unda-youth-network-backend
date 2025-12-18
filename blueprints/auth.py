@@ -91,18 +91,21 @@ def logout():
 @login_required
 @admin_required
 def admin_dashboard():
-    return render_template('admin/dashboard.html') if False else 'Admin dashboard'
+    # Redirect to the actual admin dashboard
+    return redirect(url_for('admin.dashboard'))
 
 
 @auth_bp.route('/supervisor/dashboard')
 @login_required
 @supervisor_required
 def supervisor_dashboard():
-    return render_template('supervisor/dashboard.html') if False else 'Supervisor dashboard'
+    # Redirect to the actual supervisor dashboard
+    return redirect(url_for('supervisor.dashboard'))
 
 
 @auth_bp.route('/champion/dashboard')
 @login_required
 @champion_required
 def champion_dashboard():
-    return render_template('champion/dashboard.html') if False else 'Champion dashboard'
+    # Redirect to the actual champion dashboard
+    return redirect(url_for('champion.dashboard'))
