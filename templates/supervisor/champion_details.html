@@ -2,124 +2,243 @@
 {% block title %}Champion Review{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-	<a href="{{ url_for('supervisor.dashboard') }}" class="btn btn-link">← Back to dashboard</a>
-	<h2 class="mb-1">{{ champion.full_name }}</h2>
-	<p class="text-muted">Code: <strong>{{ champion.assigned_champion_code }}</strong> | Cohort: {{ champion.assigned_cohort }}</p>
+<div style="margin-bottom: 1.5rem;">
+	<a href="{{ url_for('supervisor.dashboard') }}" class="action-button" style="background: transparent; color: var(--trust-blue); padding: 0.5rem 0;">
+		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<line x1="19" y1="12" x2="5" y2="12"></line>
+			<polyline points="12 19 5 12 12 5"></polyline>
+		</svg>
+		Back to Dashboard
+	</a>
+</div>
 
-	<hr>
+<div class="dashboard-header">
+	<h1 class="dashboard-title">{{ champion.full_name }}</h1>
+	<p class="dashboard-subtitle">
+		<span class="badge badge--primary">{{ champion.assigned_champion_code }}</span>
+		<span class="badge badge--secondary" style="margin-left: 0.5rem;">{{ champion.assigned_cohort }}</span>
+	</p>
+</div>
 
-	<div class="row">
-		<div class="col-md-8">
-			<h4 class="mt-3">Operational Reports</h4>
-			{% if history %}
-			<div class="accordion" id="reportAccordion">
-				{% for report in history %}
-				<div class="card mb-2">
-					<div class="card-header" id="heading{{ loop.index }}">
-						<h5 class="mb-0 d-flex justify-content-between align-items-center">
-							<span>{{ report.reporting_period.strftime('%B %Y') }}</span>
-							<small class="text-muted">Referrals Initiated: {{ report.referrals_initiated or 0 }}</small>
-						</h5>
+<!-- Content Grid -->
+<div style="display: grid; grid-template-columns: 1fr 380px; gap: 2rem; align-items: start;">
+	<!-- Operational Reports -->
+	<div>
+		<div class="section-header">
+			<h2 class="section-title">Operational Reports</h2>
+			<p class="section-subtitle">Monthly submissions and performance tracking</p>
+		</div>
+		
+		{% if history %}
+		<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+			{% for report in history %}
+			<div class="data-card">
+				<div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: var(--clean-bg);">
+					<div style="display: flex; justify-content: space-between; align-items: center;">
+						<h3 style="font-size: 1.125rem; font-weight: 600; margin: 0;">{{ report.reporting_period.strftime('%B %Y') }}</h3>
+						<span class="badge badge--primary">{{ report.referrals_initiated or 0 }} Referrals</span>
 					</div>
-					<div class="card-body">
-						<div class="row mb-3">
-							<div class="col-sm-4"><strong>Check-In Completion:</strong> {{ report.weekly_check_in_completion_rate or 'N/A' }}%</div>
-							<div class="col-sm-4"><strong>Mini-Screenings:</strong> {{ report.monthly_mini_screenings_delivered or 0 }}</div>
-							<div class="col-sm-4"><strong>Documentation Quality:</strong> {{ report.documentation_quality_score or 'Unrated' }}</div>
+				</div>
+				
+				<div style="padding: 1.5rem;">
+					<!-- Metrics Grid -->
+					<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+						<div>
+							<div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Check-In Rate</div>
+							<div style="font-size: 1.5rem; font-weight: 700; color: var(--trust-blue);">{{ report.weekly_check_in_completion_rate or 'N/A' }}{% if report.weekly_check_in_completion_rate %}%{% endif %}</div>
 						</div>
-						<div class="mb-3">
-							<strong>Wellbeing Check:</strong>
-							<div class="border rounded p-2 bg-light">{{ report.self_reported_wellbeing_check or 'No entry' }}</div>
+						<div>
+							<div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Screenings</div>
+							<div style="font-size: 1.5rem; font-weight: 700; color: var(--status-certified);">{{ report.monthly_mini_screenings_delivered or 0 }}</div>
 						</div>
-
-						<form method="POST" class="mb-3">
-							<input type="hidden" name="action" value="update_safeguarding">
-							<input type="hidden" name="report_id" value="{{ report.support_id }}">
-							<label class="form-label">Safeguarding Notes (confidential)</label>
-							<textarea name="safeguarding_notes" class="form-control" rows="2" placeholder="Record safeguarding context or actions; visible to supervisors/admins only.">{{ report.safeguarding_notes or '' }}</textarea>
-							<div class="mt-2 text-end">
-								<button class="btn btn-warning btn-sm" type="submit">Save Safeguarding Notes</button>
+						<div>
+							<div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Quality Score</div>
+							<div style="font-size: 1rem; font-weight: 600;">
+								{% if report.documentation_quality_score == 'complete' %}
+									<span class="badge badge--success">Complete</span>
+								{% elif report.documentation_quality_score == 'partial' %}
+									<span class="badge badge--warning">Partial</span>
+								{% else %}
+									<span class="badge badge--secondary">{{ report.documentation_quality_score or 'Unrated' }}</span>
+								{% endif %}
 							</div>
-						</form>
+						</div>
+					</div>
+					
+					<!-- Wellbeing Check -->
+					<div style="margin-bottom: 1.5rem;">
+						<div style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Wellbeing Check</div>
+						<div style="padding: 1rem; background: var(--clean-bg); border-radius: var(--border-radius); color: var(--text-secondary); font-size: 0.9375rem;">
+							{{ report.self_reported_wellbeing_check or 'No entry provided' }}
+						</div>
+					</div>
 
-						<form method="POST" class="mb-3">
-							<input type="hidden" name="action" value="update_notes">
-							<input type="hidden" name="report_id" value="{{ report.support_id }}">
-							<label class="form-label">Supervisor Notes (follow-up / safeguarding)</label>
-							<textarea name="notes" class="form-control" rows="2" placeholder="Log follow-up actions or concerns">{{ report.supervisor_notes or '' }}</textarea>
-							<div class="mt-2 text-end">
-								<button class="btn btn-secondary btn-sm" type="submit">Save Notes</button>
-							</div>
-						</form>
+					<!-- Safeguarding Notes Form -->
+					<form method="POST" style="margin-bottom: 1.5rem;">
+						<input type="hidden" name="action" value="update_safeguarding">
+						<input type="hidden" name="report_id" value="{{ report.support_id }}">
+						<div class="form-group">
+							<label class="form-label">Safeguarding Notes (Confidential)</label>
+							<textarea name="safeguarding_notes" class="form-input" rows="2" placeholder="Record safeguarding context or actions; visible to supervisors/admins only.">{{ report.safeguarding_notes or '' }}</textarea>
+						</div>
+						<div style="margin-top: 0.75rem;">
+							<button class="action-button action-button--warning" type="submit">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+									<polyline points="17 21 17 13 7 13 7 21"></polyline>
+									<polyline points="7 3 7 8 15 8"></polyline>
+								</svg>
+								Save Safeguarding Notes
+							</button>
+						</div>
+					</form>
 
-						<form method="POST" class="mb-2">
-							<input type="hidden" name="action" value="update_quality">
-							<input type="hidden" name="report_id" value="{{ report.support_id }}">
-							<label class="form-label">Documentation Quality Score</label>
-							<select class="form-select" name="doc_quality" required>
+					<!-- Supervisor Notes Form -->
+					<form method="POST" style="margin-bottom: 1.5rem;">
+						<input type="hidden" name="action" value="update_notes">
+						<input type="hidden" name="report_id" value="{{ report.support_id }}">
+						<div class="form-group">
+							<label class="form-label">Supervisor Notes</label>
+							<textarea name="notes" class="form-input" rows="2" placeholder="Log follow-up actions or concerns">{{ report.supervisor_notes or '' }}</textarea>
+						</div>
+						<div style="margin-top: 0.75rem;">
+							<button class="action-button" style="background: #64748b; color: white; border-color: #64748b;" type="submit">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+									<polyline points="17 21 17 13 7 13 7 21"></polyline>
+									<polyline points="7 3 7 8 15 8"></polyline>
+								</svg>
+								Save Notes
+							</button>
+						</div>
+					</form>
+
+					<!-- Quality Score Update -->
+					<form method="POST">
+						<input type="hidden" name="action" value="update_quality">
+						<input type="hidden" name="report_id" value="{{ report.support_id }}">
+						<div class="form-group">
+							<label class="form-label">Update Documentation Quality</label>
+							<select class="form-input" name="doc_quality" required>
 								<option value="">Select score</option>
 								{% for option in ['complete','partial','incomplete'] %}
 									<option value="{{ option }}" {% if report.documentation_quality_score == option %}selected{% endif %}>{{ option|capitalize }}</option>
 								{% endfor %}
 							</select>
-							<div class="mt-2 text-end">
-								<button class="btn btn-primary btn-sm" type="submit">Update Quality</button>
-							</div>
-						</form>
-					</div>
+						</div>
+						<div style="margin-top: 0.75rem;">
+							<button class="action-button action-button--primary" type="submit">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<polyline points="20 6 9 17 4 12"></polyline>
+								</svg>
+								Update Quality Score
+							</button>
+						</div>
+					</form>
 				</div>
-				{% endfor %}
 			</div>
-			{% else %}
-				<div class="alert alert-info">No reports submitted yet.</div>
-			{% endif %}
+			{% endfor %}
 		</div>
+		{% else %}
+		<div class="data-card">
+			<div class="empty-state">
+				<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+					<polyline points="14 2 14 8 20 8"></polyline>
+					<line x1="16" y1="13" x2="8" y2="13"></line>
+					<line x1="16" y1="17" x2="8" y2="17"></line>
+					<polyline points="10 9 9 9 8 9"></polyline>
+				</svg>
+				<p class="empty-state-text">No reports submitted yet</p>
+			</div>
+		</div>
+		{% endif %}
+	</div>
 
-		<div class="col-md-4">
-			<h4 class="mt-3">Referral Pathways</h4>
-			<form method="POST" class="card p-3 shadow-sm mb-3">
+	<!-- Referral Pathways Sidebar -->
+	<div style="position: sticky; top: 2rem;">
+		<div class="section-header" style="margin-bottom: 1rem;">
+			<h2 class="section-title" style="font-size: 1.25rem;">Referral Pathways</h2>
+		</div>
+		
+		<div class="data-card" style="margin-bottom: 1.5rem;">
+			<form method="POST" class="report-form" style="padding: 1.5rem;">
 				<input type="hidden" name="action" value="add_referral">
-				<div class="mb-2">
-					<label class="form-label">Youth Referred (number)</label>
-					<input type="number" min="0" class="form-control" name="youth_referred_number" placeholder="e.g., {{ history[0].referrals_initiated if history else 0 }}">
+				<div class="form-group">
+					<label class="form-label">Youth Referred</label>
+					<input type="number" min="0" class="form-input" name="youth_referred_number" placeholder="Number of youth">
 				</div>
-				<div class="mb-2">
+				<div class="form-group">
 					<label class="form-label">Referral Destination</label>
-					<input type="text" class="form-control" name="referral_destination" placeholder="Partner therapist / service">
+					<input type="text" class="form-input" name="referral_destination" placeholder="Partner therapist / service">
 				</div>
-				<div class="mb-2">
+				<div class="form-group">
 					<label class="form-label">Referral Outcome</label>
-					<select class="form-select" name="referral_outcome">
+					<select class="form-input" name="referral_outcome">
 						<option value="">Select outcome</option>
 						<option value="Attended">Attended</option>
 						<option value="Pending">Pending</option>
 						<option value="Declined">Declined</option>
 					</select>
 				</div>
-				<div class="text-end">
-					<button class="btn btn-primary btn-sm" type="submit">Add Referral</button>
-				</div>
+				<button class="submit-button" style="width: 100%; justify-content: center; margin-top: 0.5rem;" type="submit">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<line x1="12" y1="5" x2="12" y2="19"></line>
+						<line x1="5" y1="12" x2="19" y2="12"></line>
+					</svg>
+					Add Referral
+				</button>
 			</form>
-
-			{% if referrals %}
-			<ul class="list-group">
-				{% for referral in referrals %}
-				<li class="list-group-item">
-					<div class="d-flex justify-content-between">
-						<span>{{ referral.date_initiated.strftime('%Y-%m-%d') }}</span>
-						<span class="badge bg-secondary">{{ referral.referal_outcomes or 'Pending' }}</span>
-					</div>
-					<div><strong>Destination:</strong> {{ referral.referral_destinations or 'N/A' }}</div>
-					<div><strong>Youth referred:</strong> {{ referral.youth_referred_number or 0 }}</div>
-					<div><strong>Flag → Referral (days):</strong> {{ referral.flag_to_referral_days if referral.flag_to_referral_days is not none else 'N/A' }}</div>
-				</li>
-				{% endfor %}
-			</ul>
-			{% else %}
-				<div class="alert alert-light border">No referral pathways recorded yet.</div>
-			{% endif %}
 		</div>
+
+		<!-- Referral List -->
+		{% if referrals %}
+		<div style="display: flex; flex-direction: column; gap: 0.75rem;">
+			{% for referral in referrals %}
+			<div class="data-card">
+				<div style="padding: 1rem;">
+					<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+						<span style="font-size: 0.8125rem; color: var(--text-secondary);">{{ referral.date_initiated.strftime('%Y-%m-%d') }}</span>
+						{% if referral.referal_outcomes == 'Attended' %}
+							<span class="badge badge--success">{{ referral.referal_outcomes }}</span>
+						{% elif referral.referal_outcomes == 'Pending' %}
+							<span class="badge badge--warning">{{ referral.referal_outcomes or 'Pending' }}</span>
+						{% else %}
+							<span class="badge badge--danger">{{ referral.referal_outcomes or 'Pending' }}</span>
+						{% endif %}
+					</div>
+					<div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem;">
+						<div>
+							<span style="color: var(--text-secondary);">Destination:</span>
+							<span style="font-weight: 500; color: var(--text-primary);">{{ referral.referral_destinations or 'N/A' }}</span>
+						</div>
+						<div>
+							<span style="color: var(--text-secondary);">Youth Referred:</span>
+							<span class="metric-badge" style="min-width: 28px; height: 20px; font-size: 0.75rem;">{{ referral.youth_referred_number or 0 }}</span>
+						</div>
+						<div>
+							<span style="color: var(--text-secondary);">Response Time:</span>
+							<span style="font-weight: 500; color: var(--text-primary);">{{ referral.flag_to_referral_days if referral.flag_to_referral_days is not none else 'N/A' }} days</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+		{% else %}
+		<div class="data-card">
+			<div class="empty-state" style="padding: 1.5rem;">
+				<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 0.5rem;">
+					<path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+					<circle cx="8.5" cy="7" r="4"></circle>
+					<line x1="20" y1="8" x2="20" y2="14"></line>
+					<line x1="23" y1="11" x2="17" y2="11"></line>
+				</svg>
+				<p class="empty-state-text" style="font-size: 0.875rem;">No referral pathways recorded yet</p>
+			</div>
+		</div>
+		{% endif %}
 	</div>
 </div>
+
 {% endblock %}
