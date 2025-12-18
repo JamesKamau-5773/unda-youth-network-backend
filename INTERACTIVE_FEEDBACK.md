@@ -101,14 +101,14 @@ Password: [SecurePass123!]
 
 **Example**:
 ```
-     👥
+     [Icon]
 No Champions Assigned Yet
 
 You don't have any champions assigned to you 
 for supervision. Champions will appear here 
 once they are assigned by an administrator.
 
-[→ Go to Admin Dashboard]
+[Go to Admin Dashboard]
 ```
 
 ## Technical Implementation
