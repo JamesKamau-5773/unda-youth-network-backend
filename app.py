@@ -3,6 +3,7 @@ import os
 from flask import Flask, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_migrate import Migrate
 from extensions import limiter
 from dotenv import load_dotenv
 
@@ -18,7 +19,7 @@ def create_app(test_config=None):
     app.config['SECRET_KEY'] = os.environ.get(
         'SECRET_KEY', 'default_secret_key')
     app.config.setdefault('SQLALCHEMY_DATABASE_URI', os.environ.get(
-        'DATABASE_URL', 'postgresql://user:password@localhost/unda_db'))
+        'DATABASE_URL', 'sqlite:///unda.db'))
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config.setdefault('RATELIMIT_STORAGE_URL', os.environ.get(
         'REDIS_URL', 'redis://localhost:6379'))
@@ -78,11 +79,8 @@ def create_app(test_config=None):
     app.register_blueprint(main_bp)    
 
     # --- Database Setup/Migration ---
-    with app.app_context():
-        # This creates tables based on models.py if they don't exist
-        # For production, use a dedicated migration tool like Flask-Migrate/Alembic
-        db.create_all()
-        print("Database tables created successfully.")
+    # Initialize Flask-Migrate for database migrations
+    migrate = Migrate(app, db)
 
     return app, limiter
 
@@ -90,3 +88,6 @@ def create_app(test_config=None):
 if __name__ == '__main__':
     app, limiter = create_app()
     app.run(debug=True)
+
+# For Flask CLI commands (flask db init, etc.)
+app, _ = create_app()
