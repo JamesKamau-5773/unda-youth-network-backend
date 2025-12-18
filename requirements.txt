@@ -6,4 +6,5 @@ Flask-Login
 Flask-Limiter[redis]   # Using Redis for robust rate limiting storage
 Flask-Bcrypt           # For strong password hashing
 Flask-Migrate          # Database migrations
+Flask-WTF              # CSRF protection
 python-dotenv

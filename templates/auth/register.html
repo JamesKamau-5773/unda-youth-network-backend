@@ -135,6 +135,7 @@
     </div>
     
     <form method="POST" action="{{ url_for('auth.register') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="register-form-group">
             <label for="username" class="register-form-label">Username</label>
             <input type="text" class="register-form-input" id="username" name="username" required autofocus>
@@ -143,7 +144,7 @@
         <div class="register-form-group">
             <label for="password" class="register-form-label">Password</label>
             <input type="password" class="register-form-input" id="password" name="password" required>
-            <div class="role-hint">Must be at least 6 characters long</div>
+            <div class="role-hint">Must be at least 8 characters with uppercase, lowercase, number, and special character</div>
         </div>
         
         <div class="register-form-group">
