@@ -80,7 +80,7 @@ Unda Youth Network is a professional platform designed to support youth mental h
 - **SVG Icons**: Scalable vector graphics for crisp visuals
 - **Responsive Grid/Flexbox**: Modern CSS layout techniques
 
-### Database Schema (33+ Fields Extended)
+### Database Schema 
 - **Users Table**: Authentication and role management with champion linkage
 - **Champions Table**: Comprehensive champion profiles with:
   - Personal data (full_name, date_of_birth, gender, phone, alternative phone, email)
