@@ -34,6 +34,16 @@
 						</div>
 
 						<form method="POST" class="mb-3">
+							<input type="hidden" name="action" value="update_safeguarding">
+							<input type="hidden" name="report_id" value="{{ report.support_id }}">
+							<label class="form-label">Safeguarding Notes (confidential)</label>
+							<textarea name="safeguarding_notes" class="form-control" rows="2" placeholder="Record safeguarding context or actions; visible to supervisors/admins only.">{{ report.safeguarding_notes or '' }}</textarea>
+							<div class="mt-2 text-end">
+								<button class="btn btn-warning btn-sm" type="submit">Save Safeguarding Notes</button>
+							</div>
+						</form>
+
+						<form method="POST" class="mb-3">
 							<input type="hidden" name="action" value="update_notes">
 							<input type="hidden" name="report_id" value="{{ report.support_id }}">
 							<label class="form-label">Supervisor Notes (follow-up / safeguarding)</label>
@@ -102,6 +112,7 @@
 					</div>
 					<div><strong>Destination:</strong> {{ referral.referral_destinations or 'N/A' }}</div>
 					<div><strong>Youth referred:</strong> {{ referral.youth_referred_number or 0 }}</div>
+					<div><strong>Flag → Referral (days):</strong> {{ referral.flag_to_referral_days if referral.flag_to_referral_days is not none else 'N/A' }}</div>
 				</li>
 				{% endfor %}
 			</ul>

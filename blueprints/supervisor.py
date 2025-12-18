@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from models import db, Champion, YouthSupport, RefferalPathway
@@ -55,6 +56,16 @@ def review_champion(champion_id):
       else:
         abort(403, 'Unauthorized access to report')
 
+    elif action == 'update_safeguarding':
+      report_id = request.form.get('report_id')
+      report = YouthSupport.query.get(report_id)
+      if report and report.champion_id == champion_id:
+        report.safeguarding_notes = request.form.get('safeguarding_notes')
+        db.session.commit()
+        flash('Safeguarding notes saved.', 'success')
+      else:
+        abort(403, 'Unauthorized access to report')
+
     elif action == 'update_quality':
       report_id = request.form.get('report_id')
       report = YouthSupport.query.get(report_id)
@@ -71,12 +82,23 @@ def review_champion(champion_id):
       outcome = request.form.get('referral_outcome')
       youth_number = request.form.get('youth_referred_number')
 
+      latest_flag = (
+        YouthSupport.query
+        .filter(YouthSupport.champion_id == champion_id, YouthSupport.flag_timestamp.isnot(None))
+        .order_by(YouthSupport.flag_timestamp.desc())
+        .first()
+      )
+
       new_referral = RefferalPathway(
         champion_id=champion_id,
         youth_referred_number=int(youth_number) if youth_number else None,
         referral_destinations=destination,
         referal_outcomes=outcome,
       )
+
+      if latest_flag and latest_flag.flag_timestamp:
+        delta = datetime.utcnow().date() - latest_flag.flag_timestamp.date()
+        new_referral.flag_to_referral_days = delta.days
       db.session.add(new_referral)
       db.session.commit()
       flash('Referral pathway recorded.', 'success')

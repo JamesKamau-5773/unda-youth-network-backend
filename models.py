@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, date
 from bcrypt import hashpw, gensalt, checkpw
 
 
@@ -93,12 +93,16 @@ class YouthSupport(db.Model):
   monthly_mini_screenings_delivered = db.Column(db.Integer)
   referrals_initiated = db.Column(db.Integer)
 
+  # FLAGGING & SAFEGUARDING
+  flag_timestamp = db.Column(db.DateTime)  # when champion raised a flag/referral need
+
   #PERFOMANCE & ENGAGEMENT METRICS
   documentation_quality_score = db.Column(db.String(50))
 
   #SAFEGUARDING & WELLBEING MONITORING
   self_reported_wellbeing_check = db.Column(db.Integer)
   supervisor_notes = db.Column(db.Text)
+  safeguarding_notes = db.Column(db.Text)  # confidential supervisor-only notes
 
   __table_args__ = (db.UniqueConstraint('champion_id', 'reporting_period', name='_champion_period_uc'),)
 
@@ -114,6 +118,7 @@ class RefferalPathway(db.Model):
   referral_reasons = db.Column(db.Text)
   referral_destinations = db.Column(db.String(255))
   referal_outcomes = db.Column(db.String(50))
+  flag_to_referral_days = db.Column(db.Integer)  # SLA measurement from flag to referral
   feedback_from_service_provider = db.Column(db.Text) 
 
 
