@@ -37,6 +37,7 @@
 
 <div class="data-card">
 	<form method="POST" action="{{ url_for('champion.submit_report') }}" class="report-form">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 		<div class="form-grid">
 			<div class="form-group">
 				<label for="check_in_rate" class="form-label">Weekly Check-In Completion Rate (%)</label>
