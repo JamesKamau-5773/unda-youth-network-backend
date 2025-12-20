@@ -1,10 +1,12 @@
-Flask
-SQLAlchemy
-Flask-SQLAlchemy
-psycopg2-binary        # PostgreSQL adapter
-Flask-Login
-Flask-Limiter[redis]   # Using Redis for robust rate limiting storage
-Flask-Bcrypt           # For strong password hashing
-Flask-Migrate          # Database migrations
-Flask-WTF              # CSRF protection
-python-dotenv
+Flask==2.3.3
+SQLAlchemy==2.0.21
+Flask-SQLAlchemy==3.0.5
+psycopg2-binary==2.9.7        # PostgreSQL adapter
+Flask-Login==0.6.2
+Flask-Limiter[redis]==3.5.0   # Using Redis for robust rate limiting storage
+Flask-Bcrypt==1.0.1           # For strong password hashing
+Flask-Migrate==4.0.5          # Database migrations
+Flask-WTF==1.1.1              # CSRF protection
+python-dotenv==1.0.0
+gunicorn==21.2.0              # Production-grade WSGI server
+redis==5.0.0                  # Redis client for rate limiting
