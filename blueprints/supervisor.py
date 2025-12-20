@@ -14,9 +14,48 @@ def dashboard():
   # SECURITY FILTER: Only fetch champions assigned to this supervisor
   managed_ids = current_user.supervised_champion_ids or []
 
-  champions = Champion.query.filter(Champion.champion_id.in_(managed_ids)).all() if managed_ids else []
+  # Base query
+  query = Champion.query.filter(Champion.champion_id.in_(managed_ids)) if managed_ids else Champion.query.filter_by(champion_id=-1)
+  
+  # ADVANCED FILTERING
+  filter_status = request.args.get('status')
+  filter_risk = request.args.get('risk')
+  filter_county = request.args.get('county')
+  filter_institution = request.args.get('institution')
+  
+  if filter_status and filter_status != 'all':
+    query = query.filter_by(champion_status=filter_status)
+  
+  if filter_risk and filter_risk != 'all':
+    query = query.filter_by(risk_level=filter_risk)
+  
+  if filter_county and filter_county != 'all':
+    query = query.filter_by(county_sub_county=filter_county)
+  
+  if filter_institution and filter_institution != 'all':
+    query = query.filter_by(education_institution_name=filter_institution)
+  
+  champions = query.all()
+  
+  # Get unique values for filter dropdowns
+  all_counties = db.session.query(Champion.county_sub_county).filter(
+    Champion.champion_id.in_(managed_ids) if managed_ids else Champion.champion_id.isnot(None)
+  ).distinct().all()
+  
+  all_institutions = db.session.query(Champion.education_institution_name).filter(
+    Champion.champion_id.in_(managed_ids) if managed_ids else Champion.champion_id.isnot(None)
+  ).distinct().all()
 
-  return render_template('supervisor/dashboard.html', champions=champions)
+  return render_template('supervisor/dashboard.html', 
+                        champions=champions,
+                        counties=[c[0] for c in all_counties if c[0]],
+                        institutions=[i[0] for i in all_institutions if i[0]],
+                        current_filters={
+                          'status': filter_status or 'all',
+                          'risk': filter_risk or 'all',
+                          'county': filter_county or 'all',
+                          'institution': filter_institution or 'all'
+                        })
 
 @supervisor_bp.route('/review/<int:champion_id>', methods=['GET', 'POST'])
 @login_required
@@ -113,6 +152,33 @@ def review_champion(champion_id):
       db.session.add(new_referral)
       db.session.commit()
       flash('Referral pathway recorded.', 'success')
+
+    elif action == 'update_health_risk':
+      # Update health and safety information
+      champion.medical_conditions = request.form.get('medical_conditions')
+      champion.allergies = request.form.get('allergies')
+      champion.mental_health_support = request.form.get('mental_health_support')
+      champion.disabilities = request.form.get('disabilities')
+      champion.medication_required = request.form.get('medication_required')
+      champion.dietary_requirements = request.form.get('dietary_requirements')
+      champion.health_notes = request.form.get('health_notes')
+      
+      # Update risk assessment
+      champion.risk_level = request.form.get('risk_level')
+      champion.risk_notes = request.form.get('risk_notes')
+      champion.risk_assessment_date = datetime.utcnow()
+      
+      # Update contact and review dates
+      last_contact = request.form.get('last_contact_date')
+      next_review = request.form.get('next_review_date')
+      
+      if last_contact:
+        champion.last_contact_date = datetime.strptime(last_contact, '%Y-%m-%d').date()
+      if next_review:
+        champion.next_review_date = datetime.strptime(next_review, '%Y-%m-%d').date()
+      
+      db.session.commit()
+      flash('Health and risk assessment data updated successfully.', 'success')
 
     return redirect(url_for('supervisor.review_champion', champion_id=champion_id))
 

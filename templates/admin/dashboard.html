@@ -8,6 +8,86 @@
     <p class="dashboard-subtitle">System Overview & Performance Metrics</p>
 </div>
 
+<!-- SAFETY ALERTS - HIGH PRIORITY -->
+{% if high_risk_count > 0 or overdue_count > 0 %}
+<div style="margin-bottom: 2rem;">
+    <div class="section-header">
+        <h2 class="section-title" style="color: #dc2626;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            URGENT ALERTS
+        </h2>
+    </div>
+    
+    <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-bottom: 1rem;">
+        {% if high_risk_count > 0 %}
+        <div class="metric-card" style="border-left: 4px solid #dc2626; background: #fef2f2;">
+            <div class="metric-content">
+                <div class="metric-label" style="color: #991b1b; font-weight: 600;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    High-Risk Champions
+                </div>
+                <div class="metric-value" style="color: #dc2626;">{{ high_risk_count }}</div>
+                <div class="metric-sublabel" style="color: #991b1b;">Require immediate attention</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if overdue_count > 0 %}
+        <div class="metric-card" style="border-left: 4px solid #f59e0b; background: #fffbeb;">
+            <div class="metric-content">
+                <div class="metric-label" style="color: #92400e; font-weight: 600;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Overdue Reviews
+                </div>
+                <div class="metric-value" style="color: #f59e0b;">{{ overdue_count }}</div>
+                <div class="metric-sublabel" style="color: #92400e;">Past scheduled review date</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Detailed Alert Lists -->
+    {% if high_risk_champions %}
+    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+        <h3 style="color: #991b1b; margin-bottom: 0.5rem; font-size: 1.1rem;">High-Risk Champions (Action Required)</h3>
+        <ul style="margin: 0; padding-left: 1.5rem; color: #7f1d1d;">
+            {% for champion in high_risk_champions[:5] %}
+            <li><strong>{{ champion.full_name }}</strong> ({{ champion.assigned_champion_code }}) - Last contact: {{ champion.last_contact_date.strftime('%Y-%m-%d') if champion.last_contact_date else 'Never' }}</li>
+            {% endfor %}
+            {% if high_risk_champions|length > 5 %}
+            <li><em>... and {{ high_risk_champions|length - 5 }} more</em></li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% if overdue_reviews %}
+    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+        <h3 style="color: #92400e; margin-bottom: 0.5rem; font-size: 1.1rem;">Overdue Reviews</h3>
+        <ul style="margin: 0; padding-left: 1.5rem; color: #78350f;">
+            {% for champion in overdue_reviews[:5] %}
+            <li><strong>{{ champion.full_name }}</strong> - Due: {{ champion.next_review_date.strftime('%Y-%m-%d') }}</li>
+            {% endfor %}
+            {% if overdue_reviews|length > 5 %}
+            <li><em>... and {{ overdue_reviews|length - 5 }} more</em></li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
 <!-- Quick Actions -->
 <div style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
     <a href="{{ url_for('admin.manage_users') }}" class="btn btn--primary">
