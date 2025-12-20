@@ -16,7 +16,7 @@ RESET_SECRET = os.environ.get('RESET_SECRET', 'change-this-secret-key')
 @reset_bp.route('/reset-production-passwords/<secret>')
 def reset_production_passwords(secret):
     """
-    Reset passwords for admin, supervisor1, and alice.
+    Create or reset passwords for admin, supervisor1, and alice.
     Access via: https://your-app.onrender.com/reset-production-passwords/YOUR_SECRET
     """
     # Verify secret
@@ -26,7 +26,7 @@ def reset_production_passwords(secret):
     try:
         results = []
         
-        # Reset admin password
+        # Create or reset admin
         admin = User.query.filter_by(username='admin').first()
         if admin:
             admin.password_hash = hash_password('Admin@123')
@@ -35,9 +35,17 @@ def reset_production_passwords(secret):
             admin.locked_until = None
             results.append('✓ Admin password reset to: Admin@123')
         else:
-            results.append('✗ Admin user not found')
+            admin = User(
+                username='admin',
+                email='admin@unda.org',
+                full_name='System Administrator',
+                role='Admin',
+                password_hash=hash_password('Admin@123')
+            )
+            db.session.add(admin)
+            results.append('✓ Admin user created with password: Admin@123')
         
-        # Reset supervisor1 password
+        # Create or reset supervisor1
         supervisor = User.query.filter_by(username='supervisor1').first()
         if supervisor:
             supervisor.password_hash = hash_password('Super@123')
@@ -46,9 +54,17 @@ def reset_production_passwords(secret):
             supervisor.locked_until = None
             results.append('✓ Supervisor1 password reset to: Super@123')
         else:
-            results.append('✗ Supervisor1 user not found')
+            supervisor = User(
+                username='supervisor1',
+                email='supervisor1@unda.org',
+                full_name='Supervisor One',
+                role='Supervisor',
+                password_hash=hash_password('Super@123')
+            )
+            db.session.add(supervisor)
+            results.append('✓ Supervisor1 user created with password: Super@123')
         
-        # Reset alice password
+        # Create or reset alice
         alice = User.query.filter_by(username='alice').first()
         if alice:
             alice.password_hash = hash_password('Alice@123')
@@ -57,7 +73,15 @@ def reset_production_passwords(secret):
             alice.locked_until = None
             results.append('✓ Alice password reset to: Alice@123')
         else:
-            results.append('✗ Alice user not found')
+            alice = User(
+                username='alice',
+                email='alice@unda.org',
+                full_name='Alice Champion',
+                role='Champion',
+                password_hash=hash_password('Alice@123')
+            )
+            db.session.add(alice)
+            results.append('✓ Alice user created with password: Alice@123')
         
         # Commit changes
         db.session.commit()
@@ -65,7 +89,7 @@ def reset_production_passwords(secret):
         
         return jsonify({
             'success': True,
-            'message': 'Passwords reset successfully',
+            'message': 'Users created/passwords reset successfully',
             'details': results,
             'credentials': {
                 'admin': 'Admin@123',
