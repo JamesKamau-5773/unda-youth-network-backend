@@ -3,8 +3,8 @@
 
 {% block content %}
 <div style="margin-bottom: 1.5rem;">
-	<a href="{{ url_for('supervisor.dashboard') }}" class="action-button" style="background: transparent; color: var(--trust-blue); padding: 0.5rem 0;">
-		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+	<a href="{{ url_for('supervisor.dashboard') }}" class="btn btn--secondary" style="display: inline-flex; align-items: center;">
+		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
 			<line x1="19" y1="12" x2="5" y2="12"></line>
 			<polyline points="12 19 5 12 12 5"></polyline>
 		</svg>
@@ -207,16 +207,16 @@
 							<label class="form-label">Safeguarding Notes (Confidential)</label>
 							<textarea name="safeguarding_notes" class="form-input" rows="2" placeholder="Record safeguarding context or actions; visible to supervisors/admins only.">{{ report.safeguarding_notes or '' }}</textarea>
 						</div>
-						<div style="margin-top: 0.75rem;">
-							<button class="action-button action-button--warning" type="submit">
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-									<path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
-									<polyline points="17 21 17 13 7 13 7 21"></polyline>
-									<polyline points="7 3 7 8 15 8"></polyline>
-								</svg>
-								Save Safeguarding Notes
-							</button>
-						</div>
+					<div style="margin-top: 0.75rem;">
+						<button class="btn btn--warning" type="submit">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+								<path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+								<polyline points="17 21 17 13 7 13 7 21"></polyline>
+								<polyline points="7 3 7 8 15 8"></polyline>
+							</svg>
+							Save Safeguarding Notes
+						</button>
+					</div>
 					</form>
 
 					<!-- Supervisor Notes Form -->
@@ -227,16 +227,16 @@
 							<label class="form-label">Supervisor Notes</label>
 							<textarea name="notes" class="form-input" rows="2" placeholder="Log follow-up actions or concerns">{{ report.supervisor_notes or '' }}</textarea>
 						</div>
-						<div style="margin-top: 0.75rem;">
-							<button class="action-button" style="background: #64748b; color: white; border-color: #64748b;" type="submit">
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-									<path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
-									<polyline points="17 21 17 13 7 13 7 21"></polyline>
-									<polyline points="7 3 7 8 15 8"></polyline>
-								</svg>
-								Save Notes
-							</button>
-						</div>
+					<div style="margin-top: 0.75rem;">
+						<button class="btn btn--secondary" type="submit">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+								<path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+								<polyline points="17 21 17 13 7 13 7 21"></polyline>
+								<polyline points="7 3 7 8 15 8"></polyline>
+							</svg>
+							Save Notes
+						</button>
+					</div>
 					</form>
 
 					<!-- Quality Score Update -->
@@ -253,8 +253,8 @@
 							</select>
 						</div>
 						<div style="margin-top: 0.75rem;">
-							<button class="action-button action-button--primary" type="submit">
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<button class="btn btn--primary" type="submit">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
 									<polyline points="20 6 9 17 4 12"></polyline>
 								</svg>
 								Update Quality Score
@@ -307,13 +307,13 @@
 						<option value="Declined">Declined</option>
 					</select>
 				</div>
-				<button class="submit-button" style="width: 100%; justify-content: center; margin-top: 0.5rem;" type="submit">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<line x1="12" y1="5" x2="12" y2="19"></line>
-						<line x1="5" y1="12" x2="19" y2="12"></line>
-					</svg>
-					Add Referral
-				</button>
+			<button class="btn btn--primary" style="width: 100%; margin-top: 0.5rem;" type="submit">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+					<line x1="12" y1="5" x2="12" y2="19"></line>
+					<line x1="5" y1="12" x2="19" y2="12"></line>
+				</svg>
+				Add Referral
+			</button>
 			</form>
 		</div>
 
