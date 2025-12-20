@@ -379,6 +379,88 @@ def delete_user(user_id):
     return redirect(url_for('admin.manage_users'))
 
 
+@admin_bp.route('/champions/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_champion():
+    """Create a new champion with user account and profile"""
+    if request.method == 'POST':
+        # Get form data
+        username = request.form.get('username', '').strip()
+        full_name = request.form.get('full_name', '').strip()
+        gender = request.form.get('gender', '').strip()
+        date_of_birth = request.form.get('date_of_birth', '').strip()
+        phone_number = request.form.get('phone_number', '').strip()
+        county_sub_county = request.form.get('county_sub_county', '').strip()
+        
+        # Validation
+        if not username or not full_name:
+            flash('Username and Full Name are required', 'danger')
+            return render_template('admin/create_champion.html')
+        
+        if len(username) < 3:
+            flash('Username must be at least 3 characters long', 'danger')
+            return render_template('admin/create_champion.html')
+        
+        # Check if username already exists
+        if User.query.filter_by(username=username).first():
+            flash(f'Username "{username}" already exists. Please choose a different username.', 'danger')
+            return render_template('admin/create_champion.html')
+        
+        # Generate secure temporary password
+        temp_password = generate_temp_password()
+        
+        try:
+            # Create user account
+            bcrypt = Bcrypt()
+            new_user = User(
+                username=username,
+                role='Champion',
+                password_hash=bcrypt.generate_password_hash(temp_password).decode('utf-8')
+            )
+            db.session.add(new_user)
+            db.session.flush()  # Get the user_id
+            
+            # Generate champion code (e.g., CH-001, CH-002)
+            existing_count = Champion.query.count()
+            champion_code = f"CH-{str(existing_count + 1).zfill(3)}"
+            
+            # Create champion profile
+            new_champion = Champion(
+                user_id=new_user.user_id,
+                full_name=full_name,
+                gender=gender if gender else None,
+                date_of_birth=date_of_birth if date_of_birth else None,
+                phone_number=phone_number if phone_number else None,
+                county_sub_county=county_sub_county if county_sub_county else None,
+                assigned_champion_code=champion_code,
+                application_status='Approved',
+                champion_status='Active',
+                risk_level='Low'
+            )
+            db.session.add(new_champion)
+            db.session.flush()  # Get the champion_id
+            
+            # Link champion to user
+            new_user.champion_id = new_champion.champion_id
+            
+            db.session.commit()
+            
+            # Show success message with temporary password
+            flash(f'Champion "{full_name}" ({champion_code}) created successfully!', 'success')
+            flash(f'Username: {username} | Temporary Password: {temp_password}', 'info')
+            flash('Please provide these credentials to the champion securely. They should change the password on first login.', 'warning')
+            
+            return redirect(url_for('supervisor.dashboard'))
+        
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating champion: {str(e)}', 'danger')
+            return render_template('admin/create_champion.html')
+    
+    return render_template('admin/create_champion.html')
+
+
 # ============================================
 # HELPER FUNCTIONS
 # ============================================

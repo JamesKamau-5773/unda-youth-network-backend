@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Register New Champion - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1 class="dashboard-title">Register New Champion</h1>
+    <p class="dashboard-subtitle">Create user account and champion profile</p>
+</div>
+
+<div style="margin-bottom: 2rem;">
+    <a href="{{ url_for('supervisor.dashboard') }}" class="btn btn--secondary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back to Champions
+    </a>
+</div>
+
+<div class="data-card" style="max-width: 800px;">
+    <form method="POST" action="{{ url_for('admin.create_champion') }}">
+        <!-- Account Information -->
+        <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+            <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #334155;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Account Information
+            </h3>
+            <p style="font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0;">Login credentials for the champion</p>
+        </div>
+        
+        <div style="padding: 1.5rem;">
+            <div class="form-group">
+                <label for="username" class="form-label">Username <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="username" name="username" class="form-input" required minlength="3" placeholder="Enter unique username">
+                <span class="form-hint">Champion will use this to log in (minimum 3 characters)</span>
+            </div>
+        </div>
+
+        <!-- Personal Information -->
+        <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+            <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #334155;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                    <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <polyline points="17 11 19 13 23 9"></polyline>
+                </svg>
+                Personal Information
+            </h3>
+            <p style="font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0;">Basic champion details</p>
+        </div>
+        
+        <div style="padding: 1.5rem;">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="full_name" class="form-label">Full Name <span style="color: #dc2626;">*</span></label>
+                    <input type="text" id="full_name" name="full_name" class="form-input" required placeholder="Enter full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="gender" class="form-label">Gender</label>
+                    <select id="gender" name="gender" class="form-input">
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                        <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date_of_birth" class="form-label">Date of Birth</label>
+                    <input type="date" id="date_of_birth" name="date_of_birth" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone_number" class="form-label">Phone Number</label>
+                    <input type="tel" id="phone_number" name="phone_number" class="form-input" placeholder="+254712345678">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="county_sub_county" class="form-label">County / Sub-County</label>
+                <input type="text" id="county_sub_county" name="county_sub_county" class="form-input" placeholder="e.g., Nairobi / Westlands">
+                <span class="form-hint">Location for regional tracking and support coordination</span>
+            </div>
+        </div>
+
+        <!-- Information Notice -->
+        <div style="padding: 1.5rem; background: #eff6ff; border-left: 4px solid #3b82f6; margin: 0 1.5rem 1.5rem 1.5rem; border-radius: 0.375rem;">
+            <div style="display: flex; gap: 1rem; align-items: start;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #3b82f6; flex-shrink: 0;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div>
+                    <h4 style="font-weight: 600; color: #1e40af; margin: 0 0 0.5rem 0;">What happens next?</h4>
+                    <ul style="margin: 0; padding-left: 1.25rem; color: #1e40af; font-size: 0.875rem; line-height: 1.6;">
+                        <li>A user account will be created with Champion role</li>
+                        <li>A champion profile will be created with a unique code (e.g., CH-001)</li>
+                        <li>Status will be set to "Active" with "Low" risk level</li>
+                        <li>A secure temporary password will be generated</li>
+                        <li>You can add more details (education, health, training) later via the supervisor dashboard</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div style="padding: 1.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('supervisor.dashboard') }}" class="btn btn--secondary">Cancel</a>
+            <button type="submit" class="btn btn--primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                    <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <polyline points="17 11 19 13 23 9"></polyline>
+                </svg>
+                Register Champion
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
