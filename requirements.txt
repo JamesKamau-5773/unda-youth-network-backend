@@ -6,7 +6,7 @@ Flask-Login==0.6.3
 Flask-Limiter[redis]==3.5.0   # Using Redis for robust rate limiting storage
 Flask-Bcrypt==1.0.1           # For strong password hashing
 Flask-Migrate==4.0.5          # Database migrations
-Flask-WTF==1.1.1              # CSRF protection
+Flask-WTF==1.2.1              # CSRF protection
 python-dotenv==1.0.0
 gunicorn==21.2.0              # Production-grade WSGI server
 redis==5.0.0                  # Redis client for rate limiting
