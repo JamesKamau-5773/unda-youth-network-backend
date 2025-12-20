@@ -52,6 +52,7 @@
 	</div>
 	
 	<form method="POST" style="padding: 1.5rem;">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="action" value="update_health_risk">
 		
 		<!-- Health Information -->
@@ -201,6 +202,7 @@
 
 					<!-- Safeguarding Notes Form -->
 					<form method="POST" style="margin-bottom: 1.5rem;">
+						<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 						<input type="hidden" name="action" value="update_safeguarding">
 						<input type="hidden" name="report_id" value="{{ report.support_id }}">
 						<div class="form-group">
@@ -221,6 +223,7 @@
 
 					<!-- Supervisor Notes Form -->
 					<form method="POST" style="margin-bottom: 1.5rem;">
+						<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 						<input type="hidden" name="action" value="update_notes">
 						<input type="hidden" name="report_id" value="{{ report.support_id }}">
 						<div class="form-group">
@@ -241,6 +244,7 @@
 
 					<!-- Quality Score Update -->
 					<form method="POST">
+						<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 						<input type="hidden" name="action" value="update_quality">
 						<input type="hidden" name="report_id" value="{{ report.support_id }}">
 						<div class="form-group">
@@ -289,6 +293,7 @@
 		
 		<div class="data-card" style="margin-bottom: 1.5rem;">
 			<form method="POST" class="report-form" style="padding: 1.5rem;">
+				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 				<input type="hidden" name="action" value="add_referral">
 				<div class="form-group">
 					<label class="form-label">Youth Referred</label>
