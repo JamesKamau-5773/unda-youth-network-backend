@@ -40,8 +40,18 @@ def init_database(secret):
         return jsonify({'error': 'Unauthorized'}), 403
     
     try:
-        # Drop all tables and recreate them with the current schema
-        db.drop_all()
+        from sqlalchemy import text
+        
+        # Drop all tables manually to avoid foreign key issues
+        db.session.execute(text('DROP TABLE IF EXISTS health_tracking CASCADE'))
+        db.session.execute(text('DROP TABLE IF EXISTS refferal_pathway CASCADE'))
+        db.session.execute(text('DROP TABLE IF EXISTS youth_support CASCADE'))
+        db.session.execute(text('DROP TABLE IF EXISTS training_record CASCADE'))
+        db.session.execute(text('DROP TABLE IF EXISTS champions CASCADE'))
+        db.session.execute(text('DROP TABLE IF EXISTS users CASCADE'))
+        db.session.commit()
+        
+        # Recreate all tables with the current schema
         db.create_all()
         
         # Create initial admin user
