@@ -27,6 +27,11 @@ def create_app(test_config=None):
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:
         raise ValueError("DATABASE_URL environment variable must be set")
+    
+    # Fix for Render/Heroku: they use postgres:// but SQLAlchemy 1.4+ requires postgresql://
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
