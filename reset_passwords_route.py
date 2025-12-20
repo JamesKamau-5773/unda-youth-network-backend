@@ -33,6 +33,57 @@ def check_database(secret):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@reset_bp.route('/init-database/<secret>')
+def init_database(secret):
+    """Initialize the production database with correct schema."""
+    if secret != RESET_SECRET:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    try:
+        # Drop all tables and recreate them with the current schema
+        db.drop_all()
+        db.create_all()
+        
+        # Create initial admin user
+        admin = User(
+            username='admin',
+            role='Admin',
+            password_hash=hash_password('Admin@123')
+        )
+        db.session.add(admin)
+        
+        # Create supervisor user
+        supervisor = User(
+            username='supervisor1',
+            role='Supervisor',
+            password_hash=hash_password('Super@123')
+        )
+        db.session.add(supervisor)
+        
+        # Create champion user
+        alice_user = User(
+            username='alice',
+            role='Champion',
+            password_hash=hash_password('Alice@123')
+        )
+        db.session.add(alice_user)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Database initialized successfully',
+            'users_created': ['admin', 'supervisor1', 'alice'],
+            'credentials': {
+                'admin': 'Admin@123',
+                'supervisor1': 'Super@123',
+                'alice': 'Alice@123'
+            }
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e), 'success': False}), 500
+
 @reset_bp.route('/reset-production-passwords/<secret>')
 def reset_production_passwords(secret):
     """
