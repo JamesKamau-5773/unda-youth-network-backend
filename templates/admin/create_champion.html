@@ -20,6 +20,7 @@
 
 <div class="data-card" style="max-width: 800px;">
     <form method="POST" action="{{ url_for('admin.create_champion') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <!-- Account Information -->
         <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
             <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #334155;">
