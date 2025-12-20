@@ -278,9 +278,10 @@ Your administrator will:
 
 ### **Step 2: First Login**
 1. Go to the website
-2. Enter your username and password
-3. You'll be prompted to change your password
-4. Choose a strong password (mix of letters, numbers, symbols)
+2. Enter your username and temporary password
+3. **IMPORTANT**: Change your password immediately for security
+4. Click on your username (top right) → **Settings** → **Change Password**
+5. Follow the password requirements shown on screen
 
 ### **Step 3: Explore Your Dashboard**
 - Admins: Start by adding supervisors
@@ -291,8 +292,23 @@ Your administrator will:
 
 ## 💬 Common Questions
 
+### **"How do I change my password?"**
+1. Click your username in the top right corner
+2. Click **Settings**
+3. Click **Change Password**
+4. Enter your current password
+5. Enter and confirm your new password
+6. Click **Change Password**
+
+**Password must have:**
+- At least 8 characters
+- One uppercase letter (A-Z)
+- One lowercase letter (a-z)
+- One number (0-9)
+- One special character (!@#$%^&*)
+
 ### **"What if I forget my password?"**
-Contact your administrator. They can reset it for you. For security, password reset must be done by an admin, not automatically by email.
+Contact your administrator. They can reset it for you using the **User Management** interface. For security, password resets must be done by an admin, not automatically by email.
 
 ### **"Can I access this from home?"**
 Yes! As long as you have internet access, you can log in from anywhere using any device.
@@ -440,8 +456,17 @@ The user management page shows:
 - Never send passwords via unencrypted email
 - Use in-person handoff when possible
 - If remote, use encrypted messaging or password managers
-- Remind users to change temporary passwords immediately
+- **Instruct users to change temporary passwords immediately**
 - Don't store temporary passwords after user receives them
+
+**Password Change Instructions for New Users:**
+1. Log in with temporary password
+2. Click username (top right) → **Settings**
+3. Click **Change Password**
+4. Enter current (temporary) password
+5. Create a strong new password
+6. Confirm new password
+7. Click **Change Password**
 
 **For Role Assignment:**
 - Give users the minimum access they need
@@ -470,6 +495,7 @@ The user management page shows:
 - Click "Reset Password" → copy new temp password → share securely
 - Account will automatically unlock if locked
 - Remind user to change password after logging in
+- Instruct user: Login → Click username → Settings → Change Password
 
 **"User needs different access"**
 - Use role dropdown to change: Champion → Supervisor → Admin

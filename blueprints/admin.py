@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import login_required
+from flask_login import login_required, current_user
 from sqlalchemy import func
 from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, User
 from decorators import admin_required
@@ -135,7 +135,77 @@ def dashboard():
 @login_required
 @admin_required
 def settings():
-    return render_template('admin/settings.html')
+    """User profile and account settings"""
+    return render_template('admin/settings.html', user=current_user)
+
+
+@admin_bp.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    """Allow any user to change their own password"""
+    if request.method == 'POST':
+        current_password = request.form.get('current_password', '')
+        new_password = request.form.get('new_password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        
+        # Validation
+        if not current_password or not new_password or not confirm_password:
+            flash('All fields are required', 'danger')
+            return render_template('admin/change_password.html')
+        
+        # Verify current password
+        bcrypt = Bcrypt()
+        if not bcrypt.check_password_hash(current_user.password_hash, current_password):
+            flash('Current password is incorrect', 'danger')
+            return render_template('admin/change_password.html')
+        
+        # Check new password matches confirmation
+        if new_password != confirm_password:
+            flash('New passwords do not match', 'danger')
+            return render_template('admin/change_password.html')
+        
+        # Validate new password strength
+        if len(new_password) < 8:
+            flash('New password must be at least 8 characters long', 'danger')
+            return render_template('admin/change_password.html')
+        
+        # Check for uppercase, lowercase, digit, special char
+        has_upper = any(c.isupper() for c in new_password)
+        has_lower = any(c.islower() for c in new_password)
+        has_digit = any(c.isdigit() for c in new_password)
+        has_special = any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in new_password)
+        
+        if not (has_upper and has_lower and has_digit and has_special):
+            flash('Password must contain uppercase, lowercase, digit, and special character', 'danger')
+            return render_template('admin/change_password.html')
+        
+        # Don't allow same password
+        if bcrypt.check_password_hash(current_user.password_hash, new_password):
+            flash('New password must be different from current password', 'danger')
+            return render_template('admin/change_password.html')
+        
+        # Update password
+        try:
+            current_user.password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
+            db.session.commit()
+            
+            flash('Password changed successfully!', 'success')
+            flash('You can now use your new password on next login.', 'info')
+            
+            # Redirect based on role
+            if current_user.role == 'Admin':
+                return redirect(url_for('admin.settings'))
+            elif current_user.role == 'Supervisor':
+                return redirect(url_for('supervisor.dashboard'))
+            else:
+                return redirect(url_for('champion.dashboard'))
+                
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error changing password: {str(e)}', 'danger')
+            return render_template('admin/change_password.html')
+    
+    return render_template('admin/change_password.html')
 
 
 # ============================================
