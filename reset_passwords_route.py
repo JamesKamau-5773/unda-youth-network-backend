@@ -4,7 +4,7 @@ Add this to your app temporarily, deploy, trigger the reset, then remove it.
 """
 
 from flask import Blueprint, jsonify
-from models import User, hash_password, db
+from models import User, Champion, YouthSupport, hash_password, db
 import os
 
 # Create blueprint
@@ -12,6 +12,26 @@ reset_bp = Blueprint('reset', __name__)
 
 # Secret key to prevent unauthorized access
 RESET_SECRET = os.environ.get('RESET_SECRET', 'change-this-secret-key')
+
+@reset_bp.route('/check-database/<secret>')
+def check_database(secret):
+    """Check what's in the production database."""
+    if secret != RESET_SECRET:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    try:
+        users = User.query.all()
+        champions = Champion.query.all()
+        supports = YouthSupport.query.all()
+        
+        return jsonify({
+            'users': [{'username': u.username, 'role': u.role, 'user_id': u.user_id, 'champion_id': u.champion_id} for u in users],
+            'champions_count': len(champions),
+            'supports_count': len(supports),
+            'total_users': len(users)
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @reset_bp.route('/reset-production-passwords/<secret>')
 def reset_production_passwords(secret):
