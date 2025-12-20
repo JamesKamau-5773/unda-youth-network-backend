@@ -255,11 +255,26 @@ Example: A fake website can't secretly make you delete data while you're logged 
 
 ## 🚀 Getting Started in 3 Easy Steps
 
-### **Step 1: Receive Your Login Credentials**
-Your administrator will provide:
-- Your username
-- Temporary password
-- Website URL
+### **Step 1: Administrator Creates Your Account**
+Your administrator will:
+1. Log into the admin dashboard
+2. Click "Manage Users" → "Create New User"
+3. Enter your username and assign your role (Admin, Supervisor, or Champion)
+4. System generates a secure temporary password automatically
+5. Admin provides you with:
+   - Your username
+   - Temporary password
+   - Website URL
+
+**For Administrators Creating Accounts:**
+1. Click **"Manage Users"** from the admin dashboard
+2. Click **"Create New User"**
+3. Fill in the form:
+   - **Username**: Use first.last format (e.g., john.doe)
+   - **Role**: Select Admin, Supervisor, or Champion
+4. Click **"Create User"**
+5. **IMPORTANT**: Copy the temporary password shown on screen
+6. Share credentials securely with the new user (in person, encrypted email, or secure message)
 
 ### **Step 2: First Login**
 1. Go to the website
@@ -313,6 +328,164 @@ After UNDA: **One-click access** to all emergency contacts
 ### **Data Accuracy**
 Before UNDA: 15% of files had outdated information
 After UNDA: **Real-time updates** = always current data
+
+---
+
+## 👑 Administrator User Management Guide
+
+### **Accessing User Management**
+From your admin dashboard, click the **"Manage Users"** button in the Quick Actions section.
+
+### **Creating New Users**
+
+**Step-by-Step:**
+1. Click **"Create New User"** (blue button, top right)
+2. Enter a **username**:
+   - Minimum 3 characters
+   - Use format: first.last (e.g., sarah.jones)
+   - Keep it professional and easy to remember
+3. Select a **role**:
+   - **Champion**: Can only view/edit their own profile
+   - **Supervisor**: Can view/edit all champions + see dashboard analytics
+   - **Admin**: Full system access including user management
+4. Click **"Create User"**
+5. **IMPORTANT**: Copy the temporary password shown on screen (12-character secure password)
+6. Share credentials securely with the new user
+
+**Best Practices:**
+- Use standardized username format (first.last)
+- Assign the lowest privilege level needed (principle of least privilege)
+- Share temporary passwords securely (in person, encrypted email, or secure messaging)
+- Remind users to change their password immediately after first login
+- Never reuse temporary passwords
+
+### **User Management Dashboard Overview**
+
+The user management page shows:
+- **Statistics**: Total users, admins, supervisors, champions at a glance
+- **User Table**: Complete list with:
+  - Username
+  - Role (color-coded: green=admin, blue=supervisor, yellow=champion)
+  - Last login date
+  - Status (active/locked)
+  - Failed login attempts
+  - Action buttons
+
+### **Resetting Passwords**
+
+**When to use:** User forgot password or account is locked
+
+**How to reset:**
+1. Find the user in the user table
+2. Click **"Reset Password"** button (yellow)
+3. System generates a new 12-character temporary password
+4. Account is automatically unlocked (if it was locked)
+5. Failed login attempts are reset to 0
+6. Copy the new password and share securely with the user
+
+**What happens:**
+- Old password is immediately invalidated
+- New temporary password must be used
+- Account lockout is removed
+- User should change password at next login
+
+### **Unlocking Locked Accounts**
+
+**When to use:** User locked out after 5 failed login attempts but remembers their password
+
+**How to unlock:**
+1. Find the locked user (status shows red "Locked" badge)
+2. Click **"Unlock"** button (green)
+3. Account is immediately unlocked
+4. Failed attempts counter is reset to 0
+5. User can log in with their existing password
+
+**Note:** If user doesn't remember their password, use "Reset Password" instead (which unlocks automatically).
+
+### **Changing User Roles**
+
+**When to use:** User's responsibilities change or promotion/demotion needed
+
+**How to change:**
+1. Find the user in the user table
+2. Use the **role dropdown** in the Actions column
+3. Select new role (Admin/Supervisor/Champion)
+4. Change takes effect immediately
+5. User will see new permissions at next login
+
+**Important:**
+- You cannot change your own role (prevents accidental self-demotion)
+- Downgrading admin to supervisor/champion removes user management access
+- Upgrading champion to supervisor grants access to all champion profiles
+
+### **Deleting Users**
+
+**When to use:** User no longer needs access (employee left, champion aged out, etc.)
+
+**How to delete:**
+1. Find the user in the user table
+2. Click **"Delete"** button (red)
+3. Confirm the deletion in the popup
+4. User account is permanently removed
+
+**⚠️ CAUTION:**
+- **You cannot delete your own account** (prevents accidental lockout)
+- **This action cannot be undone**
+- Consider unlocking or changing role instead if user might return
+- All user data is permanently deleted from the system
+
+### **Security Best Practices**
+
+**For Credential Sharing:**
+- Never send passwords via unencrypted email
+- Use in-person handoff when possible
+- If remote, use encrypted messaging or password managers
+- Remind users to change temporary passwords immediately
+- Don't store temporary passwords after user receives them
+
+**For Role Assignment:**
+- Give users the minimum access they need
+- Regularly audit user roles (quarterly recommended)
+- Remove access for inactive users
+- Champion role is sufficient for most youth workers
+- Supervisor role for team leads and case managers
+- Admin role only for IT staff and program directors
+
+**For Account Security:**
+- Monitor locked accounts regularly
+- Investigate repeated failed login attempts (may indicate attack)
+- Reset passwords if account compromise suspected
+- Keep the admin user list small (fewer than 3 recommended)
+- Document who has admin access and why
+
+### **Troubleshooting Common Issues**
+
+**"User can't log in"**
+- Check if account is locked (red "Locked" badge) → click "Unlock"
+- Verify user is using correct username (check spelling)
+- Reset password if user forgot it
+- Check user's role is appropriate for what they're trying to access
+
+**"User forgot password"**
+- Click "Reset Password" → copy new temp password → share securely
+- Account will automatically unlock if locked
+- Remind user to change password after logging in
+
+**"User needs different access"**
+- Use role dropdown to change: Champion → Supervisor → Admin
+- Changes take effect immediately (no restart needed)
+- User may need to log out and back in to see new permissions
+
+**"Can't delete a user"**
+- If you can't delete yourself, that's intentional (safety feature)
+- Ask another admin to delete your account if needed
+- If delete button is missing, check you're logged in as admin
+
+**"Temporary password won't work"**
+- Copy password exactly (case-sensitive, includes special characters)
+- Don't add extra spaces when pasting
+- Generate a new password if unsure (old one expires when new one created)
+- Check user is using correct username
 
 ---
 

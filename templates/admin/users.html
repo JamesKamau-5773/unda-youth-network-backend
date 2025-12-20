@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1 class="dashboard-title">User Management</h1>
+    <p class="dashboard-subtitle">Manage system users, roles, and access</p>
+</div>
+
+<div style="margin-bottom: 2rem;">
+    <a href="{{ url_for('admin.create_user') }}" class="btn btn--primary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Create New User
+    </a>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn--secondary" style="margin-left: 1rem;">
+        Back to Dashboard
+    </a>
+</div>
+
+<!-- User Statistics -->
+<div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
+    <div class="metric-card metric-card--primary">
+        <div class="metric-content">
+            <div class="metric-label">Total Users</div>
+            <div class="metric-value">{{ users|length }}</div>
+        </div>
+    </div>
+    
+    <div class="metric-card metric-card--success">
+        <div class="metric-content">
+            <div class="metric-label">Administrators</div>
+            <div class="metric-value">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</div>
+        </div>
+    </div>
+    
+    <div class="metric-card metric-card--info">
+        <div class="metric-content">
+            <div class="metric-label">Supervisors</div>
+            <div class="metric-value">{{ users|selectattr('role', 'equalto', 'supervisor')|list|length }}</div>
+        </div>
+    </div>
+    
+    <div class="metric-card metric-card--warning">
+        <div class="metric-content">
+            <div class="metric-label">Champions</div>
+            <div class="metric-value">{{ users|selectattr('role', 'equalto', 'champion')|list|length }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card" style="overflow-x: auto;">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Last Login</th>
+                <th>Status</th>
+                <th>Failed Attempts</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if users %}
+                {% for user in users %}
+                <tr>
+                    <td>
+                        <strong>{{ user.username }}</strong>
+                    </td>
+                    <td>
+                        <span class="badge badge--{{ 'success' if user.role == 'admin' else ('info' if user.role == 'supervisor' else 'warning') }}">
+                            {{ user.role|capitalize }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if user.last_login %}
+                            {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            <span style="color: #999;">Never</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.lockout_until and user.lockout_until > now %}
+                            <span class="badge badge--danger">Locked</span>
+                        {% else %}
+                            <span class="badge badge--success">Active</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.failed_login_attempts > 0 %}
+                            <span style="color: #d9534f;">{{ user.failed_login_attempts }}</span>
+                        {% else %}
+                            <span style="color: #5cb85c;">0</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <!-- Role Change -->
+                            <form method="POST" action="{{ url_for('admin.change_user_role', user_id=user.user_id) }}" style="display: inline;">
+                                <select name="role" class="form-input" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;" onchange="this.form.submit()">
+                                    <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                    <option value="supervisor" {% if user.role == 'supervisor' %}selected{% endif %}>Supervisor</option>
+                                    <option value="champion" {% if user.role == 'champion' %}selected{% endif %}>Champion</option>
+                                </select>
+                            </form>
+                            
+                            <!-- Reset Password -->
+                            <form method="POST" action="{{ url_for('admin.reset_user_password', user_id=user.user_id) }}" style="display: inline;" onsubmit="return confirm('Reset password for {{ user.username }}?');">
+                                <button type="submit" class="btn btn--sm btn--warning">Reset Password</button>
+                            </form>
+                            
+                            <!-- Unlock Account -->
+                            {% if user.lockout_until and user.lockout_until > now %}
+                            <form method="POST" action="{{ url_for('admin.unlock_user_account', user_id=user.user_id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn--sm btn--info">Unlock</button>
+                            </form>
+                            {% endif %}
+                            
+                            <!-- Delete User -->
+                            {% if current_user.user_id != user.user_id %}
+                            <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.user_id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete user {{ user.username }}? This action cannot be undone.');">
+                                <button type="submit" class="btn btn--sm btn--danger">Delete</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 2rem; color: #999;">
+                        No users found. Create your first user to get started.
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+.btn--sm {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge--success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge--info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.badge--warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge--danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: #f8f9fa;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.data-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.data-table tr:hover {
+    background: #f8f9fa;
+}
+</style>
+
+{% endblock %}
