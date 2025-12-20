@@ -6,10 +6,25 @@
     <meta name="theme-color" content="#1e1b4b">
     <meta name="mobile-web-app-capable" content="yes">
     <title>{% block title %}Unda Youth Network{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-navy': '#1e1b4b',
+                        'trust-blue': '#2563eb',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     {% block extra_css %}{% endblock %}
     <style>
     /* Tooltip Styles */

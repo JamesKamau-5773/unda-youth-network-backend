@@ -102,6 +102,7 @@
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                             <!-- Role Change -->
                             <form method="POST" action="{{ url_for('admin.change_user_role', user_id=user.user_id) }}" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <select name="role" class="form-input" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;" onchange="this.form.submit()">
                                     <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
                                     <option value="supervisor" {% if user.role == 'supervisor' %}selected{% endif %}>Supervisor</option>
@@ -111,12 +112,14 @@
                             
                             <!-- Reset Password -->
                             <form method="POST" action="{{ url_for('admin.reset_user_password', user_id=user.user_id) }}" style="display: inline;" onsubmit="return confirm('Reset password for {{ user.username }}?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn--sm btn--warning">Reset Password</button>
                             </form>
                             
                             <!-- Unlock Account -->
                             {% if user.lockout_until and user.lockout_until > now %}
                             <form method="POST" action="{{ url_for('admin.unlock_user_account', user_id=user.user_id) }}" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn--sm btn--info">Unlock</button>
                             </form>
                             {% endif %}
@@ -124,6 +127,7 @@
                             <!-- Delete User -->
                             {% if current_user.user_id != user.user_id %}
                             <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.user_id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete user {{ user.username }}? This action cannot be undone.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn--sm btn--danger">Delete</button>
                             </form>
                             {% endif %}

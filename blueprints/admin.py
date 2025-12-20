@@ -6,6 +6,7 @@ from decorators import admin_required
 from flask_bcrypt import Bcrypt
 import secrets
 import string
+from datetime import datetime
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -224,7 +225,7 @@ def change_password():
 def manage_users():
     """Display all users with their roles and status"""
     users = User.query.order_by(User.username).all()
-    return render_template('admin/users.html', users=users)
+    return render_template('admin/users.html', users=users, now=datetime.utcnow())
 
 
 @admin_bp.route('/users/create', methods=['GET', 'POST'])
