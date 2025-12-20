@@ -37,8 +37,6 @@ def reset_production_passwords(secret):
         else:
             admin = User(
                 username='admin',
-                email='admin@unda.org',
-                full_name='System Administrator',
                 role='Admin',
                 password_hash=hash_password('Admin@123')
             )
@@ -56,8 +54,6 @@ def reset_production_passwords(secret):
         else:
             supervisor = User(
                 username='supervisor1',
-                email='supervisor1@unda.org',
-                full_name='Supervisor One',
                 role='Supervisor',
                 password_hash=hash_password('Super@123')
             )
@@ -75,8 +71,6 @@ def reset_production_passwords(secret):
         else:
             alice = User(
                 username='alice',
-                email='alice@unda.org',
-                full_name='Alice Champion',
                 role='Champion',
                 password_hash=hash_password('Alice@123')
             )
