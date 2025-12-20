@@ -47,7 +47,104 @@ Unlike basic databases that only store names and addresses, UNDA captures the **
 
 **Why It Matters**: Helps supervisors provide **personalized support** and identify opportunities that match each young person's interests and abilities.
 
-#### **Health & Wellbeing**
+#### **Health & Wellbeing** 🏥
+UNDA captures critical health information to ensure champion safety during programs and activities:
+
+**Medical Information**:
+- Medical conditions (asthma, diabetes, epilepsy, etc.)
+- Known allergies (food, medication, environmental)
+- Disabilities or additional needs (physical, learning, developmental)
+- Required medications and dosages
+- Dietary requirements (religious, medical, or preference-based)
+
+**Mental Health Support**:
+- Current support services (counseling, therapy)
+- Special considerations or accommodations needed
+- Emergency contact procedures
+
+**Why This Matters**: 
+- **Safety**: Staff know about allergies before serving food or planning outdoor activities
+- **Inclusion**: Accommodations can be arranged in advance (wheelchair access, sensory-friendly spaces)
+- **Emergency Response**: Critical medical information accessible instantly if urgent care needed
+- **Person-Centered Care**: Support tailored to individual health needs
+
+**Example**: If a champion has severe peanut allergies, supervisors are alerted before any event involving food. The system flags this during meal planning to prevent potentially life-threatening exposure.
+
+#### **Risk Assessment & Safeguarding** 🛡️
+
+UNDA includes a **risk categorization system** to prioritize support and ensure vulnerable young people receive appropriate attention:
+
+**Risk Levels**:
+- **🟢 Low Risk**: Stable situation, regular engagement, no immediate concerns
+- **🟠 Medium Risk**: Some concerns requiring monitoring (attendance issues, family stressors, minor behavioral changes)
+- **🔴 High Risk**: Serious concerns requiring immediate attention (safeguarding issues, mental health crisis, homelessness, abuse indicators)
+
+**Risk Assessment Components**:
+1. **Risk Level**: Current risk category (Low/Medium/High)
+2. **Risk Notes**: Detailed assessment including:
+   - Specific risk factors identified
+   - Protective factors (supportive family, engaged in school)
+   - Intervention plans and referral actions
+   - Safeguarding concerns documented
+3. **Last Contact Date**: When supervisor last had meaningful interaction with champion
+4. **Next Review Date**: Scheduled date for reassessing risk level
+5. **Assessment History**: Date/time of last risk assessment update
+
+**Automated Alerts**:
+The system automatically flags:
+- **High-risk champions** who need immediate attention
+- **Overdue reviews** where assessment date has passed
+
+**Dashboard Alerts** (Admin View):
+Admin dashboard displays urgent alerts prominently:
+- High-risk champion count with detailed list
+- Overdue review count with champion names and due dates
+- Color-coded visual indicators (red for high-risk, orange for overdue)
+- Quick links to champion profiles for immediate action
+
+**Why This System Matters**:
+- **Prevents Cases Falling Through Cracks**: No champion is forgotten; overdue reviews automatically surface
+- **Prioritizes Resources**: High-risk cases get immediate supervisor attention
+- **Evidence-Based Decision Making**: Documented risk factors support referral decisions
+- **Accountability**: Clear record of when and why risk levels changed
+- **Compliance**: Meets safeguarding best practices and regulatory requirements
+
+**Example Scenario**: A supervisor notices a champion has missed three consecutive sessions. They update the risk level from Low to Medium, set a next review date for 2 weeks, and document concerns in risk notes. The system automatically includes this champion in the "Requires Monitoring" filter, ensuring they receive additional check-ins.
+
+#### **Advanced Filtering & Search** 🔍
+
+Supervisors can quickly find champions using multiple filter criteria:
+
+**Available Filters**:
+- **Status**: Active, Inactive, On Hold
+- **Risk Level**: Low, Medium, High
+- **County**: Filter by geographic location
+- **Institution**: Filter by school or organization
+
+**How It Works**:
+1. Navigate to Supervisor Dashboard
+2. Use dropdown filters at top of page
+3. Click "Apply Filters" to refine champion list
+4. Active filters shown as color-coded badges
+5. "Clear Filters" button resets to show all champions
+
+**Filter Combinations**: 
+Combine multiple filters for precise searches:
+- "Show me all High-Risk champions in Nairobi County" → Status: Active + Risk: High + County: Nairobi
+- "Find inactive champions needing follow-up" → Status: Inactive + Risk: Medium/High
+
+**Champion Count Updates**: 
+The "Total Champions" metric dynamically updates to show filtered count vs total count, giving supervisors clear visibility into how many champions match their criteria.
+
+**Why This Matters**:
+- **Efficiency**: Find specific champion groups in seconds instead of manual searching
+- **Targeted Interventions**: Identify high-risk champions in specific locations for group interventions
+- **Workload Management**: See how many champions match specific criteria for planning
+- **Data-Driven Decisions**: Quick insights into distribution of risk levels, statuses, locations
+
+**Example**: A supervisor wants to organize a support group for champions with mental health needs in Kiambu County. They filter: Risk: Medium/High → County: Kiambu → Review health notes → Contact relevant champions directly.
+
+
 - Medical conditions and allergies
 - Dietary requirements
 - Disability information
@@ -544,3 +641,119 @@ Think of UNDA as your **digital assistant** that handles the boring administrati
 ---
 
 **Welcome to smarter youth work management!** 🎉
+
+---
+
+## 👨‍⚕️ HEALTH TRACKING & RISK ASSESSMENT GUIDE
+
+### Recording Health Information
+
+Health information is confidential and only visible to supervisors and admins.
+
+**How to Add Health Data:**
+1. Navigate to Supervisor Dashboard
+2. Click "Review" next to champion name
+3. Scroll to "Health & Safety Information" section
+4. Complete relevant fields:
+   - Medical Conditions (asthma, diabetes, etc.)
+   - Allergies (food, medication, environmental)
+   - Mental Health Support (counseling, therapy)
+   - Disabilities/Additional Needs
+   - Medication Required
+   - Dietary Requirements
+   - Additional Health Notes
+5. Click "Save Health & Risk Data"
+
+**Examples:**
+- Medical: "Asthma - requires inhaler during physical activities"
+- Allergies: "Severe peanut allergy (anaphylaxis risk)"
+- Mental Health: "Weekly counseling for anxiety management"
+
+### Conducting Risk Assessments
+
+**Risk Levels:**
+- 🟢 **Low**: Stable, regular engagement, no concerns
+- 🟠 **Medium**: Some concerns, monitoring needed
+- 🔴 **High**: Serious concerns, immediate attention required
+
+**When to Assess:**
+- Initial intake
+- After significant life events
+- Following behavioral changes
+- After safeguarding disclosures
+- At scheduled review intervals (3-6 months)
+
+**How to Assess:**
+1. Access champion detail page
+2. Select Risk Level dropdown
+3. Set Last Contact Date
+4. Set Next Review Date (required):
+   - Low risk: 3-6 months
+   - Medium risk: 1-2 months  
+   - High risk: 1-2 weeks
+5. Document Risk Assessment Notes:
+   - Risk factors identified
+   - Protective factors
+   - Intervention plans
+   - Safeguarding concerns
+6. Click "Save Health & Risk Data"
+
+### Responding to Dashboard Alerts
+
+**High-Risk Champions Alert (Red):**
+- Shows count and list of high-risk champions
+- Displays last contact date
+- Action: Contact immediately, escalate safeguarding concerns, document actions
+
+**Overdue Reviews Alert (Orange):**
+- Shows champions past review date
+- Lists due dates
+- Action: Schedule review, conduct reassessment, set new date
+
+### Using Advanced Filtering
+
+**Available Filters:**
+- Status: Active/Inactive/On Hold
+- Risk Level: Low/Medium/High
+- County: Geographic location
+- Institution: School or organization
+
+**How to Filter:**
+1. Go to Supervisor Dashboard
+2. Select criteria from dropdowns
+3. Click "Apply Filters"
+4. View filtered champions
+5. Click "Clear" to reset
+
+**Filter Examples:**
+- Find high-risk in Nairobi: Status=Active + Risk=High + County=Nairobi
+- Inactive needing follow-up: Status=Inactive + Risk=Medium/High
+- All at specific school: Institution=[School Name]
+
+### Risk Level Badges
+
+Badges appear on dashboard and detail pages:
+- 🟢 Green badge with checkmark = Low Risk
+- 🟠 Orange badge with triangle = Medium Risk
+- 🔴 Red badge with alert = High Risk
+
+Hover over badge to see assessment date and next review.
+
+### Best Practices
+
+**DO:**
+✅ Update health info immediately when disclosed
+✅ Review assessments at scheduled intervals
+✅ Document specific details in risk notes
+✅ Respond to alerts within 24 hours
+✅ Set realistic review dates
+✅ Involve champions in assessment process
+
+**DON'T:**
+❌ Assume old health info is still accurate
+❌ Set all champions to Low without proper assessment
+❌ Ignore overdue review alerts
+❌ Share health data with unauthorized staff
+❌ Use risk levels punitively
+❌ Set unrealistic review schedules
+

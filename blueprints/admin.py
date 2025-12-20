@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy import func
-from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, User
+from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User
 from decorators import admin_required
 from flask_bcrypt import Bcrypt
 import secrets
@@ -127,7 +127,13 @@ def dashboard():
         # Compliance
         champions_missing_consent=champions_missing_consent,
         champions_missing_institution=champions_missing_institution,
-        upcoming_refreshers=upcoming_refreshers
+        upcoming_refreshers=upcoming_refreshers,
+        
+        # SAFETY ALERTS
+        high_risk_champions=get_high_risk_champions(),
+        overdue_reviews=get_overdue_reviews(),
+        high_risk_count=len(get_high_risk_champions()),
+        overdue_count=len(get_overdue_reviews())
     )
 
 

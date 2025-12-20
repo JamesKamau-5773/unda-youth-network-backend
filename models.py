@@ -124,6 +124,22 @@ class Champion(db.Model):
   institution_consent_obtained = db.Column(db.Boolean, default=False)
   institution_consent_date = db.Column(db.Date)
 
+  # HEALTH & SAFETY DATA
+  medical_conditions = db.Column(db.Text)  # Chronic illnesses, health conditions
+  allergies = db.Column(db.Text)  # Food, medication, environmental allergies
+  mental_health_support = db.Column(db.Text)  # Mental health conditions, support needs
+  disabilities = db.Column(db.Text)  # Physical or learning disabilities
+  medication_required = db.Column(db.Text)  # Regular medications
+  dietary_requirements = db.Column(db.Text)  # Special dietary needs
+  health_notes = db.Column(db.Text)  # Additional confidential health information
+
+  # RISK ASSESSMENT & SAFEGUARDING
+  risk_level = db.Column(db.String(20), default='Low')  # Low, Medium, High
+  risk_assessment_date = db.Column(db.Date)  # Last risk assessment date
+  risk_notes = db.Column(db.Text)  # Risk assessment details
+  last_contact_date = db.Column(db.Date)  # Last contact with champion
+  next_review_date = db.Column(db.Date)  # Scheduled review date
+
   #Relationships to data tables
   support_records = db.relationship('YouthSupport', backref='champion', lazy='dynamic')
   training_records = db.relationship('TrainingRecord', backref='champion', lazy='dynamic')
@@ -231,7 +247,27 @@ def get_champions_needing_refresher(days_ahead=30):
     .filter(TrainingRecord.next_refresher_due_date <= cutoff)
     .filter(TrainingRecord.next_refresher_due_date >= date.today())
     .all()
-  ) 
+  )
+
+
+def get_high_risk_champions():
+  """Return all champions with High risk level."""
+  return Champion.query.filter_by(risk_level='High').all()
+
+
+def get_overdue_reviews():
+  """Return champions with overdue review dates."""
+  today = date.today()
+  return Champion.query.filter(
+    Champion.next_review_date < today
+  ).filter(
+    Champion.next_review_date.isnot(None)
+  ).all()
+
+
+def get_champions_by_risk_level(risk_level):
+  """Return champions filtered by risk level (Low, Medium, High)."""
+  return Champion.query.filter_by(risk_level=risk_level).all() 
 
 
 

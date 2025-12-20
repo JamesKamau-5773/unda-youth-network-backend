@@ -7,6 +7,75 @@
 	<p class="dashboard-subtitle">Manage and monitor your assigned champions</p>
 </div>
 
+<!-- Advanced Filters -->
+<div class="data-card" style="margin-bottom: 1.5rem; background: #f8fafc;">
+	<form method="GET" action="{{ url_for('supervisor.dashboard') }}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end;">
+		<div style="flex: 1; min-width: 150px;">
+			<label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155;">Status</label>
+			<select name="status" class="form-input" style="width: 100%;">
+				<option value="">All Statuses</option>
+				<option value="Active" {% if current_filters.status == 'Active' %}selected{% endif %}>Active</option>
+				<option value="Inactive" {% if current_filters.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+				<option value="On Hold" {% if current_filters.status == 'On Hold' %}selected{% endif %}>On Hold</option>
+			</select>
+		</div>
+		
+		<div style="flex: 1; min-width: 150px;">
+			<label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155;">Risk Level</label>
+			<select name="risk" class="form-input" style="width: 100%;">
+				<option value="">All Risk Levels</option>
+				<option value="Low" {% if current_filters.risk == 'Low' %}selected{% endif %}>Low</option>
+				<option value="Medium" {% if current_filters.risk == 'Medium' %}selected{% endif %}>Medium</option>
+				<option value="High" {% if current_filters.risk == 'High' %}selected{% endif %}>High</option>
+			</select>
+		</div>
+		
+		<div style="flex: 1; min-width: 150px;">
+			<label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155;">County</label>
+			<select name="county" class="form-input" style="width: 100%;">
+				<option value="">All Counties</option>
+				{% for county in all_counties %}
+				<option value="{{ county }}" {% if current_filters.county == county %}selected{% endif %}>{{ county }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		
+		<div style="flex: 1; min-width: 150px;">
+			<label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155;">Institution</label>
+			<select name="institution" class="form-input" style="width: 100%;">
+				<option value="">All Institutions</option>
+				{% for inst in all_institutions %}
+				<option value="{{ inst }}" {% if current_filters.institution == inst %}selected{% endif %}>{{ inst }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		
+		<div style="display: flex; gap: 0.5rem;">
+			<button type="submit" class="btn btn--primary" style="white-space: nowrap;">Apply Filters</button>
+			<a href="{{ url_for('supervisor.dashboard') }}" class="btn btn--secondary" style="white-space: nowrap;">Clear</a>
+		</div>
+	</form>
+	
+	<!-- Active Filter Badges -->
+	{% if current_filters.status or current_filters.risk or current_filters.county or current_filters.institution %}
+	<div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+		<span style="font-weight: 600; color: #64748b;">Active Filters:</span>
+		{% if current_filters.status %}
+		<span class="badge" style="background: #3b82f6; color: white;">Status: {{ current_filters.status }}</span>
+		{% endif %}
+		{% if current_filters.risk %}
+		<span class="badge" style="background: {% if current_filters.risk == 'High' %}#dc2626{% elif current_filters.risk == 'Medium' %}#f59e0b{% else %}#10b981{% endif %}; color: white;">Risk: {{ current_filters.risk }}</span>
+		{% endif %}
+		{% if current_filters.county %}
+		<span class="badge" style="background: #8b5cf6; color: white;">County: {{ current_filters.county }}</span>
+		{% endif %}
+		{% if current_filters.institution %}
+		<span class="badge" style="background: #ec4899; color: white;">Institution: {{ current_filters.institution }}</span>
+		{% endif %}
+	</div>
+	{% endif %}
+</div>
+
 <!-- Quick Stats -->
 <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
 	<div class="metric-card metric-card--primary">
@@ -19,8 +88,12 @@
 		</div>
 		<div class="metric-content">
 			<div class="metric-label">
+				{% if current_filters.status or current_filters.risk or current_filters.county or current_filters.institution %}
+				Filtered Champions
+				{% else %}
 				Total Champions
-				<span class="tooltip-trigger" data-tooltip="Number of champions currently assigned to you for supervision and performance monitoring">?</span>
+				{% endif %}
+				<span class="tooltip-trigger" data-tooltip="Number of champions {% if current_filters.status or current_filters.risk or current_filters.county or current_filters.institution %}matching current filters{% else %}currently assigned to you{% endif %}">?</span>
 			</div>
 			<div class="metric-value">{{ champions|length }}</div>
 			<div class="metric-description">Under supervision</div>
@@ -43,6 +116,7 @@
 					<th>Champion Name</th>
 					<th>Champion Code</th>
 					<th>Cohort</th>
+					<th>Risk Level</th>
 					<th class="text-right">Actions</th>
 				</tr>
 			</thead>
@@ -52,6 +126,34 @@
 					<td class="font-medium">{{ champion.full_name }}</td>
 					<td><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
 					<td><span class="badge badge--secondary">{{ champion.assigned_cohort }}</span></td>
+					<td>
+						{% if champion.risk_level == 'High' %}
+						<span class="badge" style="background: #dc2626; color: white;" title="High risk - Requires immediate attention">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+								<circle cx="12" cy="12" r="10"></circle>
+								<line x1="12" y1="8" x2="12" y2="12"></line>
+								<line x1="12" y1="16" x2="12.01" y2="16"></line>
+							</svg>
+							High Risk
+						</span>
+						{% elif champion.risk_level == 'Medium' %}
+						<span class="badge" style="background: #f59e0b; color: white;" title="Medium risk - Monitor closely">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+								<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+								<line x1="12" y1="9" x2="12" y2="13"></line>
+								<line x1="12" y1="17" x2="12.01" y2="17"></line>
+							</svg>
+							Medium Risk
+						</span>
+						{% else %}
+						<span class="badge" style="background: #10b981; color: white;" title="Low risk">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+								<polyline points="20 6 9 17 4 12"></polyline>
+							</svg>
+							Low Risk
+						</span>
+						{% endif %}
+					</td>
 					<td class="text-right">
 						<a class="action-button action-button--primary" href="{{ url_for('supervisor.review_champion', champion_id=champion.champion_id) }}">
 							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
