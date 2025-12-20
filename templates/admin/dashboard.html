@@ -8,6 +8,25 @@
     <p class="dashboard-subtitle">System Overview & Performance Metrics</p>
 </div>
 
+<!-- Quick Actions -->
+<div style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+    <a href="{{ url_for('admin.manage_users') }}" class="btn btn--primary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
+        </svg>
+        Manage Users
+    </a>
+    <a href="{{ url_for('supervisor.dashboard') }}" class="btn btn--secondary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+        </svg>
+        View Champions
+    </a>
+</div>
+
 <!-- Champion Status Overview -->
 <div class="section-header">
     <h2 class="section-title">Champion Status Overview</h2>

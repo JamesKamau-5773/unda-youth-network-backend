@@ -1,8 +1,11 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
 from sqlalchemy import func
-from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher
+from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, User
 from decorators import admin_required
+from flask_bcrypt import Bcrypt
+import secrets
+import string
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -133,3 +136,194 @@ def dashboard():
 @admin_required
 def settings():
     return render_template('admin/settings.html')
+
+
+# ============================================
+# USER MANAGEMENT ROUTES
+# ============================================
+
+@admin_bp.route('/users')
+@login_required
+@admin_required
+def manage_users():
+    """Display all users with their roles and status"""
+    users = User.query.order_by(User.username).all()
+    return render_template('admin/users.html', users=users)
+
+
+@admin_bp.route('/users/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_user():
+    """Create a new user account"""
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        role = request.form.get('role', 'supervisor')
+        
+        # Validation
+        if not username:
+            flash('Username is required', 'danger')
+            return render_template('admin/create_user.html')
+        
+        if len(username) < 3:
+            flash('Username must be at least 3 characters long', 'danger')
+            return render_template('admin/create_user.html')
+        
+        # Check if username already exists
+        if User.query.filter_by(username=username).first():
+            flash(f'Username "{username}" already exists. Please choose a different username.', 'danger')
+            return render_template('admin/create_user.html')
+        
+        # Generate secure temporary password
+        temp_password = generate_temp_password()
+        
+        # Create new user
+        bcrypt = Bcrypt()
+        new_user = User(
+            username=username,
+            role=role,
+            password_hash=bcrypt.generate_password_hash(temp_password).decode('utf-8')
+        )
+        
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            
+            # Show success message with temporary password
+            flash(f'User "{username}" created successfully!', 'success')
+            flash(f'Temporary Password: {temp_password}', 'info')
+            flash('Please provide this password to the user securely. They should change it on first login.', 'warning')
+            
+            return redirect(url_for('admin.manage_users'))
+        
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating user: {str(e)}', 'danger')
+            return render_template('admin/create_user.html')
+    
+    return render_template('admin/create_user.html')
+
+
+@admin_bp.route('/users/<int:user_id>/reset-password', methods=['POST'])
+@login_required
+@admin_required
+def reset_user_password(user_id):
+    """Reset a user's password to a new temporary password"""
+    user = User.query.get_or_404(user_id)
+    
+    # Generate new temporary password
+    temp_password = generate_temp_password()
+    
+    # Update password
+    bcrypt = Bcrypt()
+    user.password_hash = bcrypt.generate_password_hash(temp_password).decode('utf-8')
+    user.failed_login_attempts = 0  # Reset lockout counter
+    user.locked_until = None  # Remove any lockout
+    
+    try:
+        db.session.commit()
+        flash(f'Password reset for user "{user.username}"', 'success')
+        flash(f'New Temporary Password: {temp_password}', 'info')
+        flash('Please provide this password to the user securely.', 'warning')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error resetting password: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.manage_users'))
+
+
+@admin_bp.route('/users/<int:user_id>/unlock', methods=['POST'])
+@login_required
+@admin_required
+def unlock_user_account(user_id):
+    """Unlock a locked user account"""
+    user = User.query.get_or_404(user_id)
+    
+    user.failed_login_attempts = 0
+    user.lockout_until = None
+    
+    try:
+        db.session.commit()
+        flash(f'Account unlocked for user "{user.username}"', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error unlocking account: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.manage_users'))
+
+
+@admin_bp.route('/users/<int:user_id>/change-role', methods=['POST'])
+@login_required
+@admin_required
+def change_user_role(user_id):
+    """Change a user's role"""
+    user = User.query.get_or_404(user_id)
+    new_role = request.form.get('role')
+    
+    if new_role not in ['admin', 'supervisor', 'champion']:
+        flash('Invalid role selected', 'danger')
+        return redirect(url_for('admin.manage_users'))
+    
+    old_role = user.role
+    user.role = new_role
+    
+    try:
+        db.session.commit()
+        flash(f'Role changed for "{user.username}" from {old_role} to {new_role}', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error changing role: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.manage_users'))
+
+
+@admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    """Delete a user account"""
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent deleting your own account
+    from flask_login import current_user
+    if user.user_id == current_user.user_id:
+        flash('You cannot delete your own account', 'danger')
+        return redirect(url_for('admin.manage_users'))
+    
+    username = user.username
+    
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        flash(f'User "{username}" deleted successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting user: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.manage_users'))
+
+
+# ============================================
+# HELPER FUNCTIONS
+# ============================================
+
+def generate_temp_password(length=12):
+    """Generate a secure temporary password"""
+    # Mix of uppercase, lowercase, digits, and special characters
+    characters = string.ascii_letters + string.digits + '!@#$%&*'
+    
+    # Ensure at least one of each type
+    password = [
+        secrets.choice(string.ascii_uppercase),
+        secrets.choice(string.ascii_lowercase),
+        secrets.choice(string.digits),
+        secrets.choice('!@#$%&*')
+    ]
+    
+    # Fill the rest randomly
+    password += [secrets.choice(characters) for _ in range(length - 4)]
+    
+    # Shuffle to avoid predictable patterns
+    secrets.SystemRandom().shuffle(password)
+    
+    return ''.join(password)

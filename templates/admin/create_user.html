@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Create New User - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1 class="dashboard-title">Create New User</h1>
+    <p class="dashboard-subtitle">Add a new user account to the system</p>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card">
+        <form method="POST" action="{{ url_for('admin.create_user') }}">
+            <!-- Username -->
+            <div class="form-group">
+                <label for="username" class="form-label">
+                    Username <span style="color: #d9534f;">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-input" 
+                    required 
+                    minlength="3"
+                    placeholder="Enter username (min 3 characters)"
+                    autofocus
+                >
+                <small class="form-help">
+                    Username must be unique and at least 3 characters long
+                </small>
+            </div>
+
+            <!-- Role -->
+            <div class="form-group">
+                <label for="role" class="form-label">
+                    User Role <span style="color: #d9534f;">*</span>
+                </label>
+                <select id="role" name="role" class="form-input" required>
+                    <option value="supervisor" selected>Supervisor</option>
+                    <option value="admin">Administrator</option>
+                    <option value="champion">Champion</option>
+                </select>
+                <small class="form-help">
+                    <strong>Supervisor:</strong> Can manage assigned champions<br>
+                    <strong>Administrator:</strong> Full system access and user management<br>
+                    <strong>Champion:</strong> Can view their own information only
+                </small>
+            </div>
+
+            <!-- Info Box -->
+            <div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 1rem; margin: 1.5rem 0; border-radius: 4px;">
+                <p style="margin: 0; color: #0c5460; font-size: 0.875rem;">
+                    <strong>🔒 Security Note:</strong><br>
+                    A secure temporary password will be automatically generated. 
+                    You'll see it after creating the user - make sure to copy it and share it securely with the new user.
+                </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn--primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                        <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                    </svg>
+                    Create User
+                </button>
+                <a href="{{ url_for('admin.manage_users') }}" class="btn btn--secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Guidelines Card -->
+    <div class="card" style="margin-top: 2rem; background: #f8f9fa;">
+        <h3 style="margin-top: 0; color: #333;">📋 User Creation Guidelines</h3>
+        
+        <div style="margin-bottom: 1rem;">
+            <strong style="color: #2c5aa0;">Choosing Usernames:</strong>
+            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                <li>Use first.last format (e.g., john.doe)</li>
+                <li>Keep it simple and memorable</li>
+                <li>Avoid special characters</li>
+            </ul>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <strong style="color: #2c5aa0;">Assigning Roles:</strong>
+            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                <li><strong>Admin:</strong> IT staff, program coordinators</li>
+                <li><strong>Supervisor:</strong> Youth workers, team leaders</li>
+                <li><strong>Champion:</strong> Young people in the program</li>
+            </ul>
+        </div>
+
+        <div>
+            <strong style="color: #2c5aa0;">After Creation:</strong>
+            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                <li>Copy the temporary password shown on screen</li>
+                <li>Share it securely (in person, encrypted email, or secure message)</li>
+                <li>User must change password on first login</li>
+                <li>Remind them to choose a strong password</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #2c5aa0;
+    box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn--primary {
+    background: #2c5aa0;
+    color: white;
+}
+
+.btn--primary:hover {
+    background: #1e3f6f;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn--secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn--secondary:hover {
+    background: #5a6268;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+</style>
+
+{% endblock %}
