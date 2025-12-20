@@ -1,4 +1,4 @@
-# 🌟 UNDA Youth Network Management System - User Guide
+# UNDA Youth Network Management System - User Guide
 
 ## What is UNDA Youth Network?
 
@@ -6,7 +6,7 @@ UNDA Youth Network is a **digital platform** designed to help youth organization
 
 ---
 
-## 🎯 Who Is This For?
+## Who Is This For?
 
 - **Youth Workers & Supervisors**: Manage young people's information, track their progress, and monitor safeguarding concerns
 - **Program Administrators**: Oversee the entire youth program, generate reports, and ensure compliance
@@ -14,7 +14,7 @@ UNDA Youth Network is a **digital platform** designed to help youth organization
 
 ---
 
-## 💡 How Does It Work?
+## How Does It Work?
 
 ### **Simple Login System**
 Just like logging into your email or social media:
@@ -34,9 +34,9 @@ Think of it like a **hospital**: patients see their own records, nurses see thei
 
 ---
 
-## 🏆 Key Features That Make UNDA Stand Out
+## Key Features That Make UNDA Stand Out
 
-### 1. **Comprehensive Champion Profiles** ⭐
+### 1. **Comprehensive Champion Profiles**
 Unlike basic databases that only store names and addresses, UNDA captures the **complete picture** of each young person:
 
 #### **Personal Development Tracking**
@@ -47,7 +47,7 @@ Unlike basic databases that only store names and addresses, UNDA captures the **
 
 **Why It Matters**: Helps supervisors provide **personalized support** and identify opportunities that match each young person's interests and abilities.
 
-#### **Health & Wellbeing** 🏥
+#### **Health & Wellbeing**
 UNDA captures critical health information to ensure champion safety during programs and activities:
 
 **Medical Information**:
@@ -70,14 +70,14 @@ UNDA captures critical health information to ensure champion safety during progr
 
 **Example**: If a champion has severe peanut allergies, supervisors are alerted before any event involving food. The system flags this during meal planning to prevent potentially life-threatening exposure.
 
-#### **Risk Assessment & Safeguarding** 🛡️
+#### **Risk Assessment & Safeguarding**
 
 UNDA includes a **risk categorization system** to prioritize support and ensure vulnerable young people receive appropriate attention:
 
 **Risk Levels**:
-- **🟢 Low Risk**: Stable situation, regular engagement, no immediate concerns
-- **🟠 Medium Risk**: Some concerns requiring monitoring (attendance issues, family stressors, minor behavioral changes)
-- **🔴 High Risk**: Serious concerns requiring immediate attention (safeguarding issues, mental health crisis, homelessness, abuse indicators)
+- **Low Risk**: Stable situation, regular engagement, no immediate concerns
+- **Medium Risk**: Some concerns requiring monitoring (attendance issues, family stressors, minor behavioral changes)
+- **High Risk**: Serious concerns requiring immediate attention (safeguarding issues, mental health crisis, homelessness, abuse indicators)
 
 **Risk Assessment Components**:
 1. **Risk Level**: Current risk category (Low/Medium/High)
@@ -111,7 +111,7 @@ Admin dashboard displays urgent alerts prominently:
 
 **Example Scenario**: A supervisor notices a champion has missed three consecutive sessions. They update the risk level from Low to Medium, set a next review date for 2 weeks, and document concerns in risk notes. The system automatically includes this champion in the "Requires Monitoring" filter, ensuring they receive additional check-ins.
 
-#### **Advanced Filtering & Search** 🔍
+#### **Advanced Filtering & Search**
 
 Supervisors can quickly find champions using multiple filter criteria:
 
@@ -162,7 +162,7 @@ The "Total Champions" metric dynamically updates to show filtered count vs total
 
 ---
 
-### 2. **Advanced Safeguarding System** 🛡️
+### 2. **Advanced Safeguarding System**
 
 #### **Risk Assessment & Monitoring**
 - Track safeguarding concerns and incidents
@@ -181,7 +181,7 @@ The "Total Champions" metric dynamically updates to show filtered count vs total
 
 ---
 
-### 3. **Smart Search & Filtering** 🔍
+### 3. **Smart Search & Filtering**
 
 Find information instantly:
 - Search by name, education, location, or status
@@ -192,7 +192,7 @@ Find information instantly:
 
 ---
 
-### 4. **Detailed Status Tracking** 📊
+### 4. **Detailed Status Tracking**
 
 Track every champion's journey:
 - **Active**: Currently participating
@@ -206,7 +206,7 @@ Track every champion's journey:
 
 ---
 
-### 5. **Interactive Dashboards** 📈
+### 5. **Interactive Dashboards**
 
 #### **Supervisor Dashboard**
 - See all assigned champions at a glance
@@ -224,7 +224,7 @@ Track every champion's journey:
 
 ---
 
-### 6. **Real-Time Data Updates** ⚡
+### 6. **Real-Time Data Updates**
 
 Changes appear instantly across all devices:
 - Supervisor updates a champion's status → Admin sees it immediately
@@ -234,7 +234,7 @@ Changes appear instantly across all devices:
 
 ---
 
-### 7. **Mobile-Friendly Design** 📱
+### 7. **Mobile-Friendly Design**
 
 Works perfectly on:
 - Desktop computers
@@ -245,7 +245,7 @@ Works perfectly on:
 
 ---
 
-## 🔒 Security Features (What Keeps Data Safe)
+## Security Features (What Keeps Data Safe)
 
 ### **1. Bank-Level Encryption**
 - Passwords scrambled using military-grade technology (bcrypt)
@@ -279,48 +279,48 @@ Example: A fake website can't secretly make you delete data while you're logged 
 
 ---
 
-## 🎨 Extra Features That Enhance User Experience
+## Extra Features That Enhance User Experience
 
-### **1. Password Visibility Toggle** 👁️
+### **1. Password Visibility Toggle**
 - Click an eye icon to show/hide your password while typing
 - Reduces login errors from typos
 - **User-Friendly**: No more typing passwords 3 times because you can't see what you typed!
 
-### **2. Real-Time Form Validation** ✅
+### **2. Real-Time Form Validation**
 - Instant feedback as you type
 - Red warnings if information is incorrect
 - Green checkmarks when fields are valid
 - **Saves Time**: Fix errors immediately instead of submitting the form and seeing errors later
 
-### **3. Success Notifications** 🎉
+### **3. Success Notifications**
 - Green toast messages confirm actions (e.g., "Champion added successfully!")
 - Auto-dismiss after 3 seconds
 - **Reduces Uncertainty**: You know immediately that your action worked
 
-### **4. Error Notifications** ⚠️
+### **4. Error Notifications**
 - Red warnings if something goes wrong
 - Clear explanations of what happened
 - Suggestions for fixing the problem
 - **User-Friendly**: No confusing technical error codes
 
-### **5. Loading Indicators** ⏳
+### **5. Loading Indicators**
 - Spinning wheel shows when data is being processed
 - Prevents confusion ("Did I click the button? Is it working?")
 - **Improves Experience**: You know the system is working, just taking a moment
 
-### **6. Professional Medical/SaaS Design** 🎨
+### **6. Professional Medical/SaaS Design**
 - Calming blue and green color scheme
 - Clean, uncluttered layouts
 - Large, readable text
 - **Easy on the Eyes**: Reduces fatigue during long work sessions
 
-### **7. Responsive Tables** 📋
+### **7. Responsive Tables**
 - Tables adjust to screen size automatically
 - Scrollable on small screens
 - Sortable columns (click header to sort)
 - **Works Everywhere**: From tiny phone screens to large monitors
 
-### **8. Quick Action Buttons** ⚡
+### **8. Quick Action Buttons**
 - "View Details", "Edit", "Delete" buttons clearly labeled
 - Color-coded (blue = view, yellow = edit, red = delete)
 - Confirmation prompts before deleting
@@ -328,7 +328,7 @@ Example: A fake website can't secretly make you delete data while you're logged 
 
 ---
 
-## 📊 Why These Extra Features Matter
+## Why These Extra Features Matter
 
 ### **For Youth Workers:**
 - **Save 2-3 hours per week** on admin tasks
@@ -350,7 +350,7 @@ Example: A fake website can't secretly make you delete data while you're logged 
 
 ---
 
-## 🚀 Getting Started in 3 Easy Steps
+## Getting Started in 3 Easy Steps
 
 ### **Step 1: Administrator Creates Your Account**
 Your administrator will:
@@ -387,7 +387,7 @@ Your administrator will:
 
 ---
 
-## 💬 Common Questions
+## Common Questions
 
 ### **"How do I change my password?"**
 1. Click your username in the top right corner
@@ -424,7 +424,7 @@ Yes! Your browser's print function works with all pages. Alternatively, export d
 
 ---
 
-## 🎯 Success Stories
+## Success Stories
 
 ### **Time Savings**
 Before UNDA: 30 minutes to find a champion's file and update information
@@ -444,7 +444,7 @@ After UNDA: **Real-time updates** = always current data
 
 ---
 
-## 👑 Administrator User Management Guide
+## Administrator User Management Guide
 
 ### **Accessing User Management**
 From your admin dashboard, click the **"Manage Users"** button in the Quick Actions section.
@@ -612,7 +612,7 @@ The user management page shows:
 
 ---
 
-## 📞 Need Help?
+## Need Help?
 
 ### **Technical Issues**
 Contact your system administrator or IT support team.
@@ -625,26 +625,26 @@ Submit suggestions to your program coordinator. The system is continuously impro
 
 ---
 
-## 🌟 Final Thoughts
+## Final Thoughts
 
 UNDA Youth Network transforms youth program management from **time-consuming paperwork** to **efficient digital workflows**. It's designed to help you spend **less time on admin** and **more time supporting young people**.
 
 The extra features aren't just "nice to have" - they're carefully chosen to:
-✅ Save time  
-✅ Reduce errors  
-✅ Improve safety  
-✅ Enhance user experience  
-✅ Enable better decision-making  
+- Save time  
+- Reduce errors  
+- Improve safety  
+- Enhance user experience  
+- Enable better decision-making  
 
 Think of UNDA as your **digital assistant** that handles the boring administrative tasks, so you can focus on what matters most: **helping young people thrive**.
 
 ---
 
-**Welcome to smarter youth work management!** 🎉
+**Welcome to smarter youth work management!**
 
 ---
 
-## 👨‍⚕️ HEALTH TRACKING & RISK ASSESSMENT GUIDE
+## HEALTH TRACKING & RISK ASSESSMENT GUIDE
 
 ### Recording Health Information
 
@@ -672,9 +672,9 @@ Health information is confidential and only visible to supervisors and admins.
 ### Conducting Risk Assessments
 
 **Risk Levels:**
-- 🟢 **Low**: Stable, regular engagement, no concerns
-- 🟠 **Medium**: Some concerns, monitoring needed
-- 🔴 **High**: Serious concerns, immediate attention required
+- **Low**: Stable, regular engagement, no concerns
+- **Medium**: Some concerns, monitoring needed
+- **High**: Serious concerns, immediate attention required
 
 **When to Assess:**
 - Initial intake
@@ -733,27 +733,27 @@ Health information is confidential and only visible to supervisors and admins.
 ### Risk Level Badges
 
 Badges appear on dashboard and detail pages:
-- 🟢 Green badge with checkmark = Low Risk
-- 🟠 Orange badge with triangle = Medium Risk
-- 🔴 Red badge with alert = High Risk
+- Green badge with checkmark = Low Risk
+- Orange badge with triangle = Medium Risk
+- Red badge with alert = High Risk
 
 Hover over badge to see assessment date and next review.
 
 ### Best Practices
 
 **DO:**
-✅ Update health info immediately when disclosed
-✅ Review assessments at scheduled intervals
-✅ Document specific details in risk notes
-✅ Respond to alerts within 24 hours
-✅ Set realistic review dates
-✅ Involve champions in assessment process
+- Update health info immediately when disclosed
+- Review assessments at scheduled intervals
+- Document specific details in risk notes
+- Respond to alerts within 24 hours
+- Set realistic review dates
+- Involve champions in assessment process
 
 **DON'T:**
-❌ Assume old health info is still accurate
-❌ Set all champions to Low without proper assessment
-❌ Ignore overdue review alerts
-❌ Share health data with unauthorized staff
-❌ Use risk levels punitively
-❌ Set unrealistic review schedules
+- Assume old health info is still accurate
+- Set all champions to Low without proper assessment
+- Ignore overdue review alerts
+- Share health data with unauthorized staff
+- Use risk levels punitively
+- Set unrealistic review schedules
 
