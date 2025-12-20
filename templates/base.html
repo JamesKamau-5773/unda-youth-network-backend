@@ -362,39 +362,49 @@
                         <a href="{{ url_for('admin.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">Dashboard</a>
                     </li>
                     <li class="sidebar-nav-item">
-                        <a href="{{ url_for('auth.register') }}" class="sidebar-nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}">Register User</a>
+                        <a href="{{ url_for('admin.manage_users') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.manage_users' %}active{% endif %}">Manage Users</a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{{ url_for('admin.create_user') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.create_user' %}active{% endif %}">Create User</a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{{ url_for('admin.create_champion') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.create_champion' %}active{% endif %}">Register Champion</a>
                     </li>
                     <li class="sidebar-nav-item">
                         <a href="{{ url_for('admin.settings') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.settings' %}active{% endif %}">Settings</a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{{ url_for('admin.change_password') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}">Change Password</a>
                     </li>
                     {% elif current_user.role == 'Supervisor' %}
                     <li class="sidebar-nav-item">
                         <a href="{{ url_for('supervisor.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'supervisor.dashboard' %}active{% endif %}">Dashboard</a>
                     </li>
                     <li class="sidebar-nav-item">
-                        <a href="#" class="sidebar-nav-link">My Champions</a>
+                        <a href="{{ url_for('supervisor.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'supervisor.dashboard' %}active{% endif %}">My Champions</a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{{ url_for('admin.settings') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.settings' %}active{% endif %}">Settings</a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{{ url_for('admin.change_password') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}">Change Password</a>
                     </li>
                     {% elif current_user.role == 'Champion' %}
                     <li class="sidebar-nav-item">
                         <a href="{{ url_for('champion.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">Dashboard</a>
                     </li>
                     <li class="sidebar-nav-item">
-                        <a href="#" class="sidebar-nav-link">Submit Report</a>
+                        <a href="{{ url_for('champion.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">Submit Report</a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{{ url_for('admin.settings') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.settings' %}active{% endif %}">Settings</a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="{{ url_for('admin.change_password') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}">Change Password</a>
                     </li>
                     {% endif %}
                 </ul>
             </nav>
-            
-            <div style="margin-top: auto; padding-top: 1rem;">
-                <a href="#" class="sidebar-nav-link" style="color: rgba(255, 255, 255, 0.7); font-size: 0.875rem;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                    </svg>
-                    Help & Support
-                </a>
-            </div>
             
             <div class="sidebar-user">
                 <div style="color: white; font-weight: 600; margin-bottom: 0.25rem;">{{ current_user.username }}</div>
