@@ -75,8 +75,8 @@
 		</div>
 		
 		<div style="margin-top: 2rem;">
-			<button type="submit" class="submit-button">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<button type="submit" class="btn btn--primary">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
 					<path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
 					<polyline points="17 21 17 13 7 13 7 21"></polyline>
 					<polyline points="7 3 7 8 15 8"></polyline>
@@ -87,15 +87,17 @@
 	</form>
 </div>
 {% else %}
-<div class="safety-section safety-section--success">
-	<h3 class="safety-section-title">
-		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+<div class="alert-card alert-card--success" style="border-left-width: 4px; margin-bottom: 2rem;">
+	<div class="alert-header">
+		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 			<path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
 			<polyline points="22 4 12 14.01 9 11.01"></polyline>
 		</svg>
-		Report Submitted Successfully
-	</h3>
-	<p class="safety-section-text">Your report for {{ current_reporting_date.strftime('%B %Y') }} has been submitted. Thank you for your timely contribution!</p>
+		<span class="alert-title">Report Submitted Successfully</span>
+	</div>
+	<div class="alert-description" style="margin-top: 0.5rem;">
+		Your report for {{ current_reporting_date.strftime('%B %Y') }} has been submitted. Thank you for your timely contribution!
+	</div>
 </div>
 {% endif %}
 
