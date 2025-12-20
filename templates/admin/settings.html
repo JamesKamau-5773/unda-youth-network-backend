@@ -2,164 +2,246 @@
 {% block title %}Account Settings{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8">
-            <h2>
-                <i class="fas fa-cog me-2"></i>Account Settings
-            </h2>
-            <p class="text-muted">Manage your profile and account preferences</p>
-        </div>
-    </div>
+<div class="dashboard-header">
+    <h1 class="dashboard-title">Account Settings</h1>
+    <p class="dashboard-subtitle">Manage your profile and account preferences</p>
+</div>
 
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
     <!-- Account Information Card -->
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user me-2"></i>Account Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-borderless mb-0">
-                        <tbody>
-                            <tr>
-                                <td class="text-muted" style="width: 40%;"><strong>Username:</strong></td>
-                                <td>{{ user.username }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted"><strong>Role:</strong></td>
-                                <td>
-                                    {% if user.role == 'Admin' %}
-                                        <span class="badge bg-success">Admin</span>
-                                    {% elif user.role == 'Supervisor' %}
-                                        <span class="badge bg-primary">Supervisor</span>
-                                    {% else %}
-                                        <span class="badge bg-warning">Champion</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted"><strong>User ID:</strong></td>
-                                <td>#{{ user.user_id }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted"><strong>Last Login:</strong></td>
-                                <td>
-                                    {% if user.last_login %}
-                                        {{ user.last_login.strftime('%B %d, %Y at %I:%M %p') }}
-                                    {% else %}
-                                        <span class="text-muted">Never</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted"><strong>Account Status:</strong></td>
-                                <td>
-                                    {% if user.account_locked %}
-                                        <span class="badge bg-danger">Locked</span>
-                                    {% else %}
-                                        <span class="badge bg-success">Active</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="data-card">
+        <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+            <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #334155; display: flex; align-items: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.75rem;">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Account Information
+            </h3>
         </div>
-
-        <!-- Quick Actions Card -->
-        <div class="col-md-6">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bolt me-2"></i>Quick Actions
-                    </h5>
+        <div style="padding: 1.5rem;">
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <div>
+                    <div style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.25rem; font-weight: 500;">Username</div>
+                    <div style="font-size: 1rem; color: #1e293b; font-weight: 600;">{{ current_user.username }}</div>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('admin.change_password') }}" class="btn btn-primary">
-                            <i class="fas fa-key me-2"></i>Change Password
-                        </a>
-                        
-                        {% if user.role == 'Admin' %}
-                            <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-primary">
-                                <i class="fas fa-users me-2"></i>Manage Users
-                            </a>
-                            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-chart-line me-2"></i>View Dashboard
-                            </a>
-                        {% elif user.role == 'Supervisor' %}
-                            <a href="{{ url_for('supervisor.dashboard') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-chart-line me-2"></i>View Dashboard
-                            </a>
+                
+                <div>
+                    <div style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.25rem; font-weight: 500;">Role</div>
+                    <div>
+                        {% if current_user.role == 'Admin' %}
+                            <span class="badge" style="background: #10b981; color: white;">Administrator</span>
+                        {% elif current_user.role == 'Supervisor' %}
+                            <span class="badge" style="background: #3b82f6; color: white;">Supervisor</span>
                         {% else %}
-                            <a href="{{ url_for('champion.dashboard') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-home me-2"></i>View Dashboard
-                            </a>
+                            <span class="badge" style="background: #f59e0b; color: white;">Champion</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div>
+                    <div style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.25rem; font-weight: 500;">User ID</div>
+                    <div style="font-size: 1rem; color: #1e293b; font-family: 'Courier New', monospace;">#{{ current_user.user_id }}</div>
+                </div>
+                
+                <div>
+                    <div style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.25rem; font-weight: 500;">Account Status</div>
+                    <div>
+                        {% if current_user.account_locked %}
+                            <span class="badge" style="background: #dc2626; color: white;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                                </svg>
+                                Locked
+                            </span>
+                        {% else %}
+                            <span class="badge" style="background: #10b981; color: white;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Active
+                            </span>
                         {% endif %}
                     </div>
                 </div>
             </div>
-
-            <!-- Security Information Card -->
-            <div class="card shadow-sm border-warning">
-                <div class="card-header bg-warning text-dark">
-                    <h6 class="mb-0">
-                        <i class="fas fa-shield-alt me-2"></i>Security Reminder
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <p class="small mb-2">
-                        <strong>Keep your account secure:</strong>
-                    </p>
-                    <ul class="small mb-0">
-                        <li>Change your password regularly (every 90 days)</li>
-                        <li>Use a strong, unique password</li>
-                        <li>Never share your credentials</li>
-                        <li>Log out when using shared computers</li>
-                    </ul>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- Password Policy Information -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-lock me-2"></i>Password Policy
-                    </h5>
+    <!-- Quick Actions Card -->
+    <div class="data-card">
+        <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+            <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #334155; display: flex; align-items: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.75rem;">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                Quick Actions
+            </h3>
+        </div>
+        <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <a href="{{ url_for('admin.change_password') }}" class="btn btn--primary" style="width: 100%; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                </svg>
+                Change Password
+            </a>
+            
+            {% if current_user.role == 'Admin' %}
+                <a href="{{ url_for('admin.manage_users') }}" class="btn btn--secondary" style="width: 100%; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
+                    </svg>
+                    Manage Users
+                </a>
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn--secondary" style="width: 100%; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    View Dashboard
+                </a>
+            {% elif current_user.role == 'Supervisor' %}
+                <a href="{{ url_for('supervisor.dashboard') }}" class="btn btn--secondary" style="width: 100%; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    View Dashboard
+                </a>
+            {% else %}
+                <a href="{{ url_for('champion.dashboard') }}" class="btn btn--secondary" style="width: 100%; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    View Dashboard
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Security Information -->
+<div class="data-card" style="margin-bottom: 2rem;">
+    <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #fffbeb;">
+        <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #92400e; display: flex; align-items: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.75rem; color: #f59e0b;">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            Security Best Practices
+        </h3>
+    </div>
+    <div style="padding: 1.5rem; background: #fffbeb;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            <div>
+                <div style="font-weight: 600; color: #92400e; margin-bottom: 0.75rem; font-size: 0.9375rem;">Password Security</div>
+                <ul style="margin: 0; padding-left: 1.25rem; color: #78350f; font-size: 0.875rem; line-height: 1.8;">
+                    <li>Change your password every 90 days</li>
+                    <li>Use a strong, unique password</li>
+                    <li>Never share your credentials</li>
+                </ul>
+            </div>
+            <div>
+                <div style="font-weight: 600; color: #92400e; margin-bottom: 0.75rem; font-size: 0.9375rem;">Session Security</div>
+                <ul style="margin: 0; padding-left: 1.25rem; color: #78350f; font-size: 0.875rem; line-height: 1.8;">
+                    <li>Log out when using shared computers</li>
+                    <li>Don't leave sessions unattended</li>
+                    <li>Clear browser cache regularly</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Policy Information -->
+<div class="data-card">
+    <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+        <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #334155; display: flex; align-items: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.75rem;">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0110 0v4"></path>
+            </svg>
+            Password Policy & Account Security
+        </h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div>
+                <h4 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Password Requirements</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; align-items: start; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #10b981; flex-shrink: 0; margin-top: 2px;">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span style="font-size: 0.875rem; color: #64748b;">Minimum 8 characters</span>
+                    </div>
+                    <div style="display: flex; align-items: start; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #10b981; flex-shrink: 0; margin-top: 2px;">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span style="font-size: 0.875rem; color: #64748b;">At least one uppercase letter</span>
+                    </div>
+                    <div style="display: flex; align-items: start; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #10b981; flex-shrink: 0; margin-top: 2px;">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span style="font-size: 0.875rem; color: #64748b;">At least one lowercase letter</span>
+                    </div>
+                    <div style="display: flex; align-items: start; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #10b981; flex-shrink: 0; margin-top: 2px;">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span style="font-size: 0.875rem; color: #64748b;">At least one number</span>
+                    </div>
+                    <div style="display: flex; align-items: start; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #10b981; flex-shrink: 0; margin-top: 2px;">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span style="font-size: 0.875rem; color: #64748b;">At least one special character (!@#$%^&*)</span>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Password Requirements:</h6>
-                            <ul class="small">
-                                <li>Minimum 8 characters</li>
-                                <li>At least one uppercase letter</li>
-                                <li>At least one lowercase letter</li>
-                                <li>At least one number</li>
-                                <li>At least one special character (!@#$%^&*)</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>Account Security:</h6>
-                            <ul class="small">
-                                <li>Account locks after 5 failed login attempts</li>
-                                <li>Lockout duration: 30 minutes</li>
-                                <li>Session timeout: 24 hours of inactivity</li>
-                                <li>All passwords are encrypted with bcrypt</li>
-                            </ul>
-                        </div>
+            </div>
+            <div>
+                <h4 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Account Security</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; align-items: start; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #3b82f6; flex-shrink: 0; margin-top: 2px;">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        <span style="font-size: 0.875rem; color: #64748b;">Account locks after 7 failed login attempts</span>
+                    </div>
+                    <div style="display: flex; align-items: start; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #3b82f6; flex-shrink: 0; margin-top: 2px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span style="font-size: 0.875rem; color: #64748b;">Lockout duration: 30 minutes</span>
+                    </div>
+                    <div style="display: flex; align-items: start; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #3b82f6; flex-shrink: 0; margin-top: 2px;">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <span style="font-size: 0.875rem; color: #64748b;">Session timeout: 1 hour of inactivity</span>
+                    </div>
+                    <div style="display: flex; align-items: start; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #3b82f6; flex-shrink: 0; margin-top: 2px;">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                        <span style="font-size: 0.875rem; color: #64748b;">All passwords encrypted with bcrypt</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
