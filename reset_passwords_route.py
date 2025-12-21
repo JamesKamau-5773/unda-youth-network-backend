@@ -188,6 +188,98 @@ def reset_production_passwords(secret):
             alice_champion.user_id = alice.user_id
             results.append('✓ Alice user and champion profile created with password: Alice@123')
         
+        # Create NEW champion user - BOB (no reports yet - for testing form submission)
+        bob = User.query.filter_by(username='bob').first()
+        if bob:
+            bob.password_hash = hash_password('Bob@123')
+            bob.failed_login_attempts = 0
+            bob.account_locked = False
+            bob.locked_until = None
+            results.append('✓ Bob password reset to: Bob@123')
+            # Ensure bob has a champion profile
+            if not bob.champion_id:
+                bob_champion = Champion(
+                    full_name='Bob Martinez',
+                    email='bob@example.com',
+                    phone_number='0700000002',
+                    assigned_champion_code='CH-002',
+                    assigned_cohort='2024-Q2',
+                    status='Active'
+                )
+                db.session.add(bob_champion)
+                db.session.flush()
+                bob.champion_id = bob_champion.champion_id
+                bob_champion.user_id = bob.user_id
+                results.append('✓ Bob champion profile created')
+        else:
+            # Create champion profile first
+            bob_champion = Champion(
+                full_name='Bob Martinez',
+                email='bob@example.com',
+                phone_number='0700000002',
+                assigned_champion_code='CH-002',
+                assigned_cohort='2024-Q2',
+                status='Active'
+            )
+            db.session.add(bob_champion)
+            db.session.flush()
+            
+            bob = User(
+                username='bob',
+                role='Champion',
+                password_hash=hash_password('Bob@123'),
+                champion_id=bob_champion.champion_id
+            )
+            db.session.add(bob)
+            db.session.flush()
+            bob_champion.user_id = bob.user_id
+            results.append('✓ Bob user and champion profile created with password: Bob@123')
+        
+        # Create another test champion - CAROL
+        carol = User.query.filter_by(username='carol').first()
+        if carol:
+            carol.password_hash = hash_password('Carol@123')
+            carol.failed_login_attempts = 0
+            carol.account_locked = False
+            carol.locked_until = None
+            results.append('✓ Carol password reset to: Carol@123')
+            if not carol.champion_id:
+                carol_champion = Champion(
+                    full_name='Carol Johnson',
+                    email='carol@example.com',
+                    phone_number='0700000003',
+                    assigned_champion_code='CH-003',
+                    assigned_cohort='2024-Q3',
+                    status='Active'
+                )
+                db.session.add(carol_champion)
+                db.session.flush()
+                carol.champion_id = carol_champion.champion_id
+                carol_champion.user_id = carol.user_id
+                results.append('✓ Carol champion profile created')
+        else:
+            carol_champion = Champion(
+                full_name='Carol Johnson',
+                email='carol@example.com',
+                phone_number='0700000003',
+                assigned_champion_code='CH-003',
+                assigned_cohort='2024-Q3',
+                status='Active'
+            )
+            db.session.add(carol_champion)
+            db.session.flush()
+            
+            carol = User(
+                username='carol',
+                role='Champion',
+                password_hash=hash_password('Carol@123'),
+                champion_id=carol_champion.champion_id
+            )
+            db.session.add(carol)
+            db.session.flush()
+            carol_champion.user_id = carol.user_id
+            results.append('✓ Carol user and champion profile created with password: Carol@123')
+        
         # Commit changes
         db.session.commit()
         results.append('\n✓ All changes committed successfully!')
