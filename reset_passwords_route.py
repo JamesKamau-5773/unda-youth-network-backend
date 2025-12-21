@@ -141,7 +141,7 @@ def reset_production_passwords(secret):
             db.session.add(supervisor)
             results.append('✓ Supervisor1 user created with password: Super@123')
         
-        # Create or reset alice
+        # Create or reset alice with champion profile
         alice = User.query.filter_by(username='alice').first()
         if alice:
             alice.password_hash = hash_password('Alice@123')
@@ -149,14 +149,44 @@ def reset_production_passwords(secret):
             alice.account_locked = False
             alice.locked_until = None
             results.append('✓ Alice password reset to: Alice@123')
+            # Ensure alice has a champion profile
+            if not alice.champion_id:
+                alice_champion = Champion(
+                    full_name='Alice Champion',
+                    email='alice@example.com',
+                    phone_number='0700000001',
+                    assigned_champion_code='CH-001',
+                    assigned_cohort='2024-Q1',
+                    status='Active'
+                )
+                db.session.add(alice_champion)
+                db.session.flush()
+                alice.champion_id = alice_champion.champion_id
+                alice_champion.user_id = alice.user_id
+                results.append('✓ Alice champion profile created')
         else:
+            # Create champion profile first
+            alice_champion = Champion(
+                full_name='Alice Champion',
+                email='alice@example.com',
+                phone_number='0700000001',
+                assigned_champion_code='CH-001',
+                assigned_cohort='2024-Q1',
+                status='Active'
+            )
+            db.session.add(alice_champion)
+            db.session.flush()
+            
             alice = User(
                 username='alice',
                 role='Champion',
-                password_hash=hash_password('Alice@123')
+                password_hash=hash_password('Alice@123'),
+                champion_id=alice_champion.champion_id
             )
             db.session.add(alice)
-            results.append('✓ Alice user created with password: Alice@123')
+            db.session.flush()
+            alice_champion.user_id = alice.user_id
+            results.append('✓ Alice user and champion profile created with password: Alice@123')
         
         # Commit changes
         db.session.commit()
