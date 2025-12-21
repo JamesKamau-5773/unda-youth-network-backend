@@ -68,6 +68,11 @@ def create_app(test_config=None):
     @login_manager.user_loader
     def load_user(user_id):
         return db.session.get(User, int(user_id))
+    
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        # Prevent redirect loops - directly redirect to login without using url_for in request context
+        return redirect('/auth/login')
 
     # Flask-Limiter setup (using Redis for persistent rate limits)
     limiter.init_app(app)
