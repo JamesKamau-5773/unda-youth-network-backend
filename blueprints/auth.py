@@ -67,7 +67,13 @@ def register():
 @limiter.limit("10 per minute", methods=["POST"], exempt_when=lambda: False)
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard_redirect'))  # Redirect if already logged in
+        # Redirect authenticated users directly to their role dashboard
+        if current_user.role == 'Admin':
+            return redirect(url_for('admin.dashboard'))
+        elif current_user.role == 'Supervisor':
+            return redirect(url_for('supervisor.dashboard'))
+        else:
+            return redirect(url_for('champion.dashboard'))
 
     if request.method == 'POST':
         username = request.form.get('username')
@@ -88,7 +94,13 @@ def login():
                 user.reset_failed_logins()
                 login_user(user, remember=True)
                 flash('Logged in successfully', 'success')
-                return redirect(url_for('main.dashboard_redirect'))
+                # Redirect directly to role-specific dashboard
+                if user.role == 'Admin':
+                    return redirect(url_for('admin.dashboard'))
+                elif user.role == 'Supervisor':
+                    return redirect(url_for('supervisor.dashboard'))
+                else:
+                    return redirect(url_for('champion.dashboard'))
             else:
                 # Failed login - record attempt
                 user.record_failed_login()
@@ -111,26 +123,4 @@ def logout():
     return redirect(url_for('auth.login'))
 
 
-# Minimal role dashboards so redirects have targets
-@auth_bp.route('/admin/dashboard')
-@login_required
-@admin_required
-def admin_dashboard():
-    # Redirect to the actual admin dashboard
-    return redirect(url_for('admin.dashboard'))
 
-
-@auth_bp.route('/supervisor/dashboard')
-@login_required
-@supervisor_required
-def supervisor_dashboard():
-    # Redirect to the actual supervisor dashboard
-    return redirect(url_for('supervisor.dashboard'))
-
-
-@auth_bp.route('/champion/dashboard')
-@login_required
-@champion_required
-def champion_dashboard():
-    # Redirect to the actual champion dashboard
-    return redirect(url_for('champion.dashboard'))

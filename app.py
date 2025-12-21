@@ -113,19 +113,15 @@ def create_app(test_config=None):
     @main_bp.route('/')
     def index():
         if current_user.is_authenticated:
-            return redirect(url_for('main.dashboard_redirect'))
+            # Redirect directly to role-specific dashboard
+            if current_user.role == 'Admin':
+                return redirect(url_for('admin.dashboard'))
+            elif current_user.role == 'Supervisor':
+                return redirect(url_for('supervisor.dashboard'))
+            else:
+                return redirect(url_for('champion.dashboard'))
         else:
             return redirect(url_for('auth.login'))
-    
-    @main_bp.route('/dashboard')
-    @login_required
-    def dashboard_redirect():
-        if current_user.role == 'Admin':
-            return redirect(url_for('auth.admin_dashboard'))
-        elif current_user.role == 'Supervisor':
-            return redirect(url_for('auth.supervisor_dashboard'))
-        else:
-            return redirect(url_for('auth.champion_dashboard'))
         
     app.register_blueprint(main_bp)    
 
