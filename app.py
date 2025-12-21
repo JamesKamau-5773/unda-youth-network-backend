@@ -112,13 +112,14 @@ def create_app(test_config=None):
 
     @main_bp.route('/')
     def index():
-        return redirect(url_for('main.dashboard_redirect'))
+        if current_user.is_authenticated:
+            return redirect(url_for('main.dashboard_redirect'))
+        else:
+            return redirect(url_for('auth.login'))
     
     @main_bp.route('/dashboard')
     @login_required
     def dashboard_redirect():
-        
-        
         if current_user.role == 'Admin':
             return redirect(url_for('auth.admin_dashboard'))
         elif current_user.role == 'Supervisor':
