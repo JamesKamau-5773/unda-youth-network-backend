@@ -389,14 +389,15 @@ def create_champion():
         # Get form data
         username = request.form.get('username', '').strip()
         full_name = request.form.get('full_name', '').strip()
+        email = request.form.get('email', '').strip()
         gender = request.form.get('gender', '').strip()
         date_of_birth = request.form.get('date_of_birth', '').strip()
         phone_number = request.form.get('phone_number', '').strip()
         county_sub_county = request.form.get('county_sub_county', '').strip()
         
         # Validation
-        if not username or not full_name:
-            flash('Username and Full Name are required', 'danger')
+        if not username or not full_name or not email or not phone_number:
+            flash('Username, Full Name, Email, and Phone Number are required', 'danger')
             return render_template('admin/create_champion.html')
         
         if len(username) < 3:
@@ -406,6 +407,11 @@ def create_champion():
         # Check if username already exists
         if User.query.filter_by(username=username).first():
             flash(f'Username "{username}" already exists. Please choose a different username.', 'danger')
+            return render_template('admin/create_champion.html')
+        
+        # Check if email already exists
+        if Champion.query.filter_by(email=email).first():
+            flash(f'Email "{email}" already exists. Please use a different email.', 'danger')
             return render_template('admin/create_champion.html')
         
         # Generate secure temporary password
@@ -430,9 +436,10 @@ def create_champion():
             new_champion = Champion(
                 user_id=new_user.user_id,
                 full_name=full_name,
+                email=email,
                 gender=gender if gender else None,
                 date_of_birth=date_of_birth if date_of_birth else None,
-                phone_number=phone_number if phone_number else None,
+                phone_number=phone_number,
                 county_sub_county=county_sub_county if county_sub_county else None,
                 assigned_champion_code=champion_code,
                 application_status='Approved',
