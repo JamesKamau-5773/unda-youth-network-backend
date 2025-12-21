@@ -16,8 +16,8 @@ def dashboard():
 	champion_profile = Champion.query.filter_by(champion_id=current_user.champion_id).first()
 
 	if not champion_profile:
-		flash("Champion profile data not found.", 'danger')
-		return redirect(url_for('main.index'))
+		flash("Champion profile data not found. Please contact administrator.", 'danger')
+		return redirect(url_for('auth.login'))
 
 	recent_reports = (
 		YouthSupport.query.filter_by(champion_id=current_user.champion_id)
