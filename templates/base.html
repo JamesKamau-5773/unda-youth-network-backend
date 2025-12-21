@@ -384,9 +384,6 @@
                         <a href="{{ url_for('supervisor.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'supervisor.dashboard' %}active{% endif %}">My Champions</a>
                     </li>
                     <li class="sidebar-nav-item">
-                        <a href="{{ url_for('admin.settings') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.settings' %}active{% endif %}">Settings</a>
-                    </li>
-                    <li class="sidebar-nav-item">
                         <a href="{{ url_for('admin.change_password') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}">Change Password</a>
                     </li>
                     {% elif current_user.role == 'Champion' %}
@@ -395,9 +392,6 @@
                     </li>
                     <li class="sidebar-nav-item">
                         <a href="{{ url_for('champion.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">Submit Report</a>
-                    </li>
-                    <li class="sidebar-nav-item">
-                        <a href="{{ url_for('admin.settings') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.settings' %}active{% endif %}">Settings</a>
                     </li>
                     <li class="sidebar-nav-item">
                         <a href="{{ url_for('admin.change_password') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}">Change Password</a>
