@@ -204,10 +204,13 @@ textarea:focus-visible {
     z-index: 999;
     opacity: 0;
     transition: opacity var(--transition-base);
+    pointer-events: none; /* Allow clicks to pass through when inactive */
 }
 
 .sidebar-overlay.active {
     opacity: 1;
+    display: block; /* Ensure visible when active */
+    pointer-events: auto; /* Capture clicks when active */
 }
 
 .sidebar-nav {
@@ -444,6 +447,9 @@ textarea:focus-visible {
     font-weight: 600;
     transition: all var(--transition-base);
     cursor: pointer;
+    min-height: 44px; /* Touch-friendly minimum size */
+    position: relative;
+    z-index: 2; /* Ensure buttons are above decorative elements */
 }
 
 .btn--primary {
