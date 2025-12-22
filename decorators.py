@@ -14,7 +14,15 @@ def roles_required(*roles):
       # Role check (roles passed should match stored role strings)
       if current_user.role not in roles:
         flash('Access denied. You do not have the required permissions.', 'danger')
-        return redirect(url_for('main.index'))
+        # Redirect to user's appropriate dashboard instead of main.index
+        if current_user.role == 'Admin':
+          return redirect(url_for('admin.dashboard'))
+        elif current_user.role == 'Supervisor':
+          return redirect(url_for('supervisor.dashboard'))
+        elif current_user.role == 'Champion':
+          return redirect(url_for('champion.dashboard'))
+        else:
+          return redirect(url_for('auth.login'))
       return f(*args, **kwargs)
     return decorated_function
   return wrapper

@@ -3,8 +3,8 @@
 
 {% block content %}
 <div style="margin-bottom: 1.5rem;">
-	<a href="{{ url_for('supervisor.dashboard') }}" class="btn btn--secondary" style="display: inline-flex; align-items: center;">
-		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+	<a href="{{ url_for('supervisor.dashboard') }}" class="btn btn--secondary">
+		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 			<line x1="19" y1="12" x2="5" y2="12"></line>
 			<polyline points="12 19 5 12 12 5"></polyline>
 		</svg>
@@ -312,8 +312,8 @@
 						<option value="Declined">Declined</option>
 					</select>
 				</div>
-			<button class="btn btn--primary" style="width: 100%; margin-top: 0.5rem;" type="submit">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+			<button class="btn btn--primary btn--block" style="margin-top: 0.5rem;" type="submit">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 					<line x1="12" y1="5" x2="12" y2="19"></line>
 					<line x1="5" y1="12" x2="19" y2="12"></line>
 				</svg>
