@@ -31,8 +31,8 @@
 
 <!-- Report Submission Form -->
 <div class="section-header">
-	<h2 class="section-title">Submit Monthly Report</h2>
-	<p class="section-subtitle">Track your operational data and impact metrics</p>
+	<h2 class="section-title">Submit Monthly Report — {{ current_reporting_date.strftime('%B %Y') }}</h2>
+	<p class="section-subtitle">Track your operational data and impact metrics for the current month</p>
 </div>
 
 <div class="data-card">
@@ -41,43 +41,43 @@
 		<div class="form-grid">
 			<div class="form-group">
 				<label for="check_in_rate" class="form-label">Weekly Check-In Completion Rate (%)</label>
-				<input type="number" step="0.01" min="0" max="100" class="form-input" id="check_in_rate" name="check_in_rate" required>
-				<span class="form-hint">Percentage of completed check-ins this week</span>
+				<input type="number" step="0.01" min="0" max="100" class="form-input" id="check_in_rate" name="check_in_rate" aria-describedby="check_in_rate_hint" required>
+				<span class="form-hint" id="check_in_rate_hint">Enter 0–100 (e.g., 75 means 3 of 4 weekly check-ins completed)</span>
 			</div>
 			
 			<div class="form-group">
 				<label for="screenings_delivered" class="form-label">Monthly Mini-Screenings Delivered</label>
-				<input type="number" min="0" class="form-input" id="screenings_delivered" name="screenings_delivered" required>
-				<span class="form-hint">PHQ-2, GAD-2 screenings completed</span>
+				<input type="number" min="0" class="form-input" id="screenings_delivered" name="screenings_delivered" aria-describedby="screenings_hint" required>
+				<span class="form-hint" id="screenings_hint">Total PHQ-2 + GAD-2 screenings you delivered this month</span>
 			</div>
 			
 			<div class="form-group">
 				<label for="referrals_initiated" class="form-label">Referrals Initiated</label>
-				<input type="number" min="0" class="form-input" id="referrals_initiated" name="referrals_initiated" required>
-				<span class="form-hint">New referrals to professional care</span>
+				<input type="number" min="0" class="form-input" id="referrals_initiated" name="referrals_initiated" aria-describedby="referrals_hint" required>
+				<span class="form-hint" id="referrals_hint">Count of new referrals you initiated to professional care this month</span>
 			</div>
 			
 			<div class="form-group">
 				<label for="doc_quality" class="form-label">Documentation Quality Score</label>
-				<select class="form-input" id="doc_quality" name="doc_quality" required>
+				<select class="form-input" id="doc_quality" name="doc_quality" aria-describedby="doc_quality_hint" required>
 					<option value="">Select quality level</option>
 					<option value="complete">Complete</option>
 					<option value="partial">Partial</option>
 					<option value="incomplete">Incomplete</option>
 				</select>
-				<span class="form-hint">Self-assessment of record completeness</span>
+				<span class="form-hint" id="doc_quality_hint">Self-assess record completeness for this month</span>
 			</div>
 		</div>
 		
 		<div class="form-group" style="margin-top: 1.5rem;">
 			<label for="wellbeing_check" class="form-label">Self-Reported Wellbeing Check (Monthly)</label>
-			<textarea class="form-input" id="wellbeing_check" name="wellbeing_check" rows="3" placeholder="Briefly describe your current wellbeing status..."></textarea>
-			<span class="form-hint">Your personal wellbeing and support needs</span>
+			<textarea class="form-input" id="wellbeing_check" name="wellbeing_check" rows="3" aria-describedby="wellbeing_hint" placeholder="Briefly describe your current wellbeing status..."></textarea>
+			<span class="form-hint" id="wellbeing_hint">1–3 sentences on your wellbeing and support needs</span>
 		</div>
 		
 		<div style="margin-top: 2rem;">
 			<button type="submit" class="btn btn--primary">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;" aria-hidden="true">
 					<path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
 					<polyline points="17 21 17 13 7 13 7 21"></polyline>
 					<polyline points="7 3 7 8 15 8"></polyline>

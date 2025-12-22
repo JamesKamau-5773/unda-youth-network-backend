@@ -7,20 +7,6 @@
 	<p class="dashboard-subtitle">Manage and monitor your assigned champions</p>
 </div>
 
-<!-- Quick Action -->
-{% if current_user.role == 'Admin' %}
-<div style="margin-bottom: 1.5rem;">
-	<a href="{{ url_for('admin.create_champion') }}" class="btn btn--primary">
-		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
-			<path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
-			<circle cx="8.5" cy="7" r="4"></circle>
-			<polyline points="17 11 19 13 23 9"></polyline>
-		</svg>
-		Register New Champion
-	</a>
-</div>
-{% endif %}
-
 <!-- Advanced Filters -->
 <div class="data-card" style="margin-bottom: 1.5rem; background: #f8fafc;">
 	<form method="GET" action="{{ url_for('supervisor.dashboard') }}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end;">
@@ -196,12 +182,6 @@
 			You don't have any champions assigned to you for supervision. 
 			Champions will appear here once they are assigned by an administrator.
 		</p>
-		<a href="{{ url_for('admin.dashboard') }}" class="empty-state-action">
-			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M3 12h18M12 5l7 7-7 7"></path>
-			</svg>
-			Go to Admin Dashboard
-		</a>
 	</div>
 </div>
 {% endif %}

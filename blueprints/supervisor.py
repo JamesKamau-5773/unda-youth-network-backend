@@ -12,10 +12,8 @@ supervisor_bp = Blueprint('supervisor', __name__, url_prefix='/supervisor', temp
 @supervisor_required
 def dashboard():
   # SECURITY FILTER: Only fetch champions assigned to this supervisor
-  managed_ids = current_user.supervised_champion_ids or []
-
-  # Base query
-  query = Champion.query.filter(Champion.champion_id.in_(managed_ids)) if managed_ids else Champion.query.filter_by(champion_id=-1)
+  # Filter champions where supervisor_id matches current user's ID
+  query = Champion.query.filter_by(supervisor_id=current_user.user_id)
   
   # ADVANCED FILTERING
   filter_status = request.args.get('status')
@@ -37,13 +35,13 @@ def dashboard():
   
   champions = query.all()
   
-  # Get unique values for filter dropdowns
+  # Get unique values for filter dropdowns (only from assigned champions)
   all_counties = db.session.query(Champion.county_sub_county).filter(
-    Champion.champion_id.in_(managed_ids) if managed_ids else Champion.champion_id.isnot(None)
+    Champion.supervisor_id == current_user.user_id
   ).distinct().all()
   
   all_institutions = db.session.query(Champion.education_institution_name).filter(
-    Champion.champion_id.in_(managed_ids) if managed_ids else Champion.champion_id.isnot(None)
+    Champion.supervisor_id == current_user.user_id
   ).distinct().all()
 
   return render_template('supervisor/dashboard.html', 
@@ -62,10 +60,12 @@ def dashboard():
 @supervisor_required
 def review_champion(champion_id):
   # Verify authorization for this specific champion
-  if champion_id not in (current_user.supervised_champion_ids or []):
+  champion = Champion.query.get_or_404(champion_id)
+  
+  # Check if this champion is assigned to the current supervisor
+  if champion.supervisor_id != current_user.user_id:
     abort(403, 'Unauthorized access')
 
-  champion = Champion.query.get_or_404(champion_id)
 
   # AUDIT LOG: Record sensitive data access
   audit_entry = AccessAuditLog(
