@@ -67,13 +67,16 @@ def register():
 @limiter.limit("10 per minute", methods=["POST"], exempt_when=lambda: False)
 def login():
     if current_user.is_authenticated:
-        # Redirect authenticated users directly to their role dashboard
-        if current_user.role == 'Admin':
+        # Redirect authenticated users directly to their role dashboard (case-insensitive)
+        role_lower = (current_user.role or '').lower()
+        if role_lower == 'admin':
             return redirect(url_for('admin.dashboard'))
-        elif current_user.role == 'Supervisor':
+        elif role_lower == 'supervisor':
             return redirect(url_for('supervisor.dashboard'))
-        else:
+        elif role_lower == 'champion':
             return redirect(url_for('champion.dashboard'))
+        else:
+            return redirect(url_for('auth.login'))
 
     if request.method == 'POST':
         username = request.form.get('username')
@@ -94,13 +97,16 @@ def login():
                 user.reset_failed_logins()
                 login_user(user, remember=True)
                 flash('Logged in successfully', 'success')
-                # Redirect directly to role-specific dashboard
-                if user.role == 'Admin':
+                # Redirect directly to role-specific dashboard (case-insensitive)
+                role_lower = (user.role or '').lower()
+                if role_lower == 'admin':
                     return redirect(url_for('admin.dashboard'))
-                elif user.role == 'Supervisor':
+                elif role_lower == 'supervisor':
                     return redirect(url_for('supervisor.dashboard'))
-                else:
+                elif role_lower == 'champion':
                     return redirect(url_for('champion.dashboard'))
+                else:
+                    return redirect(url_for('auth.login'))
             else:
                 # Failed login - record attempt
                 user.record_failed_login()

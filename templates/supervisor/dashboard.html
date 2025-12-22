@@ -110,7 +110,7 @@
 {% if champions %}
 <div class="data-card">
 	<div class="data-table-container">
-		<table class="data-table">
+		<table class="data-table table-stack">
 			<thead>
 				<tr>
 					<th>Champion Name</th>
@@ -123,10 +123,10 @@
 			<tbody>
 				{% for champion in champions %}
 				<tr>
-					<td class="font-medium">{{ champion.full_name }}</td>
-					<td><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
-					<td><span class="badge badge--secondary">{{ champion.assigned_cohort }}</span></td>
-					<td>
+					<td data-label="Champion Name" class="font-medium">{{ champion.full_name }}</td>
+					<td data-label="Champion Code"><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
+					<td data-label="Cohort"><span class="badge badge--secondary">{{ champion.assigned_cohort }}</span></td>
+					<td data-label="Risk Level">
 						{% if champion.risk_level == 'High' %}
 						<span class="badge" style="background: #dc2626; color: white;" title="High risk - Requires immediate attention">
 							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
@@ -154,8 +154,8 @@
 						</span>
 						{% endif %}
 					</td>
-					<td class="text-right">
-						<a class="btn btn--primary" href="{{ url_for('supervisor.review_champion', champion_id=champion.champion_id) }}">
+					<td data-label="Actions" class="text-right">
+						<a class="btn btn--primary btn--nowrap" href="{{ url_for('supervisor.review_champion', champion_id=champion.champion_id) }}">
 							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 								<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
 								<circle cx="12" cy="12" r="3"></circle>
