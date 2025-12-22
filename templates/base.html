@@ -723,6 +723,32 @@
                 });
             });
         }
+        
+        // Ensure all interactive elements are clickable on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check and fix any elements with blocked pointer events
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.pointerEvents = 'auto';
+            }
+            
+            // Ensure all buttons and links are tappable
+            const interactiveElements = document.querySelectorAll('a, button, input[type="submit"], input[type="button"]');
+            interactiveElements.forEach(el => {
+                if (getComputedStyle(el).pointerEvents === 'none') {
+                    el.style.pointerEvents = 'auto';
+                }
+                // Add touch feedback for mobile
+                if ('ontouchstart' in window) {
+                    el.addEventListener('touchstart', function(e) {
+                        this.style.opacity = '0.7';
+                    });
+                    el.addEventListener('touchend', function(e) {
+                        this.style.opacity = '1';
+                    });
+                }
+            });
+        });
     });
     </script>
     {% block extra_js %}{% endblock %}
