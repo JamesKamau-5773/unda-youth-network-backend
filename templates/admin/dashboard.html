@@ -4,25 +4,21 @@
 
 {% block content %}
 <!-- Modern Header with Gradient -->
-<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2.5rem 2rem; border-radius: 16px; margin-bottom: 2rem; box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2);">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+<div class="hero-card">
+    <div class="hero-card__inner">
         <div>
-            <h1 style="font-size: 2rem; font-weight: 700; color: white; margin: 0; margin-bottom: 0.5rem;">
-                Welcome back, {{ current_user.username }}
-            </h1>
-            <p style="color: rgba(255, 255, 255, 0.9); font-size: 1rem; margin: 0;">
-                Here's what's happening with your network today
-            </p>
+            <h1 class="hero-card__title">Welcome back, {{ current_user.username }}</h1>
+            <p class="hero-card__subtitle">Here's what's happening with your network today</p>
         </div>
-        <div style="display: flex; gap: 0.75rem;">
-            <a href="{{ url_for('admin.create_champion') }}" class="btn btn--cta">
+        <div class="hero-card__actions">
+            <a href="{{ url_for('admin.create_champion') }}" class="btn btn--cta btn--nowrap btn--block">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
                 New Champion
             </a>
-            <a href="{{ url_for('admin.manage_users') }}" class="btn btn--secondary">
+            <a href="{{ url_for('admin.manage_users') }}" class="btn btn--secondary btn--nowrap btn--block">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
@@ -36,11 +32,11 @@
 
 <!-- CRITICAL ALERTS - Modern Design -->
 {% if high_risk_count > 0 or overdue_count > 0 %}
-<div style="margin-bottom: 2rem;">
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+<div class="mb-xl">
+    <div class="grid-auto grid-auto--tight">
         {% if high_risk_count > 0 %}
-        <div style="flex: 1; min-width: 300px; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-radius: 16px; padding: 1.5rem; border-left: 4px solid #dc2626; box-shadow: 0 4px 16px rgba(220, 38, 38, 0.1);">
-            <div style="display: flex; align-items: start; gap: 1rem;">
+        <div class="tile" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 4px solid #dc2626; box-shadow: 0 4px 16px rgba(220, 38, 38, 0.1);">
+            <div class="tile__header" style="align-items: flex-start; gap: 1rem;">
                 <div style="background: #dc2626; padding: 0.75rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                         <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
@@ -49,14 +45,14 @@
                     </svg>
                 </div>
                 <div style="flex: 1;">
-                    <div style="color: #991b1b; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Critical Alert</div>
-                    <div style="color: #7f1d1d; font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">{{ high_risk_count }}</div>
-                    <div style="color: #991b1b; font-size: 0.9375rem;">High-risk champions need immediate attention</div>
+                    <div class="pill" style="color: #991b1b; background: rgba(153, 27, 27, 0.1);">Critical Alert</div>
+                    <div class="tile__value" style="color: #7f1d1d; font-size: 2rem;">{{ high_risk_count }}</div>
+                    <div class="tile__label" style="color: #991b1b;">High-risk champions need immediate attention</div>
                 </div>
             </div>
             {% if high_risk_champions %}
-            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(127, 29, 29, 0.2);">
-                <div style="font-weight: 600; color: #991b1b; margin-bottom: 0.5rem; font-size: 0.875rem;">Action Required:</div>
+            <div class="mt-md" style="padding-top: 1rem; border-top: 1px solid rgba(127, 29, 29, 0.2);">
+                <div class="tile__label" style="color: #991b1b;">Action Required:</div>
                 <ul style="margin: 0; padding-left: 1.25rem; color: #7f1d1d; font-size: 0.875rem; line-height: 1.8;">
                     {% for champion in high_risk_champions[:3] %}
                     <li><strong>{{ champion.full_name }}</strong> ({{ champion.assigned_champion_code }})</li>
@@ -71,8 +67,8 @@
         {% endif %}
         
         {% if overdue_count > 0 %}
-        <div style="flex: 1; min-width: 300px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 1.5rem; border-left: 4px solid #f59e0b; box-shadow: 0 4px 16px rgba(245, 158, 11, 0.1);">
-            <div style="display: flex; align-items: start; gap: 1rem;">
+        <div class="tile" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b; box-shadow: 0 4px 16px rgba(245, 158, 11, 0.1);">
+            <div class="tile__header" style="align-items: flex-start; gap: 1rem;">
                 <div style="background: #f59e0b; padding: 0.75rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -80,9 +76,9 @@
                     </svg>
                 </div>
                 <div style="flex: 1;">
-                    <div style="color: #92400e; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Overdue</div>
-                    <div style="color: #78350f; font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">{{ overdue_count }}</div>
-                    <div style="color: #92400e; font-size: 0.9375rem;">Reviews past due date</div>
+                    <div class="pill" style="color: #92400e; background: rgba(146, 64, 14, 0.1);">Overdue</div>
+                    <div class="tile__value" style="color: #78350f; font-size: 2rem;">{{ overdue_count }}</div>
+                    <div class="tile__label" style="color: #92400e;">Reviews past due date</div>
                 </div>
             </div>
         </div>
@@ -93,14 +89,14 @@
 
 
 <!-- Champion Status Overview - Modern Cards -->
-<div style="margin-bottom: 1.5rem;">
-    <h2 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 1.5rem;">Champion Overview</h2>
+<div class="section-header section-header--spacious">
+    <h2 class="section-title">Champion Overview</h2>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+<div class="grid-auto" style="margin-bottom: 2.5rem;">
     <!-- Active Champions - Modern Card -->
-    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #10b981; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 24px rgba(16,185,129,0.15)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+    <div class="tile" style="border-left: 4px solid #10b981;">
+        <div class="tile__header">
             <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 0.75rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
@@ -108,16 +104,16 @@
                     <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
                 </svg>
             </div>
-            <span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">ACTIVE</span>
+            <span class="pill" style="background: #d1fae5; color: #065f46;">ACTIVE</span>
         </div>
-        <div style="color: #64748b; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">Active Champions</div>
-        <div style="font-size: 2.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">{{ active_champions }}</div>
-        <div style="color: #64748b; font-size: 0.875rem;">Currently supporting youth</div>
+        <div class="tile__label">Active Champions</div>
+        <div class="tile__value">{{ active_champions }}</div>
+        <div class="tile__label">Currently supporting youth</div>
     </div>
 
     <!-- Inactive Champions -->
-    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #ef4444; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 24px rgba(239,68,68,0.15)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+    <div class="tile" style="border-left: 4px solid #ef4444;">
+        <div class="tile__header">
             <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 0.75rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(239,68,68,0.3);">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -125,16 +121,16 @@
                     <line x1="9" y1="9" x2="15" y2="15"></line>
                 </svg>
             </div>
-            <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">INACTIVE</span>
+            <span class="pill" style="background: #fee2e2; color: #991b1b;">INACTIVE</span>
         </div>
-        <div style="color: #64748b; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">Inactive Champions</div>
-        <div style="font-size: 2.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">{{ inactive_champions }}</div>
-        <div style="color: #64748b; font-size: 0.875rem;">Require re-engagement</div>
+        <div class="tile__label">Inactive Champions</div>
+        <div class="tile__value">{{ inactive_champions }}</div>
+        <div class="tile__label">Require re-engagement</div>
     </div>
 
     <!-- On Hold Champions -->
-    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #f59e0b; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 24px rgba(245,158,11,0.15)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+    <div class="tile" style="border-left: 4px solid #f59e0b;">
+        <div class="tile__header">
             <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 0.75rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(245,158,11,0.3);">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -142,28 +138,28 @@
                     <line x1="14" y1="15" x2="14" y2="9"></line>
                 </svg>
             </div>
-            <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">ON HOLD</span>
+            <span class="pill" style="background: #fef3c7; color: #92400e;">ON HOLD</span>
         </div>
-        <div style="color: #64748b; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">On Hold</div>
-        <div style="font-size: 2.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">{{ on_hold_champions }}</div>
-        <div style="color: #64748b; font-size: 0.875rem;">Pending review/action</div>
+        <div class="tile__label">On Hold</div>
+        <div class="tile__value">{{ on_hold_champions }}</div>
+        <div class="tile__label">Pending review/action</div>
     </div>
 
     <!-- Screening Completion -->
-    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #3b82f6; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 24px rgba(59,130,246,0.15)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+    <div class="tile" style="border-left: 4px solid #3b82f6;">
+        <div class="tile__header">
             <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); padding: 0.75rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
             </div>
-            <span style="background: #dbeafe; color: #1e40af; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">{{ avg_screening_completion_rate }}%</span>
+            <span class="pill" style="background: #dbeafe; color: #1e40af;">{{ avg_screening_completion_rate }}%</span>
         </div>
-        <div style="color: #64748b; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">Screening Completion</div>
+        <div class="tile__label">Screening Completion</div>
         <div style="background: #f1f5f9; border-radius: 8px; height: 8px; margin-bottom: 0.75rem; overflow: hidden;">
-            <div style="background: linear-gradient(90deg, #3b82f6, #2563eb); height: 100%; width: {{ avg_screening_completion_rate }}%; transition: width 1s ease;"></div>
+            <div style="background: linear-gradient(90deg, #3b82f6, #2563eb); height: 100%; width: {{ avg_screening_completion_rate }}%;"></div>
         </div>
-        <div style="color: #64748b; font-size: 0.875rem;">Background checks complete</div>
+        <div class="tile__label">Background checks complete</div>
     </div>
 </div>
 
@@ -172,7 +168,7 @@
     <h2 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 1.5rem;">Performance Metrics</h2>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+<div class="grid-auto" style="margin-bottom: 2.5rem;">
     <!-- Check-In Completion -->
     <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.08)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -283,7 +279,7 @@
     <p style="color: #64748b; font-size: 0.875rem;">Youth reach and engagement metrics</p>
 </div>
 
-<div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+<div class="tile">
     {% if youth_per_champion|length == 0 %}
     <div style="text-align: center; padding: 3rem 1rem;">
         <div style="background: linear-gradient(135deg, #667eea, #764ba2); margin: 0 auto 1.5rem; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(102,126,234,0.3);">
@@ -297,7 +293,7 @@
         <div style="color: #64748b; margin-bottom: 1.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
             Start building your network by registering champions who will support youth in their communities.
         </div>
-        <a href="{{ url_for('admin.create_champion') }}" class="btn btn--cta">
+        <a href="{{ url_for('admin.create_champion') }}" class="btn btn--cta btn--block btn--nowrap">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -306,24 +302,24 @@
         </a>
     </div>
     {% else %}
-    <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+    <div class="data-table-wrapper">
+        <table class="data-table table-stack">
             <thead>
-                <tr style="border-bottom: 2px solid #f1f5f9;">
-                    <th style="text-align: left; padding: 1rem; color: #64748b; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Champion Code</th>
-                    <th style="text-align: left; padding: 1rem; color: #64748b; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Full Name</th>
-                    <th style="text-align: right; padding: 1rem; color: #64748b; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Youth Reached</th>
+                <tr>
+                    <th>Champion Code</th>
+                    <th>Full Name</th>
+                    <th class="text-right">Youth Reached</th>
                 </tr>
             </thead>
             <tbody>
                 {% for champion in youth_per_champion %}
-                <tr style="border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
-                    <td style="padding: 1rem;">
-                        <span style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 0.375rem 0.75rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; display: inline-block;">{{ champion.assigned_champion_code }}</span>
+                <tr>
+                    <td data-label="Champion Code">
+                        <span class="badge badge--primary">{{ champion.assigned_champion_code }}</span>
                     </td>
-                    <td style="padding: 1rem; font-weight: 600; color: #1e293b;">{{ champion.full_name }}</td>
-                    <td style="padding: 1rem; text-align: right;">
-                        <span style="background: #f1f5f9; color: #1e293b; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-size: 1.125rem;">{{ champion.total_youth }}</span>
+                    <td data-label="Full Name" class="font-medium">{{ champion.full_name }}</td>
+                    <td data-label="Youth Reached" class="table-cell--numeric">
+                        <span class="badge" style="background: #f1f5f9; color: #1e293b; font-weight: 700; font-size: 1rem;">{{ champion.total_youth }}</span>
                     </td>
                 </tr>
                 {% endfor %}
@@ -339,28 +335,28 @@
     <p style="color: #64748b; font-size: 0.875rem;">Champion sources and acquisition channels</p>
 </div>
 
-<div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+<div class="tile">
+    <div class="data-table-wrapper">
+        <table class="data-table table-stack">
             <thead>
-                <tr style="border-bottom: 2px solid #f1f5f9;">
-                    <th style="text-align: left; padding: 1rem; color: #64748b; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Recruitment Source</th>
-                    <th style="text-align: right; padding: 1rem; color: #64748b; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Champions</th>
-                    <th style="text-align: right; padding: 1rem; color: #64748b; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Percentage</th>
+                <tr>
+                    <th>Recruitment Source</th>
+                    <th class="text-right">Champions</th>
+                    <th class="text-right">Percentage</th>
                 </tr>
             </thead>
             <tbody>
                 {% set total_sources = recruitment_sources | sum(attribute='count') %}
                 {% for source in recruitment_sources %}
-                <tr style="border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
-                    <td style="padding: 1rem; font-weight: 600; color: #1e293b;">{{ source.recruitment_source or 'Not Specified' }}</td>
-                    <td style="padding: 1rem; text-align: right;">
-                        <span style="background: #f1f5f9; color: #1e293b; padding: 0.375rem 0.75rem; border-radius: 8px; font-weight: 700;">{{ source.count }}</span>
+                <tr>
+                    <td data-label="Recruitment Source" class="font-medium">{{ source.recruitment_source or 'Not Specified' }}</td>
+                    <td data-label="Champions" class="table-cell--numeric">
+                        <span class="badge" style="background: #f1f5f9; color: #1e293b; font-weight: 700;">{{ source.count }}</span>
                     </td>
-                    <td style="padding: 1rem; text-align: right;">
+                    <td data-label="Percentage" class="table-cell--numeric">
                         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem;">
                             <div style="flex: 0 0 100px; background: #f1f5f9; border-radius: 8px; height: 8px; overflow: hidden;">
-                                <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: {{ ((source.count / total_sources * 100) | round(1)) }}%; transition: width 1s ease;"></div>
+                                <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: {{ ((source.count / total_sources * 100) | round(1)) }}%;"></div>
                             </div>
                             <span style="color: #64748b; font-weight: 600; min-width: 50px;">{{ ((source.count / total_sources * 100) | round(1)) }}%</span>
                         </div>
@@ -373,12 +369,12 @@
 </div>
 
 <!-- Compliance Monitoring -->
-<div style="margin-bottom: 1rem;">
-    <h2 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">Compliance Monitoring</h2>
-    <p style="color: #64748b; font-size: 0.875rem;">Consent and training status overview</p>
+<div class="section-header">
+    <h2 class="section-title">Compliance Monitoring</h2>
+    <p class="section-subtitle">Consent and training status overview</p>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+<div class="grid-auto">
     <div style="background: {% if champions_missing_consent > 0 %}linear-gradient(135deg, #fef3c7 0%, #fde68a 100%){% else %}linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%){% endif %}; border-radius: 16px; padding: 1.5rem; border-left: 4px solid {% if champions_missing_consent > 0 %}#f59e0b{% else %}#10b981{% endif %}; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.08)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)'">
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <div style="background: {% if champions_missing_consent > 0 %}rgba(245,158,11,0.2){% else %}rgba(16,185,129,0.2){% endif %}; padding: 0.625rem; border-radius: 10px;">
@@ -418,32 +414,32 @@
     <p style="color: #64748b; font-size: 0.875rem;">Upcoming training renewals (next 30 days)</p>
 </div>
 
-<div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+<div class="tile">
     {% if upcoming_refreshers %}
-    <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+    <div class="data-table-wrapper">
+        <table class="data-table table-stack">
             <thead>
-                <tr style="border-bottom: 2px solid #f1f5f9;">
-                    <th style="text-align: left; padding: 1rem; color: #64748b; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Champion</th>
-                    <th style="text-align: left; padding: 1rem; color: #64748b; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Training Module</th>
-                    <th style="text-align: right; padding: 1rem; color: #64748b; font-weight: 600; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">Due Date</th>
+                <tr>
+                    <th>Champion</th>
+                    <th>Training Module</th>
+                    <th class="text-right">Due Date</th>
                 </tr>
             </thead>
             <tbody>
                 {% for champion, training in upcoming_refreshers %}
-                <tr style="border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
-                    <td style="padding: 1rem;">
+                <tr>
+                    <td data-label="Champion">
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
                             <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem;">{{ champion.full_name[0] }}</div>
                             <div>
-                                <div style="font-weight: 600; color: #1e293b;">{{ champion.full_name }}</div>
-                                <span style="background: #f1f5f9; color: #64748b; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">{{ champion.assigned_champion_code }}</span>
+                                <div class="font-medium" style="color: #1e293b;">{{ champion.full_name }}</div>
+                                <span class="badge" style="background: #f1f5f9; color: #64748b;">{{ champion.assigned_champion_code }}</span>
                             </div>
                         </div>
                     </td>
-                    <td style="padding: 1rem; font-weight: 600; color: #1e293b;">{{ training.training_module }}</td>
-                    <td style="padding: 1rem; text-align: right;">
-                        <span style="background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; padding: 0.5rem 0.875rem; border-radius: 8px; font-weight: 700; font-size: 0.875rem; border-left: 3px solid #f59e0b;">{{ training.next_refresher_due_date.strftime('%Y-%m-%d') }}</span>
+                    <td data-label="Training Module" class="font-medium">{{ training.training_module }}</td>
+                    <td data-label="Due Date" class="table-cell--numeric">
+                        <span class="badge" style="background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border-left: 3px solid #f59e0b;">{{ training.next_refresher_due_date.strftime('%Y-%m-%d') }}</span>
                     </td>
                 </tr>
                 {% endfor %}

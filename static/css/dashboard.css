@@ -494,6 +494,175 @@ textarea:focus-visible {
 }
 
 /* ========================================
+   Layout Utilities
+   ======================================== */
+
+.hero-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2);
+    color: #ffffff;
+}
+
+.hero-card__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.hero-card__title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.hero-card__subtitle {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.hero-card__actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.grid-auto {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+}
+
+.grid-auto--tight {
+    gap: 1rem;
+}
+
+.card,
+.panel,
+.tile {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.tile--shadowless {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+}
+
+.tile--gradient-purple {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+}
+
+.tile__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.tile__label {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.tile__value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.section-header {
+    margin-bottom: 1rem;
+}
+
+.section-header--spacious {
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+}
+
+.section-subtitle {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.table-card {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    background: #ffffff;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+.table-card + .table-card {
+    margin-top: 1rem;
+}
+
+.table-card__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-card__row:last-child {
+    border-bottom: none;
+}
+
+.table-card__label {
+    font-weight: 600;
+    color: var(--text-secondary, #475569);
+    font-size: 0.8125rem;
+}
+
+.table-card__value {
+    color: var(--text-primary, #1f2937);
+    font-size: 0.9375rem;
+    text-align: right;
+}
+
+.table-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+/* ========================================
    Status Badges
    ======================================== */
 
@@ -606,6 +775,31 @@ textarea:focus-visible {
 
 .data-table tbody tr:last-child td {
     border-bottom: none;
+}
+
+/* Responsive table that collapses into cards on small screens */
+.table-stack {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-stack th,
+.table-stack td {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    font-size: 0.875rem;
+}
+
+.table-stack thead {
+    background: #f8fafc;
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 /* Table Cell Alignments */
@@ -1462,6 +1656,59 @@ select.form-input {
     .data-table td {
         padding: var(--spacing-sm) var(--spacing-md);
     }
+
+    /* Table stack: hide header and turn rows into cards */
+    .table-stack {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-stack thead {
+        display: none;
+    }
+
+    .table-stack tbody tr {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .table-stack tbody tr:last-child {
+        margin-bottom: 0;
+    }
+
+    .table-stack td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.25rem 0;
+        border: none;
+    }
+
+    .table-stack td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-right: 0.75rem;
+        flex: 1;
+    }
+
+    .table-stack td > * {
+        margin-left: auto;
+    }
+
+    .table-stack .table-actions,
+    .table-card__actions {
+        justify-content: flex-start;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
     
     /* Sidebar - Enhanced mobile experience */
     .sidebar {
@@ -1488,6 +1735,7 @@ select.form-input {
         margin-left: 0;
         padding: var(--spacing-lg);
         padding-top: calc(48px + var(--spacing-xl));
+        overflow-x: hidden;
     }
     
     /* Forms */
@@ -1522,6 +1770,24 @@ select.form-input {
     
     .section-title {
         font-size: 1.125rem;
+    }
+
+    .grid-auto,
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-card {
+        padding: 1.75rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-card__title {
+        font-size: 1.5rem;
+    }
+
+    .hero-card__subtitle {
+        font-size: 0.9375rem;
     }
     
     /* Champion details two-column layout */
@@ -1570,6 +1836,49 @@ select.form-input {
     
     .metric-value {
         font-size: 1.5rem;
+    }
+
+    .grid-auto,
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-card {
+        padding: 1.25rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-card__title {
+        font-size: 1.25rem;
+    }
+
+    .hero-card__subtitle {
+        font-size: 0.875rem;
+    }
+
+    .hero-card__actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .section-title {
+        font-size: 1.125rem;
+    }
+
+    .table-stack tbody tr {
+        padding: 0.75rem;
+    }
+
+    .table-stack td {
+        align-items: flex-start;
+    }
+
+    .table-card__row {
+        grid-template-columns: 1fr;
+    }
+
+    .table-card__value {
+        text-align: left;
     }
     
     .dashboard-title {

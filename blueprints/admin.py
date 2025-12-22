@@ -199,13 +199,16 @@ def change_password():
             flash('Password changed successfully!', 'success')
             flash('You can now use your new password on next login.', 'info')
             
-            # Redirect based on role
-            if current_user.role == 'Admin':
+            # Redirect based on role (case-insensitive)
+            role_lower = (current_user.role or '').lower()
+            if role_lower == 'admin':
                 return redirect(url_for('admin.settings'))
-            elif current_user.role == 'Supervisor':
+            elif role_lower == 'supervisor':
                 return redirect(url_for('supervisor.dashboard'))
-            else:
+            elif role_lower == 'champion':
                 return redirect(url_for('champion.dashboard'))
+            else:
+                return redirect(url_for('auth.login'))
                 
         except Exception as e:
             db.session.rollback()
@@ -236,6 +239,8 @@ def create_user():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         role = request.form.get('role', 'supervisor')
+        # Normalize role casing to canonical values
+        role = (role or '').strip().capitalize()
         
         # Validation
         if not username:
@@ -335,9 +340,11 @@ def unlock_user_account(user_id):
 def change_user_role(user_id):
     """Change a user's role"""
     user = User.query.get_or_404(user_id)
-    new_role = request.form.get('role')
+    new_role = request.form.get('role', '')
+    # Normalize to canonical capitalization
+    new_role = (new_role or '').strip().capitalize()
     
-    if new_role not in ['admin', 'supervisor', 'champion']:
+    if new_role not in ['Admin', 'Supervisor', 'Champion']:
         flash('Invalid role selected', 'danger')
         return redirect(url_for('admin.manage_users'))
     

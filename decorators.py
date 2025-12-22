@@ -11,15 +11,17 @@ def roles_required(*roles):
         flash('Please log in to access this page.', 'warning')
         return redirect(url_for('auth.login'))
 
-      # Role check (roles passed should match stored role strings)
-      if current_user.role not in roles:
+      # Role check (case-insensitive to avoid mismatches)
+      user_role = (current_user.role or '').strip()
+      allowed = [r.strip() for r in roles]
+      if user_role.lower() not in [r.lower() for r in allowed]:
         flash('Access denied. You do not have the required permissions.', 'danger')
         # Redirect to user's appropriate dashboard instead of main.index
-        if current_user.role == 'Admin':
+        if user_role.lower() == 'admin':
           return redirect(url_for('admin.dashboard'))
-        elif current_user.role == 'Supervisor':
+        elif user_role.lower() == 'supervisor':
           return redirect(url_for('supervisor.dashboard'))
-        elif current_user.role == 'Champion':
+        elif user_role.lower() == 'champion':
           return redirect(url_for('champion.dashboard'))
         else:
           return redirect(url_for('auth.login'))
@@ -28,7 +30,7 @@ def roles_required(*roles):
   return wrapper
 
 #Convenience Decorators for clarity
-# Use canonical role strings (capitalized) throughout the app
+# Use canonical role strings; decorator is case-insensitive
 admin_required = roles_required('Admin')
 supervisor_required = roles_required('Admin', 'Supervisor')
 champion_required = roles_required('Admin', 'Supervisor', 'Champion')

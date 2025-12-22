@@ -19,7 +19,7 @@
 </div>
 
 <!-- Summary Stats -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+<div class="stat-grid" style="margin-bottom: 2rem;">
     <div class="stat-card">
         <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -79,7 +79,7 @@
     
     <div style="padding: 1.5rem;">
         <div class="table-container">
-            <table>
+            <table class="data-table table-stack">
                 <thead>
                     <tr>
                         <th>Champion Code</th>
@@ -92,18 +92,18 @@
                 <tbody>
                     {% for champion in unassigned_champions %}
                     <tr>
-                        <td><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
-                        <td><strong>{{ champion.full_name }}</strong></td>
-                        <td>{{ champion.username }}</td>
-                        <td>
+                        <td data-label="Champion Code"><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
+                        <td data-label="Full Name" class="font-medium">{{ champion.full_name }}</td>
+                        <td data-label="Username">{{ champion.username }}</td>
+                        <td data-label="Status">
                             <span class="badge {% if champion.champion_status == 'Active' %}badge--success{% else %}badge--secondary{% endif %}">
                                 {{ champion.champion_status }}
                             </span>
                         </td>
-                        <td>
-                            <form method="POST" action="{{ url_for('admin.assign_champion', champion_id=champion.champion_id) }}" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <td data-label="Assign to Supervisor">
+                            <form method="POST" action="{{ url_for('admin.assign_champion', champion_id=champion.champion_id) }}" class="table-actions">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <select name="supervisor_id" class="form-input" style="min-width: 200px;" required>
+                                <select name="supervisor_id" class="form-input" required>
                                     <option value="">-- Select Supervisor --</option>
                                     {% for supervisor in supervisors %}
                                     <option value="{{ supervisor.user_id }}">{{ supervisor.username }}</option>
@@ -155,7 +155,7 @@
                 
                 {% if assigned_champions.get(supervisor.user_id) %}
                 <div class="table-container">
-                    <table>
+                    <table class="data-table table-stack">
                         <thead>
                             <tr>
                                 <th>Champion Code</th>
@@ -168,18 +168,18 @@
                         <tbody>
                             {% for champion in assigned_champions.get(supervisor.user_id, []) %}
                             <tr>
-                                <td><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
-                                <td><strong>{{ champion.full_name }}</strong></td>
-                                <td>{{ champion.username }}</td>
-                                <td>
+                                <td data-label="Champion Code"><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
+                                <td data-label="Full Name" class="font-medium">{{ champion.full_name }}</td>
+                                <td data-label="Username">{{ champion.username }}</td>
+                                <td data-label="Status">
                                     <span class="badge {% if champion.champion_status == 'Active' %}badge--success{% else %}badge--secondary{% endif %}">
                                         {{ champion.champion_status }}
                                     </span>
                                 </td>
-                                <td>
-                                    <form method="POST" action="{{ url_for('admin.assign_champion', champion_id=champion.champion_id) }}" style="display: flex; gap: 0.5rem; align-items: center;">
+                                <td data-label="Actions">
+                                    <form method="POST" action="{{ url_for('admin.assign_champion', champion_id=champion.champion_id) }}" class="table-actions">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <select name="supervisor_id" class="form-input" style="min-width: 200px;">
+                                        <select name="supervisor_id" class="form-input">
                                             <option value="">-- Unassign --</option>
                                             {% for sup in supervisors %}
                                             <option value="{{ sup.user_id }}" {% if sup.user_id == supervisor.user_id %}selected{% endif %}>
