@@ -450,6 +450,8 @@ textarea:focus-visible {
     min-height: 44px; /* Touch-friendly minimum size */
     position: relative;
     z-index: 2; /* Ensure buttons are above decorative elements */
+    pointer-events: auto !important; /* Force buttons to be clickable on all devices */
+    -webkit-tap-highlight-color: rgba(37, 99, 235, 0.2); /* Touch feedback */
 }
 
 .btn--primary {
