@@ -431,6 +431,69 @@ textarea:focus-visible {
 }
 
 /* ========================================
+   Buttons
+   ======================================== */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all var(--transition-base);
+    cursor: pointer;
+}
+
+.btn--primary {
+    background: var(--trust-blue);
+    color: #ffffff;
+    border: none;
+    box-shadow: var(--shadow-md);
+}
+
+.btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn--secondary {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.btn--secondary:hover {
+    background: #f1f5f9;
+    color: var(--text-primary);
+}
+
+.btn--cta {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+}
+
+.btn--cta:hover {
+    box-shadow: 0 8px 20px rgba(102,126,234,0.4);
+    transform: translateY(-2px);
+}
+
+.btn--cta:active {
+    transform: translateY(0);
+}
+
+.btn--block {
+    width: 100%;
+    justify-content: center;
+}
+
+.btn--nowrap {
+    white-space: nowrap;
+}
+
+/* ========================================
    Status Badges
    ======================================== */
 
