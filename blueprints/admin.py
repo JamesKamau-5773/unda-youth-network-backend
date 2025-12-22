@@ -394,25 +394,30 @@ def create_champion():
         date_of_birth = request.form.get('date_of_birth', '').strip()
         phone_number = request.form.get('phone_number', '').strip()
         county_sub_county = request.form.get('county_sub_county', '').strip()
+        supervisor_id = request.form.get('supervisor_id', '').strip()
         
         # Validation
         if not username or not full_name or not email or not phone_number:
             flash('Username, Full Name, Email, and Phone Number are required', 'danger')
-            return render_template('admin/create_champion.html')
+            supervisors = User.query.filter_by(role='Supervisor').all()
+            return render_template('admin/create_champion.html', supervisors=supervisors)
         
         if len(username) < 3:
             flash('Username must be at least 3 characters long', 'danger')
-            return render_template('admin/create_champion.html')
+            supervisors = User.query.filter_by(role='Supervisor').all()
+            return render_template('admin/create_champion.html', supervisors=supervisors)
         
         # Check if username already exists
         if User.query.filter_by(username=username).first():
             flash(f'Username "{username}" already exists. Please choose a different username.', 'danger')
-            return render_template('admin/create_champion.html')
+            supervisors = User.query.filter_by(role='Supervisor').all()
+            return render_template('admin/create_champion.html', supervisors=supervisors)
         
         # Check if email already exists
         if Champion.query.filter_by(email=email).first():
             flash(f'Email "{email}" already exists. Please use a different email.', 'danger')
-            return render_template('admin/create_champion.html')
+            supervisors = User.query.filter_by(role='Supervisor').all()
+            return render_template('admin/create_champion.html', supervisors=supervisors)
         
         # Generate secure temporary password
         temp_password = generate_temp_password()
@@ -432,9 +437,10 @@ def create_champion():
             existing_count = Champion.query.count()
             champion_code = f"CH-{str(existing_count + 1).zfill(3)}"
             
-            # Create champion profile
+            # Create champion profile with optional supervisor assignment
             new_champion = Champion(
                 user_id=new_user.user_id,
+                supervisor_id=int(supervisor_id) if supervisor_id else None,
                 full_name=full_name,
                 email=email,
                 gender=gender if gender else None,
@@ -456,6 +462,10 @@ def create_champion():
             
             # Show success message with temporary password
             flash(f'Champion "{full_name}" ({champion_code}) created successfully!', 'success')
+            if supervisor_id:
+                supervisor = User.query.get(int(supervisor_id))
+                if supervisor:
+                    flash(f'Assigned to supervisor: {supervisor.username}', 'info')
             flash(f'Username: {username} | Temporary Password: {temp_password}', 'info')
             flash('Please provide these credentials to the champion securely. They should change the password on first login.', 'warning')
             
@@ -464,9 +474,88 @@ def create_champion():
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating champion: {str(e)}', 'danger')
-            return render_template('admin/create_champion.html')
+            supervisors = User.query.filter_by(role='Supervisor').all()
+            return render_template('admin/create_champion.html', supervisors=supervisors)
     
-    return render_template('admin/create_champion.html')
+    # GET request - show form with supervisors list
+    supervisors = User.query.filter_by(role='Supervisor').all()
+    return render_template('admin/create_champion.html', supervisors=supervisors)
+
+
+@admin_bp.route('/manage-assignments', methods=['GET'])
+@login_required
+@admin_required
+def manage_assignments():
+    """View and manage champion-supervisor assignments"""
+    champions = Champion.query.join(User, Champion.user_id == User.user_id).add_columns(
+        Champion.champion_id,
+        Champion.assigned_champion_code,
+        Champion.full_name,
+        Champion.supervisor_id,
+        Champion.champion_status,
+        User.username
+    ).all()
+    
+    supervisors = User.query.filter_by(role='Supervisor').all()
+    
+    # Group champions by supervisor for easier viewing
+    assigned_champions = {}
+    unassigned_champions = []
+    
+    for champ in champions:
+        if champ.supervisor_id:
+            if champ.supervisor_id not in assigned_champions:
+                assigned_champions[champ.supervisor_id] = []
+            assigned_champions[champ.supervisor_id].append(champ)
+        else:
+            unassigned_champions.append(champ)
+    
+    return render_template('admin/manage_assignments.html', 
+                         champions=champions,
+                         supervisors=supervisors,
+                         assigned_champions=assigned_champions,
+                         unassigned_champions=unassigned_champions)
+
+
+@admin_bp.route('/assign-champion/<int:champion_id>', methods=['POST'])
+@login_required
+@admin_required
+def assign_champion(champion_id):
+    """Assign or reassign a champion to a supervisor"""
+    supervisor_id = request.form.get('supervisor_id', '').strip()
+    
+    champion = Champion.query.get_or_404(champion_id)
+    
+    try:
+        if supervisor_id:
+            # Assign to supervisor
+            supervisor = User.query.get(int(supervisor_id))
+            if not supervisor or supervisor.role != 'Supervisor':
+                flash('Invalid supervisor selected', 'danger')
+                return redirect(url_for('admin.manage_assignments'))
+            
+            old_supervisor_id = champion.supervisor_id
+            champion.supervisor_id = int(supervisor_id)
+            
+            if old_supervisor_id:
+                old_supervisor = User.query.get(old_supervisor_id)
+                flash(f'Champion {champion.assigned_champion_code} reassigned from {old_supervisor.username if old_supervisor else "Unknown"} to {supervisor.username}', 'success')
+            else:
+                flash(f'Champion {champion.assigned_champion_code} assigned to {supervisor.username}', 'success')
+        else:
+            # Unassign from supervisor
+            if champion.supervisor_id:
+                old_supervisor = User.query.get(champion.supervisor_id)
+                flash(f'Champion {champion.assigned_champion_code} unassigned from {old_supervisor.username if old_supervisor else "supervisor"}', 'info')
+            champion.supervisor_id = None
+        
+        db.session.commit()
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating assignment: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.manage_assignments'))
 
 
 # ============================================
