@@ -17,7 +17,8 @@ def dashboard():
 
 	if not champion_profile:
 		flash("Champion profile data not found. Please contact administrator.", 'danger')
-		return redirect(url_for('auth.login'))
+		# Redirect to home page instead of login to prevent redirect loops
+		return redirect(url_for('main.index'))
 
 	recent_reports = (
 		YouthSupport.query.filter_by(champion_id=current_user.champion_id)
