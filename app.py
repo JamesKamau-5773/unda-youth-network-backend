@@ -127,13 +127,20 @@ def create_app(test_config=None):
     @main_bp.route('/')
     def index():
         if current_user.is_authenticated:
-            # Redirect directly to role-specific dashboard
-            if current_user.role == 'Admin':
+            # Redirect directly to role-specific dashboard (case-insensitive)
+            role_lower = (current_user.role or '').lower()
+            if role_lower == 'admin':
                 return redirect(url_for('admin.dashboard'))
-            elif current_user.role == 'Supervisor':
+            elif role_lower == 'supervisor':
                 return redirect(url_for('supervisor.dashboard'))
-            else:
+            elif role_lower == 'champion':
                 return redirect(url_for('champion.dashboard'))
+            else:
+                # Unknown role - logout and redirect to login
+                from flask_login import logout_user
+                logout_user()
+                flash('Your account has an invalid role. Please contact an administrator.', 'danger')
+                return redirect(url_for('auth.login'))
         else:
             return redirect(url_for('auth.login'))
         

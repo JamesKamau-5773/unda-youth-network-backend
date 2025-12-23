@@ -76,7 +76,10 @@ def login():
         elif role_lower == 'champion':
             return redirect(url_for('champion.dashboard'))
         else:
-            return redirect(url_for('auth.login'))
+            # Unknown role - logout and show error to prevent redirect loop
+            logout_user()
+            flash('Your account has an invalid role. Please contact an administrator.', 'danger')
+            return render_template('auth/login.html')
 
     if request.method == 'POST':
         username = request.form.get('username')
