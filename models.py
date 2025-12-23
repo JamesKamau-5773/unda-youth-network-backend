@@ -19,6 +19,10 @@ def check_password(password, hashed_password):
 
 class User(db.Model, UserMixin):
   __tablename__ = 'users'
+  
+  # Valid roles constant
+  VALID_ROLES = ['Admin', 'Supervisor', 'Champion']
+  
   user_id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.String(100), unique=True, nullable=False)
   password_hash = db.Column(db.String(255), nullable=False)
@@ -42,6 +46,27 @@ class User(db.Model, UserMixin):
 
   def check_password(self, password):
     return check_password(password, self.password_hash)
+  
+  def set_role(self, role):
+    """Set role with automatic capitalization and validation."""
+    if role:
+      normalized_role = role.capitalize()
+      if normalized_role in self.VALID_ROLES:
+        self.role = normalized_role
+      else:
+        raise ValueError(f"Invalid role '{role}'. Must be one of: {', '.join(self.VALID_ROLES)}")
+    else:
+      self.role = 'Champion'  # Default
+  
+  def validate_role(self):
+    """Validate and normalize the current role."""
+    if self.role:
+      normalized = self.role.capitalize()
+      if normalized not in self.VALID_ROLES:
+        raise ValueError(f"Invalid role '{self.role}'. Must be one of: {', '.join(self.VALID_ROLES)}")
+      self.role = normalized
+    else:
+      self.role = 'Champion'
   
   def is_locked(self):
     """Check if account is currently locked."""

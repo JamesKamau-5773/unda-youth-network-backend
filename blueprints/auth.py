@@ -32,9 +32,9 @@ def register():
 
         # Create User Login Account
         username = request.form.get('username')
-        role = request.form.get('role', 'Champion')  # Default to Champion
-        role = role.capitalize()
-
+        # Get and validate role
+        role = request.form.get('role', 'Champion')
+        
         # Check for existing username/email
         if User.query.filter_by(username=username).first():
             flash('Username already exists', 'danger')
@@ -42,19 +42,26 @@ def register():
 
         user = User(
             username=username,
-            role=role,
-            champion_id=champion.champion_id if role == 'Champion' else None
+            champion_id=champion.champion_id if role.capitalize() == 'Champion' else None
         )
+        
+        # Use set_role for validation
+        try:
+            user.set_role(role)
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return redirect(url_for('auth.register'))
+        
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
 
         # Update Champion FK link if the user is a Champion
-        if role == 'Champion':
+        if user.role == 'Champion':
             champion.user_id = user.user_id  # Link Champion to newly created User
             db.session.commit()
 
-        flash(f'New {role} account for {champion.full_name} created successfully.', 'success')
+        flash(f'New {user.role} account for {champion.full_name} created successfully.', 'success')
         return redirect(url_for('main.index'))
 
     # Simple form rendering for GET request (test-friendly placeholder)
