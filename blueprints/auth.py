@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, current_user, login_required
 from models import db, User, Champion
 from decorators import admin_required, supervisor_required, champion_required
@@ -124,9 +124,17 @@ def login():
 
 @auth_bp.route('/logout')
 def logout():
-    logout_user()
+    session.clear()  # Clear session FIRST
+    logout_user()  # Then logout
     flash('You have been logged out.', 'success')
-    return redirect(url_for('auth.login'))
+    response = redirect(url_for('auth.login'))
+    # Prevent caching of authenticated pages
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    # Force cookie deletion
+    response.set_cookie('session', '', expires=0)
+    return response
 
 
 

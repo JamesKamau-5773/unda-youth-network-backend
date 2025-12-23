@@ -71,8 +71,8 @@
 		
 		<div class="form-group" style="margin-top: 1.5rem;">
 			<label for="wellbeing_check" class="form-label">Self-Reported Wellbeing Check (Monthly)</label>
-			<textarea class="form-input" id="wellbeing_check" name="wellbeing_check" rows="3" aria-describedby="wellbeing_hint" placeholder="Briefly describe your current wellbeing status..."></textarea>
-			<span class="form-hint" id="wellbeing_hint">1–3 sentences on your wellbeing and support needs</span>
+			<input type="number" class="form-input" id="wellbeing_check" name="wellbeing_check" min="1" max="10" aria-describedby="wellbeing_hint" placeholder="Rate 1-10">
+			<span class="form-hint" id="wellbeing_hint">Rate your wellbeing on a scale of 1 (very low) to 10 (excellent)</span>
 		</div>
 		
 		<div style="margin-top: 2rem;">

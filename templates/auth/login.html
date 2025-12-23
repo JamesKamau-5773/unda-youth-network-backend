@@ -209,17 +209,17 @@
         <p class="login-subtitle">Sign in to access your dashboard</p>
     </div>
     
-    <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm">
+    <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm" autocomplete="off">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="auth-form-group">
             <label for="username" class="auth-form-label">Username</label>
-            <input type="text" class="auth-form-input" id="username" name="username" required autofocus>
+            <input type="text" class="auth-form-input" id="username" name="username" required autofocus autocomplete="off">
         </div>
         
         <div class="auth-form-group">
             <label for="password" class="auth-form-label">Password</label>
             <div class="password-input-wrapper">
-                <input type="password" class="auth-form-input" id="password" name="password" required>
+                <input type="password" class="auth-form-input" id="password" name="password" required autocomplete="off">
                 <button type="button" class="password-toggle" id="togglePassword" aria-label="Toggle password visibility">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="eye-open">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -293,9 +293,9 @@
     <div class="credentials-info">
         <div class="credentials-title">Test Credentials</div>
         <div class="credentials-list">
-            <strong>Admin:</strong> admin / Admin@123<br>
-            <strong>Supervisor:</strong> supervisor1 / Super@123<br>
-            <strong>Champion:</strong> alice / Alice@123
+            <strong>Admin:</strong> admin / Admin123!<br>
+            <strong>Supervisor:</strong> supervisor / Supervisor123!<br>
+            <strong>Champion:</strong> alice / TestPassword123!
         </div>
     </div>
 </div>
