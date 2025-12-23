@@ -113,10 +113,6 @@ def create_app(test_config=None):
     app.register_blueprint(champion_bp, url_prefix='/champion')
     from blueprints.supervisor import supervisor_bp
     app.register_blueprint(supervisor_bp, url_prefix='/supervisor')
-    
-    # TEMPORARY: Password reset route for production (remove after use)
-    from reset_passwords_route import reset_bp
-    app.register_blueprint(reset_bp)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
