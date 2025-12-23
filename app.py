@@ -1,6 +1,6 @@
 from models import db, User, Champion
 import os
-from flask import Flask, redirect, url_for, flash
+from flask import Flask, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -58,6 +58,15 @@ def create_app(test_config=None):
     
     # CSRF Protection
     csrf = CSRFProtect(app)
+    
+    # CSRF error handler
+    @app.errorhandler(400)
+    def handle_csrf_error(e):
+        error_msg = str(e)
+        if 'CSRF' in error_msg or 'csrf' in error_msg.lower():
+            flash('Security token expired or invalid. Please try again.', 'danger')
+            return redirect(request.url if request.referrer else url_for('admin.dashboard')), 400
+        return e
 
     # Flask-Login setup
     login_manager = LoginManager()

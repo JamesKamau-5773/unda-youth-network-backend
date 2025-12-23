@@ -54,6 +54,7 @@
 	<form method="POST" style="padding: 1.5rem;">
 		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 		<input type="hidden" name="action" value="update_health_risk">
+		{% set risk_value = champion.risk_level if prefill else 'Low' %}
 		
 		<!-- Health Information -->
 		<div style="margin-bottom: 1.5rem;">
@@ -62,38 +63,38 @@
 			<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
 				<div class="form-group">
 					<label class="form-label">Medical Conditions</label>
-					<textarea name="medical_conditions" class="form-input" rows="2" placeholder="Known medical conditions">{{ champion.medical_conditions or '' }}</textarea>
+					<textarea name="medical_conditions" class="form-input" rows="2" placeholder="Known medical conditions">{{ champion.medical_conditions if prefill else '' }}</textarea>
 				</div>
 				
 				<div class="form-group">
 					<label class="form-label">Allergies</label>
-					<textarea name="allergies" class="form-input" rows="2" placeholder="Food, medication, or environmental allergies">{{ champion.allergies or '' }}</textarea>
+					<textarea name="allergies" class="form-input" rows="2" placeholder="Food, medication, or environmental allergies">{{ champion.allergies if prefill else '' }}</textarea>
 				</div>
 				
 				<div class="form-group">
 					<label class="form-label">Mental Health Support</label>
-					<textarea name="mental_health_support" class="form-input" rows="2" placeholder="Current mental health support or needs">{{ champion.mental_health_support or '' }}</textarea>
+					<textarea name="mental_health_support" class="form-input" rows="2" placeholder="Current mental health support or needs">{{ champion.mental_health_support if prefill else '' }}</textarea>
 				</div>
 				
 				<div class="form-group">
 					<label class="form-label">Disabilities / Additional Needs</label>
-					<textarea name="disabilities" class="form-input" rows="2" placeholder="Physical, learning, or developmental needs">{{ champion.disabilities or '' }}</textarea>
+					<textarea name="disabilities" class="form-input" rows="2" placeholder="Physical, learning, or developmental needs">{{ champion.disabilities if prefill else '' }}</textarea>
 				</div>
 				
 				<div class="form-group">
 					<label class="form-label">Medication Required</label>
-					<input type="text" name="medication_required" class="form-input" placeholder="Current prescribed medications" value="{{ champion.medication_required or '' }}">
+					<input type="text" name="medication_required" class="form-input" placeholder="Current prescribed medications" value="{{ champion.medication_required if prefill else '' }}">
 				</div>
 				
 				<div class="form-group">
 					<label class="form-label">Dietary Requirements</label>
-					<input type="text" name="dietary_requirements" class="form-input" placeholder="Religious, medical, or preference-based" value="{{ champion.dietary_requirements or '' }}">
+					<input type="text" name="dietary_requirements" class="form-input" placeholder="Religious, medical, or preference-based" value="{{ champion.dietary_requirements if prefill else '' }}">
 				</div>
 			</div>
 			
 			<div class="form-group">
 				<label class="form-label">Additional Health Notes</label>
-				<textarea name="health_notes" class="form-input" rows="3" placeholder="Any other relevant health or wellbeing information">{{ champion.health_notes or '' }}</textarea>
+				<textarea name="health_notes" class="form-input" rows="3" placeholder="Any other relevant health or wellbeing information">{{ champion.health_notes if prefill else '' }}</textarea>
 			</div>
 		</div>
 		
@@ -105,26 +106,26 @@
 				<div class="form-group">
 					<label class="form-label">Risk Level <span style="color: #dc2626;">*</span></label>
 					<select name="risk_level" class="form-input" required>
-						<option value="Low" {% if champion.risk_level == 'Low' %}selected{% endif %}>Low</option>
-						<option value="Medium" {% if champion.risk_level == 'Medium' %}selected{% endif %}>Medium</option>
-						<option value="High" {% if champion.risk_level == 'High' %}selected{% endif %}>High</option>
+						<option value="Low" {% if risk_value == 'Low' %}selected{% endif %}>Low</option>
+						<option value="Medium" {% if risk_value == 'Medium' %}selected{% endif %}>Medium</option>
+						<option value="High" {% if risk_value == 'High' %}selected{% endif %}>High</option>
 					</select>
 				</div>
 				
 				<div class="form-group">
 					<label class="form-label">Last Contact Date</label>
-					<input type="date" name="last_contact_date" class="form-input" value="{{ champion.last_contact_date.strftime('%Y-%m-%d') if champion.last_contact_date else '' }}">
+					<input type="date" name="last_contact_date" class="form-input" value="{{ champion.last_contact_date.strftime('%Y-%m-%d') if prefill and champion.last_contact_date else '' }}">
 				</div>
 				
 				<div class="form-group">
 					<label class="form-label">Next Review Date <span style="color: #dc2626;">*</span></label>
-					<input type="date" name="next_review_date" class="form-input" value="{{ champion.next_review_date.strftime('%Y-%m-%d') if champion.next_review_date else '' }}" required>
+					<input type="date" name="next_review_date" class="form-input" value="{{ champion.next_review_date.strftime('%Y-%m-%d') if prefill and champion.next_review_date else '' }}" required>
 				</div>
 			</div>
 			
 			<div class="form-group">
 				<label class="form-label">Risk Assessment Notes</label>
-				<textarea name="risk_notes" class="form-input" rows="4" placeholder="Detail specific risk factors, protective factors, intervention plans, and safeguarding concerns">{{ champion.risk_notes or '' }}</textarea>
+				<textarea name="risk_notes" class="form-input" rows="4" placeholder="Detail specific risk factors, protective factors, intervention plans, and safeguarding concerns">{{ champion.risk_notes if prefill else '' }}</textarea>
 			</div>
 			
 			{% if champion.risk_assessment_date %}
@@ -207,7 +208,7 @@
 						<input type="hidden" name="report_id" value="{{ report.support_id }}">
 						<div class="form-group">
 							<label class="form-label">Safeguarding Notes (Confidential)</label>
-							<textarea name="safeguarding_notes" class="form-input" rows="2" placeholder="Record safeguarding context or actions; visible to supervisors/admins only.">{{ report.safeguarding_notes or '' }}</textarea>
+							<textarea name="safeguarding_notes" class="form-input" rows="2" placeholder="Record safeguarding context or actions; visible to supervisors/admins only.">{{ report.safeguarding_notes if prefill else '' }}</textarea>
 						</div>
 					<div style="margin-top: 0.75rem;">
 						<button class="btn btn--warning" type="submit">
@@ -228,7 +229,7 @@
 						<input type="hidden" name="report_id" value="{{ report.support_id }}">
 						<div class="form-group">
 							<label class="form-label">Supervisor Notes</label>
-							<textarea name="notes" class="form-input" rows="2" placeholder="Log follow-up actions or concerns">{{ report.supervisor_notes or '' }}</textarea>
+							<textarea name="notes" class="form-input" rows="2" placeholder="Log follow-up actions or concerns">{{ report.supervisor_notes if prefill else '' }}</textarea>
 						</div>
 					<div style="margin-top: 0.75rem;">
 						<button class="btn btn--secondary" type="submit">

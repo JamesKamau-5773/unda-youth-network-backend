@@ -93,6 +93,9 @@ def review_champion(champion_id):
     .all()
   )
 
+  # Controls whether the form pre-populates after a save; set to False to render empty fields
+  prefill = request.args.get('prefill', '1') != '0'
+
   if request.method == 'POST':
     action = request.form.get('action')
 
@@ -103,6 +106,7 @@ def review_champion(champion_id):
         report.supervisor_notes = request.form.get('notes')
         db.session.commit()
         flash('Supervisor notes saved.', 'success')
+        return redirect(url_for('supervisor.review_champion', champion_id=champion_id, prefill=0))
       else:
         abort(403, 'Unauthorized access to report')
 
@@ -113,6 +117,7 @@ def review_champion(champion_id):
         report.safeguarding_notes = request.form.get('safeguarding_notes')
         db.session.commit()
         flash('Safeguarding notes saved.', 'success')
+        return redirect(url_for('supervisor.review_champion', champion_id=champion_id, prefill=0))
       else:
         abort(403, 'Unauthorized access to report')
 
@@ -179,7 +184,8 @@ def review_champion(champion_id):
       
       db.session.commit()
       flash('Health and risk assessment data updated successfully.', 'success')
+      return redirect(url_for('supervisor.review_champion', champion_id=champion_id, prefill=0))
 
     return redirect(url_for('supervisor.review_champion', champion_id=champion_id))
 
-  return render_template('supervisor/champion_details.html', champion=champion, history=history, referrals=referrals)
+  return render_template('supervisor/champion_details.html', champion=champion, history=history, referrals=referrals, prefill=prefill)
