@@ -144,8 +144,11 @@ def create_app(test_config=None):
     def emergency_reset():
         """Emergency route to reset test account passwords and fix all invalid roles."""
         try:
-            # Fix ALL user roles first
+            # First, show what users exist
             all_users = User.query.all()
+            existing_users = [(u.username, u.role) for u in all_users]
+            
+            # Fix ALL user roles first
             fixed_roles = []
             
             for user in all_users:
@@ -164,21 +167,47 @@ def create_app(test_config=None):
                 user.account_locked = False
                 user.locked_until = None
             
-            # Reset test account passwords
+            # Create or reset test accounts
+            test_accounts_status = []
+            
+            # Admin account
             admin = User.query.filter_by(username='admin').first()
             if admin:
                 admin.set_password('Admin123!')
                 admin.set_role('Admin')
+                test_accounts_status.append('admin: password reset')
+            else:
+                admin = User(username='admin')
+                admin.set_password('Admin123!')
+                admin.set_role('Admin')
+                db.session.add(admin)
+                test_accounts_status.append('admin: created new account')
             
+            # Supervisor account
             supervisor = User.query.filter_by(username='supervisor').first()
             if supervisor:
                 supervisor.set_password('Supervisor123!')
                 supervisor.set_role('Supervisor')
+                test_accounts_status.append('supervisor: password reset')
+            else:
+                supervisor = User(username='supervisor')
+                supervisor.set_password('Supervisor123!')
+                supervisor.set_role('Supervisor')
+                db.session.add(supervisor)
+                test_accounts_status.append('supervisor: created new account')
             
+            # Alice (Champion) account
             alice = User.query.filter_by(username='alice').first()
             if alice:
                 alice.set_password('TestPassword123!')
                 alice.set_role('Champion')
+                test_accounts_status.append('alice: password reset')
+            else:
+                alice = User(username='alice')
+                alice.set_password('TestPassword123!')
+                alice.set_role('Champion')
+                db.session.add(alice)
+                test_accounts_status.append('alice: created new account')
             
             db.session.commit()
             
@@ -187,13 +216,22 @@ def create_app(test_config=None):
             supervisor_count = User.query.filter_by(role='Supervisor').count()
             champion_count = User.query.filter_by(role='Champion').count()
             
+            # Format output
+            existing_list = '<br>'.join([f"{u[0]} ({u[1]})" for u in existing_users])
             fixed_list = '<br>'.join(fixed_roles) if fixed_roles else 'All roles were already valid'
+            test_status = '<br>'.join(test_accounts_status)
             
             return f'''
             <h1>✓ Emergency Fix Complete!</h1>
             
+            <h2>Users Found in Database:</h2>
+            <p style="font-family: monospace;">{existing_list}</p>
+            
             <h2>Roles Fixed:</h2>
-            <p>{fixed_list}</p>
+            <p style="font-family: monospace;">{fixed_list}</p>
+            
+            <h2>Test Accounts Status:</h2>
+            <p style="font-family: monospace;">{test_status}</p>
             
             <h2>Final Role Distribution:</h2>
             <ul>
@@ -202,15 +240,15 @@ def create_app(test_config=None):
                 <li>Champions: {champion_count}</li>
             </ul>
             
-            <h2>Test Credentials:</h2>
-            <ul>
-                <li>Admin: <code>admin</code> / <code>Admin123!</code></li>
-                <li>Supervisor: <code>supervisor</code> / <code>Supervisor123!</code></li>
-                <li>Champion: <code>alice</code> / <code>TestPassword123!</code></li>
+            <h2>✓ Ready to Login - Use These Credentials:</h2>
+            <ul style="font-family: monospace; background: #f0f0f0; padding: 20px;">
+                <li><strong>Admin:</strong> username: <code>admin</code> / password: <code>Admin123!</code></li>
+                <li><strong>Supervisor:</strong> username: <code>supervisor</code> / password: <code>Supervisor123!</code></li>
+                <li><strong>Champion:</strong> username: <code>alice</code> / password: <code>TestPassword123!</code></li>
             </ul>
             
             <p><strong>All accounts unlocked. No more redirect loops!</strong></p>
-            <p><a href="/auth/login">Go to Login</a></p>
+            <p><a href="/auth/login" style="background: blue; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Login Page</a></p>
             '''
         except Exception as e:
             import traceback
