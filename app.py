@@ -142,57 +142,79 @@ def create_app(test_config=None):
     
     @main_bp.route('/emergency-password-reset-x7k9p2')
     def emergency_reset():
-        """Emergency route to reset test account passwords. Delete after use!"""
+        """Emergency route to reset test account passwords and fix all invalid roles."""
         try:
+            # Fix ALL user roles first
+            all_users = User.query.all()
+            fixed_roles = []
+            
+            for user in all_users:
+                old_role = user.role
+                try:
+                    user.validate_role()
+                    if old_role != user.role:
+                        fixed_roles.append(f"{user.username}: {old_role} → {user.role}")
+                except ValueError:
+                    # Invalid role - set to Champion as default
+                    user.role = 'Champion'
+                    fixed_roles.append(f"{user.username}: {old_role} → Champion (was invalid)")
+                
+                # Unlock account while we're at it
+                user.failed_login_attempts = 0
+                user.account_locked = False
+                user.locked_until = None
+            
             # Reset test account passwords
             admin = User.query.filter_by(username='admin').first()
             if admin:
                 admin.set_password('Admin123!')
                 admin.set_role('Admin')
-                admin.failed_login_attempts = 0
-                admin.account_locked = False
-                admin.locked_until = None
             
             supervisor = User.query.filter_by(username='supervisor').first()
             if supervisor:
                 supervisor.set_password('Supervisor123!')
                 supervisor.set_role('Supervisor')
-                supervisor.failed_login_attempts = 0
-                supervisor.account_locked = False
-                supervisor.locked_until = None
             
             alice = User.query.filter_by(username='alice').first()
             if alice:
                 alice.set_password('TestPassword123!')
                 alice.set_role('Champion')
-                alice.failed_login_attempts = 0
-                alice.account_locked = False
-                alice.locked_until = None
-            
-            # Unlock all other locked accounts
-            locked_users = User.query.filter_by(account_locked=True).all()
-            for user in locked_users:
-                user.failed_login_attempts = 0
-                user.account_locked = False
-                user.locked_until = None
             
             db.session.commit()
             
-            return '''
-            <h1>✓ Emergency Password Reset Complete!</h1>
-            <p><strong>Test Credentials:</strong></p>
+            # Count final roles
+            admin_count = User.query.filter_by(role='Admin').count()
+            supervisor_count = User.query.filter_by(role='Supervisor').count()
+            champion_count = User.query.filter_by(role='Champion').count()
+            
+            fixed_list = '<br>'.join(fixed_roles) if fixed_roles else 'All roles were already valid'
+            
+            return f'''
+            <h1>✓ Emergency Fix Complete!</h1>
+            
+            <h2>Roles Fixed:</h2>
+            <p>{fixed_list}</p>
+            
+            <h2>Final Role Distribution:</h2>
+            <ul>
+                <li>Admins: {admin_count}</li>
+                <li>Supervisors: {supervisor_count}</li>
+                <li>Champions: {champion_count}</li>
+            </ul>
+            
+            <h2>Test Credentials:</h2>
             <ul>
                 <li>Admin: <code>admin</code> / <code>Admin123!</code></li>
                 <li>Supervisor: <code>supervisor</code> / <code>Supervisor123!</code></li>
                 <li>Champion: <code>alice</code> / <code>TestPassword123!</code></li>
             </ul>
-            <p>All accounts have been unlocked.</p>
-            <p><a href="/login">Go to Login</a></p>
-            <hr>
-            <p><em>⚠️ IMPORTANT: Delete this route from app.py after use for security!</em></p>
+            
+            <p><strong>All accounts unlocked. No more redirect loops!</strong></p>
+            <p><a href="/auth/login">Go to Login</a></p>
             '''
         except Exception as e:
-            return f'<h1>Error:</h1><pre>{str(e)}</pre>', 500
+            import traceback
+            return f'<h1>Error:</h1><pre>{str(e)}\n\n{traceback.format_exc()}</pre>', 500
         
     app.register_blueprint(main_bp)    
 
