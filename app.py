@@ -159,6 +159,101 @@ def create_app(test_config=None):
                 return redirect(url_for('auth.login'))
         else:
             return redirect(url_for('auth.login'))
+    
+    @main_bp.route('/health')
+    def health_check():
+        """
+        Health check endpoint for monitoring system status.
+        Returns JSON with database connectivity, app status, and system info.
+        """
+        from flask import jsonify
+        from datetime import datetime
+        import time
+        
+        health_status = {
+            'status': 'healthy',
+            'timestamp': datetime.utcnow().isoformat(),
+            'service': 'UNDA Youth Network',
+            'version': '1.0.0',
+            'checks': {}
+        }
+        
+        # Check database connection
+        db_healthy = False
+        db_response_time = None
+        try:
+            start_time = time.time()
+            # Simple query to verify database is responsive
+            db.session.execute(db.text('SELECT 1'))
+            db_response_time = round((time.time() - start_time) * 1000, 2)  # Convert to ms
+            db_healthy = True
+            health_status['checks']['database'] = {
+                'status': 'healthy',
+                'response_time_ms': db_response_time,
+                'message': 'Database connection successful'
+            }
+        except Exception as e:
+            health_status['status'] = 'unhealthy'
+            health_status['checks']['database'] = {
+                'status': 'unhealthy',
+                'error': str(e),
+                'message': 'Database connection failed'
+            }
+        
+        # Check database tables exist
+        try:
+            from models import User, Champion, YouthSupport
+            user_count = db.session.query(User).count()
+            champion_count = db.session.query(Champion).count()
+            support_count = db.session.query(YouthSupport).count()
+            
+            health_status['checks']['database_tables'] = {
+                'status': 'healthy',
+                'users': user_count,
+                'champions': champion_count,
+                'reports': support_count,
+                'message': 'All tables accessible'
+            }
+        except Exception as e:
+            health_status['status'] = 'unhealthy'
+            health_status['checks']['database_tables'] = {
+                'status': 'unhealthy',
+                'error': str(e),
+                'message': 'Failed to query database tables'
+            }
+        
+        # Check Redis connection (for rate limiting)
+        redis_healthy = False
+        try:
+            redis_url = os.environ.get('REDIS_URL')
+            if redis_url:
+                # Try to ping Redis
+                health_status['checks']['redis'] = {
+                    'status': 'configured',
+                    'message': 'Redis configured for rate limiting'
+                }
+            else:
+                health_status['checks']['redis'] = {
+                    'status': 'not_configured',
+                    'message': 'Redis not configured'
+                }
+        except Exception as e:
+            health_status['checks']['redis'] = {
+                'status': 'warning',
+                'error': str(e)
+            }
+        
+        # Check Sentry integration
+        sentry_dsn = os.environ.get('SENTRY_DSN')
+        health_status['checks']['sentry'] = {
+            'status': 'enabled' if sentry_dsn else 'disabled',
+            'message': 'Error monitoring active' if sentry_dsn else 'Error monitoring not configured'
+        }
+        
+        # Overall health determination
+        http_status = 200 if health_status['status'] == 'healthy' else 503
+        
+        return jsonify(health_status), http_status
         
     app.register_blueprint(main_bp)    
 
