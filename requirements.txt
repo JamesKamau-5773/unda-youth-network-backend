@@ -9,4 +9,4 @@ Flask-Migrate==4.0.5          # Database migrations
 Flask-WTF==1.2.1              # CSRF protection
 python-dotenv==1.0.0
 gunicorn==21.2.0              # Production-grade WSGI server
-redis==5.0.0                  # Redis client for rate limiting
+redis==5.0.0                  # Redis client for rate limitingsentry-sdk==2.48.0

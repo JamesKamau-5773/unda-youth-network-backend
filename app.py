@@ -7,8 +7,21 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from extensions import limiter
 from dotenv import load_dotenv
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 load_dotenv()
+
+# Initialize Sentry for error tracking (production only)
+sentry_dsn = os.environ.get('SENTRY_DSN')
+if sentry_dsn:
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=1.0,  # Capture 100% of transactions for performance monitoring
+        profiles_sample_rate=1.0,  # Capture 100% of profiles
+        environment=os.environ.get('FLASK_ENV', 'production'),
+    )
 
 # Import models to ensure they are registered with SQLAlchemy
 
