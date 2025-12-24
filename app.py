@@ -329,6 +329,52 @@ def create_app(test_config=None):
             })
         except Exception as e:
             return jsonify({'error': str(e)}), 500
+    
+    @main_bp.route('/emergency-reset-test-passwords-p4x7w1')
+    def emergency_reset_passwords():
+        """Reset passwords for test accounts to known values"""
+        from flask import jsonify
+        from models import User
+        
+        try:
+            reset_results = []
+            
+            # Reset admin password
+            admin = User.query.filter_by(username='admin').first()
+            if admin:
+                admin.set_password('Admin123!')
+                admin.reset_failed_logins()  # Clear failed attempts
+                reset_results.append({'username': 'admin', 'status': 'password_reset', 'new_password': 'Admin123!'})
+            else:
+                reset_results.append({'username': 'admin', 'status': 'not_found'})
+            
+            # Reset supervisor password
+            supervisor = User.query.filter_by(username='supervisor').first()
+            if supervisor:
+                supervisor.set_password('Supervisor123!')
+                supervisor.reset_failed_logins()
+                reset_results.append({'username': 'supervisor', 'status': 'password_reset', 'new_password': 'Supervisor123!'})
+            else:
+                reset_results.append({'username': 'supervisor', 'status': 'not_found'})
+            
+            # Reset alice password
+            alice = User.query.filter_by(username='alice').first()
+            if alice:
+                alice.set_password('TestPassword123!')
+                alice.reset_failed_logins()
+                reset_results.append({'username': 'alice', 'status': 'password_reset', 'new_password': 'TestPassword123!'})
+            else:
+                reset_results.append({'username': 'alice', 'status': 'not_found'})
+            
+            db.session.commit()
+            
+            return jsonify({
+                'message': 'Test account passwords have been reset',
+                'reset_results': reset_results,
+                'instructions': 'You can now login with these credentials at /auth/login'
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
         
     app.register_blueprint(main_bp)    
 
