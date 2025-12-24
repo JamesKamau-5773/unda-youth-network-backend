@@ -5,6 +5,7 @@ from decorators import admin_required, supervisor_required, champion_required
 from extensions import limiter
 from password_validator import validate_password_strength
 from datetime import datetime
+from metrics import track_login_attempt
 
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
 
@@ -106,6 +107,7 @@ def login():
                 # Successful login - reset failed attempts
                 user.reset_failed_logins()
                 login_user(user, remember=True)
+                track_login_attempt(success=True)  # Track successful login
                 flash('Logged in successfully', 'success')
                 # Redirect directly to role-specific dashboard (case-insensitive)
                 role_lower = (user.role or '').lower()
@@ -120,6 +122,7 @@ def login():
             else:
                 # Failed login - record attempt
                 user.record_failed_login()
+                track_login_attempt(success=False)  # Track failed login
                 remaining_attempts = 7 - (user.failed_login_attempts or 0)
                 if remaining_attempts > 0:
                     flash(f'Invalid username or password. {remaining_attempts} attempts remaining before account lockout.', 'danger')
@@ -127,6 +130,7 @@ def login():
                     flash('Account locked due to too many failed login attempts. Please try again in 30 minutes.', 'danger')
         else:
             # Username not found - don't reveal this info
+            track_login_attempt(success=False)  # Track failed login
             flash('Invalid username or password', 'danger')
 
     return render_template('auth/login.html')

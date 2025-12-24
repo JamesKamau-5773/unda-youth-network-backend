@@ -9,6 +9,7 @@ from extensions import limiter
 from dotenv import load_dotenv
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
+from prometheus_flask_exporter import PrometheusMetrics
 
 load_dotenv()
 
@@ -28,6 +29,12 @@ if sentry_dsn:
 
 def create_app(test_config=None):
     app = Flask(__name__)
+    
+    # Initialize Prometheus metrics
+    metrics = PrometheusMetrics(app)
+    
+    # Track additional custom metrics
+    metrics.info('app_info', 'UNDA Youth Network Application', version='1.0.0')
 
     # --- Configuration ---
     # SECRET_KEY is required - no fallback for production
