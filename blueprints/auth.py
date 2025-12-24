@@ -84,10 +84,12 @@ def login():
         elif role_lower == 'champion':
             return redirect(url_for('champion.dashboard'))
         else:
-            # Unknown role - logout and show error to prevent redirect loop
+            # Unknown role - logout and clear session to prevent redirect loop
+            from flask import session
             logout_user()
+            session.clear()
             flash('Your account has an invalid role. Please contact an administrator.', 'danger')
-            return render_template('auth/login.html')
+            # Don't return here - let it fall through to show login form
 
     if request.method == 'POST':
         username = request.form.get('username')
