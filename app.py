@@ -334,7 +334,7 @@ def create_app(test_config=None):
     def emergency_reset_passwords():
         """Reset passwords for test accounts to known values"""
         from flask import jsonify
-        from models import User
+        from models import User, Champion
         
         try:
             reset_results = []
@@ -357,12 +357,42 @@ def create_app(test_config=None):
             else:
                 reset_results.append({'username': 'supervisor', 'status': 'not_found'})
             
-            # Reset alice password
+            # Reset alice password and link to a champion profile
             alice = User.query.filter_by(username='alice').first()
             if alice:
                 alice.set_password('TestPassword123!')
                 alice.reset_failed_logins()
-                reset_results.append({'username': 'alice', 'status': 'password_reset', 'new_password': 'TestPassword123!'})
+                
+                # Link alice to a champion profile if not already linked
+                if not alice.champion_id:
+                    # Find the first available champion or use the one with ID 2 (pile)
+                    champion = Champion.query.filter_by(champion_id=2).first()
+                    if not champion:
+                        champion = Champion.query.first()
+                    
+                    if champion:
+                        alice.champion_id = champion.champion_id
+                        reset_results.append({
+                            'username': 'alice', 
+                            'status': 'password_reset_and_linked', 
+                            'new_password': 'TestPassword123!',
+                            'champion_id': champion.champion_id,
+                            'champion_name': champion.full_name
+                        })
+                    else:
+                        reset_results.append({
+                            'username': 'alice', 
+                            'status': 'password_reset_but_no_champion_found', 
+                            'new_password': 'TestPassword123!',
+                            'warning': 'No champion profile available to link'
+                        })
+                else:
+                    reset_results.append({
+                        'username': 'alice', 
+                        'status': 'password_reset', 
+                        'new_password': 'TestPassword123!',
+                        'champion_id': alice.champion_id
+                    })
             else:
                 reset_results.append({'username': 'alice', 'status': 'not_found'})
             
@@ -374,6 +404,7 @@ def create_app(test_config=None):
                 'instructions': 'You can now login with these credentials at /auth/login'
             })
         except Exception as e:
+            db.session.rollback()
             return jsonify({'error': str(e)}), 500
         
     app.register_blueprint(main_bp)    
