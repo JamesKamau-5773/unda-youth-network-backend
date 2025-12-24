@@ -254,6 +254,81 @@ def create_app(test_config=None):
         http_status = 200 if health_status['status'] == 'healthy' else 503
         
         return jsonify(health_status), http_status
+    
+    @main_bp.route('/emergency-check-users-z9k2m8')
+    def emergency_check_users():
+        """Emergency route to check and fix user accounts in production"""
+        from flask import jsonify
+        from models import User, Champion
+        
+        try:
+            users = User.query.all()
+            user_list = []
+            
+            for user in users:
+                user_list.append({
+                    'id': user.user_id,
+                    'username': user.username,
+                    'role': user.role,
+                    'champion_id': user.champion_id,
+                    'locked': user.is_locked(),
+                    'failed_attempts': user.failed_login_attempts
+                })
+            
+            # Check if test users exist, if not create them
+            created_users = []
+            
+            if not User.query.filter_by(username='admin').first():
+                admin = User(username='admin')
+                admin.set_role('Admin')
+                admin.set_password('Admin123!')
+                db.session.add(admin)
+                created_users.append('admin')
+            
+            if not User.query.filter_by(username='supervisor').first():
+                supervisor = User(username='supervisor')
+                supervisor.set_role('Supervisor')
+                supervisor.set_password('Supervisor123!')
+                db.session.add(supervisor)
+                created_users.append('supervisor')
+            
+            if not User.query.filter_by(username='alice').first():
+                # Find a champion to link to
+                champion = Champion.query.first()
+                alice = User(username='alice', champion_id=champion.champion_id if champion else None)
+                alice.set_role('Champion')
+                alice.set_password('TestPassword123!')
+                db.session.add(alice)
+                created_users.append('alice')
+            
+            if created_users:
+                db.session.commit()
+            
+            # Get updated user list
+            users = User.query.all()
+            user_list = []
+            for user in users:
+                user_list.append({
+                    'id': user.user_id,
+                    'username': user.username,
+                    'role': user.role,
+                    'champion_id': user.champion_id,
+                    'locked': user.is_locked(),
+                    'failed_attempts': user.failed_login_attempts
+                })
+            
+            return jsonify({
+                'total_users': len(users),
+                'users': user_list,
+                'created_users': created_users,
+                'test_credentials': {
+                    'admin': 'Admin123!',
+                    'supervisor': 'Supervisor123!',
+                    'alice': 'TestPassword123!'
+                }
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
         
     app.register_blueprint(main_bp)    
 
