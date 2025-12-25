@@ -325,7 +325,9 @@ def create_app(test_config=None):
                     'admin': 'Admin123!',
                     'supervisor': 'Supervisor123!',
                     'alice': 'TestPassword123!'
-                }
+                },
+                'login_url': request.url_root + 'auth/login',
+                'note': 'Visit the login_url to sign in'
             })
         except Exception as e:
             return jsonify({'error': str(e)}), 500
@@ -401,7 +403,9 @@ def create_app(test_config=None):
             return jsonify({
                 'message': 'Test account passwords have been reset',
                 'reset_results': reset_results,
-                'instructions': 'You can now login with these credentials at /auth/login'
+                'instructions': 'You can now login with these credentials',
+                'login_url': request.url_root + 'auth/login',
+                'click_here': 'Copy the login_url above and paste in browser to login'
             })
         except Exception as e:
             db.session.rollback()
