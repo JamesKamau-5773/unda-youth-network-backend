@@ -181,7 +181,7 @@ class Champion(db.Model):
 
 class TrainingRecord(db.Model):
   __tablename__ = 'training_records'
-  traning_record_id = db.Column(db.Integer, primary_key=True)
+  training_id = db.Column(db.Integer, primary_key=True)  # Fixed typo: was 'traning_record_id'
   champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='CASCADE'), nullable=False)
   training_module = db.Column(db.String(255), nullable=False)
   training_date = db.Column(db.Date)
@@ -190,6 +190,17 @@ class TrainingRecord(db.Model):
   certification_status = db.Column(db.String(50))
   certificate_number = db.Column(db.String(100))
   next_refresher_due_date = db.Column(db.Date)
+  
+  # MHR-T Specific Fields
+  is_mhrt = db.Column(db.Boolean, default=False)  # Mental Health Resilience Training
+  mhrt_level = db.Column(db.String(50))  # Level 1, Level 2, Advanced, Master
+  skills_acquired = db.Column(db.JSON)  # List of specific skills learned
+  practical_hours = db.Column(db.Integer)  # Practical training hours completed
+  
+  # Symbolic Items
+  symbolic_item_received = db.Column(db.Boolean, default=False)
+  symbolic_item_type = db.Column(db.String(100))  # Badge, Kit, Certificate, etc.
+  symbolic_item_date = db.Column(db.Date)
 
   __table_args__ = (db.UniqueConstraint('champion_id', 'training_module', name='_champion_module_uc'),)
 
@@ -293,6 +304,208 @@ def get_overdue_reviews():
 def get_champions_by_risk_level(risk_level):
   """Return champions filtered by risk level (Low, Medium, High)."""
   return Champion.query.filter_by(risk_level=risk_level).all() 
+
+
+class Event(db.Model):
+  """Events and activities for the UNDA Youth Network."""
+  __tablename__ = 'events'
+  
+  event_id = db.Column(db.Integer, primary_key=True)
+  title = db.Column(db.String(255), nullable=False)
+  description = db.Column(db.Text)
+  event_date = db.Column(db.DateTime, nullable=False)
+  location = db.Column(db.String(255))
+  event_type = db.Column(db.String(100))  # Workshop, Training, Community Event, etc.
+  organizer = db.Column(db.String(255))
+  max_participants = db.Column(db.Integer)
+  registration_deadline = db.Column(db.DateTime)
+  status = db.Column(db.String(50), default='Upcoming')  # Upcoming, Ongoing, Completed, Cancelled
+  image_url = db.Column(db.String(500))
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+  created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+
+
+class BlogPost(db.Model):
+  """Blog posts and articles for the UNDA Youth Network."""
+  __tablename__ = 'blog_posts'
+  
+  post_id = db.Column(db.Integer, primary_key=True)
+  title = db.Column(db.String(255), nullable=False)
+  slug = db.Column(db.String(255), unique=True, nullable=False)
+  content = db.Column(db.Text, nullable=False)
+  excerpt = db.Column(db.Text)
+  author_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  category = db.Column(db.String(100))  # Success Stories, News, Updates, etc.
+  tags = db.Column(db.JSON)  # Array of tags
+  featured_image = db.Column(db.String(500))
+  published = db.Column(db.Boolean, default=False)
+  published_at = db.Column(db.DateTime)
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+  views = db.Column(db.Integer, default=0)
+  
+  # Relationships
+  author = db.relationship('User', backref='blog_posts', foreign_keys=[author_id])
+
+
+class MentalHealthAssessment(db.Model):
+  """Mental health screening assessments (PHQ-9, GAD-7, PHQ-2, GAD-2)."""
+  __tablename__ = 'mental_health_assessments'
+  
+  assessment_id = db.Column(db.Integer, primary_key=True)
+  champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='CASCADE'), nullable=False)
+  assessment_type = db.Column(db.String(50), nullable=False)  # PHQ-9, GAD-7, PHQ-2, GAD-2
+  assessment_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+  
+  # Scoring
+  total_score = db.Column(db.Integer, nullable=False)
+  severity_level = db.Column(db.String(50))  # None, Mild, Moderate, Moderately Severe, Severe
+  
+  # Assessment Context
+  is_baseline = db.Column(db.Boolean, default=False)  # True for initial screening
+  assessment_period = db.Column(db.String(50))  # Initial, Monthly, Quarterly, Follow-up
+  
+  # Individual item scores (JSON for flexibility across different assessments)
+  item_scores = db.Column(db.JSON)  # e.g., {"q1": 2, "q2": 1, "q3": 3, ...}
+  
+  # Clinical actions
+  risk_flagged = db.Column(db.Boolean, default=False)
+  referral_recommended = db.Column(db.Boolean, default=False)
+  referral_made = db.Column(db.Boolean, default=False)
+  
+  # Tracking
+  administered_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  notes = db.Column(db.Text)
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  
+  # Relationships
+  champion = db.relationship('Champion', backref='mental_health_assessments')
+
+
+class DailyAffirmation(db.Model):
+  """Daily affirmation messages for champion wellbeing support."""
+  __tablename__ = 'daily_affirmations'
+  
+  affirmation_id = db.Column(db.Integer, primary_key=True)
+  content = db.Column(db.Text, nullable=False)
+  theme = db.Column(db.String(100))  # Resilience, Self-care, Growth, Leadership, etc.
+  
+  # Scheduling
+  scheduled_date = db.Column(db.Date)
+  active = db.Column(db.Boolean, default=True)
+  
+  # Delivery tracking
+  times_sent = db.Column(db.Integer, default=0)
+  
+  # Metadata
+  created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class AffirmationDelivery(db.Model):
+  """Tracks affirmation delivery to individual champions."""
+  __tablename__ = 'affirmation_deliveries'
+  
+  delivery_id = db.Column(db.Integer, primary_key=True)
+  affirmation_id = db.Column(db.Integer, db.ForeignKey('daily_affirmations.affirmation_id', ondelete='CASCADE'), nullable=False)
+  champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='CASCADE'), nullable=False)
+  
+  # Delivery details
+  delivery_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+  delivery_method = db.Column(db.String(50))  # SMS, Email, App Push, WhatsApp
+  
+  # Engagement tracking
+  viewed = db.Column(db.Boolean, default=False)
+  viewed_at = db.Column(db.DateTime)
+  liked = db.Column(db.Boolean, default=False)
+  
+  # Relationships
+  affirmation = db.relationship('DailyAffirmation', backref='deliveries')
+  champion = db.relationship('Champion', backref='affirmation_deliveries')
+
+
+class EventParticipation(db.Model):
+  """Tracks champion participation in events (especially quarterly pillar events)."""
+  __tablename__ = 'event_participations'
+  
+  participation_id = db.Column(db.Integer, primary_key=True)
+  event_id = db.Column(db.Integer, db.ForeignKey('events.event_id', ondelete='CASCADE'), nullable=False)
+  champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='CASCADE'), nullable=False)
+  
+  # Registration
+  registered_at = db.Column(db.DateTime, default=datetime.utcnow)
+  registration_status = db.Column(db.String(50), default='Registered')  # Registered, Waitlisted, Cancelled
+  
+  # Attendance
+  attended = db.Column(db.Boolean, default=False)
+  attendance_confirmed_at = db.Column(db.DateTime)
+  attendance_confirmed_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  
+  # Engagement
+  feedback_score = db.Column(db.Integer)  # 1-10 rating
+  feedback_comments = db.Column(db.Text)
+  certificate_issued = db.Column(db.Boolean, default=False)
+  
+  # Relationships
+  event = db.relationship('Event', backref='participations')
+  champion = db.relationship('Champion', backref='event_participations')
+
+
+class SymbolicItem(db.Model):
+  """Inventory and distribution of symbolic items (badges, kits, certificates)."""
+  __tablename__ = 'symbolic_items'
+  
+  item_id = db.Column(db.Integer, primary_key=True)
+  item_name = db.Column(db.String(255), nullable=False)
+  item_type = db.Column(db.String(100))  # Badge, Certificate, Resilience Kit, T-Shirt, etc.
+  description = db.Column(db.Text)
+  
+  # Association with training/events
+  linked_to_training_module = db.Column(db.String(255))  # e.g., "MHR-T Level 1"
+  linked_to_event_type = db.Column(db.String(100))  # e.g., "Quarterly Pillar Event"
+  
+  # Inventory
+  total_quantity = db.Column(db.Integer, default=0)
+  distributed_quantity = db.Column(db.Integer, default=0)
+  
+  # Metadata
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ItemDistribution(db.Model):
+  """Tracks distribution of symbolic items to champions."""
+  __tablename__ = 'item_distributions'
+  
+  distribution_id = db.Column(db.Integer, primary_key=True)
+  item_id = db.Column(db.Integer, db.ForeignKey('symbolic_items.item_id', ondelete='CASCADE'), nullable=False)
+  champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='CASCADE'), nullable=False)
+  
+  # Distribution details
+  distributed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+  distributed_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  distribution_reason = db.Column(db.String(255))  # Training completion, Event participation, etc.
+  
+  # Linked records
+  training_record_id = db.Column(db.Integer, db.ForeignKey('training_records.training_id', ondelete='SET NULL'))
+  event_participation_id = db.Column(db.Integer, db.ForeignKey('event_participations.participation_id', ondelete='SET NULL'))
+  
+  notes = db.Column(db.Text)
+  
+  # Relationships
+  item = db.relationship('SymbolicItem', backref='distributions')
+  champion = db.relationship('Champion', backref='item_distributions')
+
+
+
+
+
+
+
+
+
 
 
 

@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
+from flask_cors import CORS
 from extensions import limiter
 from dotenv import load_dotenv
 import sentry_sdk
@@ -76,6 +77,18 @@ def create_app(test_config=None):
     # --- Initialization ---
     db.init_app(app)
     
+    # CORS Configuration - Allow API access from different origins
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": os.environ.get('CORS_ORIGINS', '*').split(','),
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "expose_headers": ["Content-Type"],
+            "supports_credentials": True,
+            "max_age": 3600
+        }
+    })
+    
     # CSRF Protection
     csrf = CSRFProtect(app)
     
@@ -133,6 +146,28 @@ def create_app(test_config=None):
     app.register_blueprint(champion_bp, url_prefix='/champion')
     from blueprints.supervisor import supervisor_bp
     app.register_blueprint(supervisor_bp, url_prefix='/supervisor')
+    
+    # API Blueprints
+    from blueprints.events import events_bp
+    app.register_blueprint(events_bp)
+    from blueprints.blog import blog_bp
+    app.register_blueprint(blog_bp)
+    from blueprints.api import api_bp
+    app.register_blueprint(api_bp)
+    
+    # Mental Health Feature Blueprints
+    from blueprints.assessments import assessments_bp
+    app.register_blueprint(assessments_bp)
+    from blueprints.affirmations import affirmations_bp
+    app.register_blueprint(affirmations_bp)
+    from blueprints.participation import participation_bp
+    app.register_blueprint(participation_bp)
+    from blueprints.symbolic_items import symbolic_items_bp
+    app.register_blueprint(symbolic_items_bp)
+    
+    # M-Pesa Payment Integration
+    from blueprints.mpesa import mpesa_bp
+    app.register_blueprint(mpesa_bp)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
