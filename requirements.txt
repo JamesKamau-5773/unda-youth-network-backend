@@ -7,7 +7,9 @@ Flask-Limiter[redis]==3.5.0   # Using Redis for robust rate limiting storage
 Flask-Bcrypt==1.0.1           # For strong password hashing
 Flask-Migrate==4.0.5          # Database migrations
 Flask-WTF==1.2.1              # CSRF protection
+Flask-CORS==4.0.0             # Cross-Origin Resource Sharing
 python-dotenv==1.0.0
+requests==2.31.0              # HTTP library for M-Pesa API calls
 gunicorn==21.2.0              # Production-grade WSGI server
 redis==5.0.0                  # Redis client for rate limiting
 sentry-sdk==2.48.0
