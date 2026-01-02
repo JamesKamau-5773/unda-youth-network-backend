@@ -961,19 +961,10 @@ def create_podcast():
             season_number = request.form.get('season_number')
             category = request.form.get('category')
             tags_str = request.form.get('tags', '')
-            episode_date_str = request.form.get('episode_date')
             published = request.form.get('published') == 'on'
             
             # Parse tags
             tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
-            
-            # Parse episode date
-            episode_date = None
-            if episode_date_str:
-                try:
-                    episode_date = datetime.fromisoformat(episode_date_str)
-                except:
-                    pass
             
             # Create podcast
             podcast = Podcast(
@@ -987,7 +978,6 @@ def create_podcast():
                 season_number=int(season_number) if season_number else None,
                 category=category if category else None,
                 tags=tags,
-                episode_date=episode_date,
                 published=published,
                 created_by=current_user.user_id
             )
@@ -1038,13 +1028,6 @@ def edit_podcast(podcast_id):
             
             tags_str = request.form.get('tags', '')
             podcast.tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
-            
-            episode_date_str = request.form.get('episode_date')
-            if episode_date_str:
-                try:
-                    podcast.episode_date = datetime.fromisoformat(episode_date_str)
-                except:
-                    pass
             
             was_published = podcast.published
             podcast.published = request.form.get('published') == 'on'

@@ -119,7 +119,6 @@ def create_podcast():
             season_number=data.get('season_number'),
             category=data.get('category'),
             tags=data.get('tags', []),
-            episode_date=data.get('episode_date'),
             published=data.get('published', False),
             created_by=current_user.user_id
         )
@@ -182,8 +181,6 @@ def update_podcast(podcast_id):
             podcast.category = data['category']
         if 'tags' in data:
             podcast.tags = data['tags']
-        if 'episode_date' in data:
-            podcast.episode_date = data['episode_date']
         if 'published' in data:
             was_published = podcast.published
             podcast.published = data['published']
