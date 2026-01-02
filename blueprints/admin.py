@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication, Podcast
+from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication, Podcast, Event
 from decorators import admin_required
 from flask_bcrypt import Bcrypt
 import secrets
@@ -892,6 +892,167 @@ def get_pending_counts():
         'applications': pending_applications,
         'total': pending_registrations + pending_applications
     })
+
+
+# ========================================
+# DEBATERS CIRCLE EVENT ROUTES
+# ========================================
+
+
+@admin_bp.route('/debates')
+@login_required
+@admin_required
+def debates():
+    """View and manage Debaters Circle events"""
+    status_filter = request.args.get('status', 'all')
+
+    query = Event.query.filter(Event.event_type.in_(['debate', 'Debaters Circle']))
+    if status_filter != 'all' and status_filter:
+        query = query.filter_by(status=status_filter)
+
+    events = query.order_by(Event.event_date.desc()).all()
+
+    total = Event.query.filter(Event.event_type.in_(['debate', 'Debaters Circle'])).count()
+    upcoming = Event.query.filter(Event.event_type.in_(['debate', 'Debaters Circle']), Event.status == 'Upcoming').count()
+    completed = Event.query.filter(Event.event_type.in_(['debate', 'Debaters Circle']), Event.status == 'Completed').count()
+
+    return render_template(
+        'admin/debate_events.html',
+        events=events,
+        status_filter=status_filter,
+        stats={'total': total, 'upcoming': upcoming, 'completed': completed},
+        now=datetime.utcnow()
+    )
+
+
+@admin_bp.route('/debates/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_debate_event():
+    """Create a new Debaters Circle event"""
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        event_date_raw = request.form.get('event_date', '').strip()
+        if not title or not event_date_raw:
+            flash('Title and event date are required.', 'danger')
+            return render_template('admin/debate_event_form.html', action='Create', event=None)
+
+        try:
+            event_date = datetime.strptime(event_date_raw, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            flash('Invalid date format. Please use the provided date picker.', 'danger')
+            return render_template('admin/debate_event_form.html', action='Create', event=None)
+
+        registration_deadline = None
+        registration_deadline_raw = request.form.get('registration_deadline', '').strip()
+        if registration_deadline_raw:
+            try:
+                registration_deadline = datetime.strptime(registration_deadline_raw, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                registration_deadline = None
+
+        try:
+            max_participants_raw = request.form.get('max_participants')
+            max_participants = int(max_participants_raw) if max_participants_raw else None
+        except ValueError:
+            flash('Max participants must be a number.', 'danger')
+            return render_template('admin/debate_event_form.html', action='Create', event=None)
+
+        event = Event(
+            title=title,
+            description=request.form.get('description'),
+            event_date=event_date,
+            location=request.form.get('location'),
+            event_type='debate',
+            organizer=request.form.get('organizer'),
+            max_participants=max_participants,
+            registration_deadline=registration_deadline,
+            status=request.form.get('status', 'Upcoming'),
+            image_url=request.form.get('image_url'),
+            created_by=current_user.user_id
+        )
+
+        db.session.add(event)
+        db.session.commit()
+
+        flash('Debaters Circle event created.', 'success')
+        return redirect(url_for('admin.debates'))
+
+    return render_template('admin/debate_event_form.html', action='Create', event=None)
+
+
+@admin_bp.route('/debates/<int:event_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_debate_event(event_id):
+    """Edit an existing Debaters Circle event"""
+    event = Event.query.get_or_404(event_id)
+    if event.event_type not in ['debate', 'Debaters Circle']:
+        flash('This event is not part of Debaters Circle.', 'warning')
+        return redirect(url_for('admin.debates'))
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        event_date_raw = request.form.get('event_date', '').strip()
+        if not title or not event_date_raw:
+            flash('Title and event date are required.', 'danger')
+            return render_template('admin/debate_event_form.html', action='Edit', event=event)
+
+        try:
+            event_date = datetime.strptime(event_date_raw, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            flash('Invalid date format. Please use the provided date picker.', 'danger')
+            return render_template('admin/debate_event_form.html', action='Edit', event=event)
+
+        registration_deadline = None
+        registration_deadline_raw = request.form.get('registration_deadline', '').strip()
+        if registration_deadline_raw:
+            try:
+                registration_deadline = datetime.strptime(registration_deadline_raw, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                registration_deadline = None
+
+        try:
+            max_participants_raw = request.form.get('max_participants')
+            max_participants = int(max_participants_raw) if max_participants_raw else None
+        except ValueError:
+            flash('Max participants must be a number.', 'danger')
+            return render_template('admin/debate_event_form.html', action='Edit', event=event)
+
+        event.title = title
+        event.description = request.form.get('description')
+        event.event_date = event_date
+        event.location = request.form.get('location')
+        event.organizer = request.form.get('organizer')
+        event.max_participants = max_participants
+        event.registration_deadline = registration_deadline
+        event.status = request.form.get('status', 'Upcoming')
+        event.image_url = request.form.get('image_url')
+        event.updated_at = datetime.utcnow()
+
+        db.session.commit()
+
+        flash('Debaters Circle event updated.', 'success')
+        return redirect(url_for('admin.debates'))
+
+    return render_template('admin/debate_event_form.html', action='Edit', event=event)
+
+
+@admin_bp.route('/debates/<int:event_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_debate_event(event_id):
+    """Delete a Debaters Circle event"""
+    event = Event.query.get_or_404(event_id)
+    if event.event_type != 'Debaters Circle':
+        flash('This event is not part of Debaters Circle.', 'warning')
+        return redirect(url_for('admin.debates'))
+
+    db.session.delete(event)
+    db.session.commit()
+
+    flash('Debaters Circle event deleted.', 'success')
+    return redirect(url_for('admin.debates'))
 
 
 # ========================================
