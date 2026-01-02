@@ -173,6 +173,9 @@ def create_app(test_config=None):
     # Public Authentication & Applications
     from blueprints.public_auth import public_auth_bp
     app.register_blueprint(public_auth_bp)
+    
+    # Exempt API routes from CSRF protection
+    csrf.exempt(public_auth_bp)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
