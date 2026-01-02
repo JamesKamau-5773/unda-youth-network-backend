@@ -145,9 +145,6 @@
                         {{ (podcast.duration // 60) }}:{{ '%02d' % (podcast.duration % 60) }}
                     </div>
                     {% endif %}
-                    {% if podcast.episode_date %}
-                    <div>{{ podcast.episode_date.strftime('%b %d, %Y') }}</div>
-                    {% endif %}
                     <div>Created {{ podcast.created_at.strftime('%b %d, %Y') }}</div>
                     {% if podcast.published_at %}
                     <div>Published {{ podcast.published_at.strftime('%b %d, %Y') }}</div>
