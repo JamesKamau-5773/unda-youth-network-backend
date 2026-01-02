@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication
+from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication, Podcast
 from decorators import admin_required
 from flask_bcrypt import Bcrypt
 import secrets
@@ -892,3 +892,204 @@ def get_pending_counts():
         'applications': pending_applications,
         'total': pending_registrations + pending_applications
     })
+
+
+# ========================================
+# PODCAST MANAGEMENT ROUTES
+# ========================================
+
+@admin_bp.route('/podcasts')
+@login_required
+@admin_required
+def podcasts():
+    """View and manage podcasts"""
+    status_filter = request.args.get('status', 'all')
+    category_filter = request.args.get('category', 'all')
+    
+    query = Podcast.query
+    
+    # Filter by status
+    if status_filter == 'published':
+        query = query.filter_by(published=True)
+    elif status_filter == 'draft':
+        query = query.filter_by(published=False)
+    
+    # Filter by category
+    if category_filter != 'all':
+        query = query.filter_by(category=category_filter)
+    
+    # Order by created date descending
+    podcasts = query.order_by(Podcast.created_at.desc()).all()
+    
+    # Get all unique categories
+    categories = db.session.query(Podcast.category)\
+        .filter(Podcast.category.isnot(None))\
+        .distinct()\
+        .all()
+    category_list = [cat[0] for cat in categories]
+    
+    # Get counts
+    total_count = Podcast.query.count()
+    published_count = Podcast.query.filter_by(published=True).count()
+    draft_count = Podcast.query.filter_by(published=False).count()
+    
+    return render_template('admin/podcasts.html',
+                         podcasts=podcasts,
+                         status_filter=status_filter,
+                         category_filter=category_filter,
+                         categories=category_list,
+                         total_count=total_count,
+                         published_count=published_count,
+                         draft_count=draft_count)
+
+
+@admin_bp.route('/podcasts/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_podcast():
+    """Create a new podcast"""
+    if request.method == 'POST':
+        try:
+            # Get form data
+            title = request.form.get('title')
+            description = request.form.get('description')
+            audio_url = request.form.get('audio_url')
+            thumbnail_url = request.form.get('thumbnail_url')
+            duration = request.form.get('duration')
+            episode_number = request.form.get('episode_number')
+            season_number = request.form.get('season_number')
+            category = request.form.get('category')
+            tags_str = request.form.get('tags', '')
+            published = request.form.get('published') == 'on'
+            
+            # Parse tags
+            tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+            
+            # Create podcast
+            podcast = Podcast(
+                title=title,
+                description=description,
+                audio_url=audio_url,
+                thumbnail_url=thumbnail_url,
+                duration=int(duration) if duration else None,
+                episode_number=int(episode_number) if episode_number else None,
+                season_number=int(season_number) if season_number else None,
+                category=category if category else None,
+                tags=tags,
+                published=published,
+                created_by=current_user.user_id
+            )
+            
+            if published:
+                podcast.published_at = datetime.utcnow()
+            
+            db.session.add(podcast)
+            db.session.commit()
+            
+            flash('Podcast created successfully!', 'success')
+            return redirect(url_for('admin.podcasts'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating podcast: {str(e)}', 'error')
+    
+    return render_template('admin/podcast_form.html', podcast=None, action='Create')
+
+
+@admin_bp.route('/podcasts/<int:podcast_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_podcast(podcast_id):
+    """Edit an existing podcast"""
+    podcast = Podcast.query.get_or_404(podcast_id)
+    
+    if request.method == 'POST':
+        try:
+            # Update fields
+            podcast.title = request.form.get('title')
+            podcast.description = request.form.get('description')
+            podcast.audio_url = request.form.get('audio_url')
+            podcast.thumbnail_url = request.form.get('thumbnail_url')
+            
+            duration = request.form.get('duration')
+            podcast.duration = int(duration) if duration else None
+            
+            episode_number = request.form.get('episode_number')
+            podcast.episode_number = int(episode_number) if episode_number else None
+            
+            season_number = request.form.get('season_number')
+            podcast.season_number = int(season_number) if season_number else None
+            
+            category = request.form.get('category')
+            podcast.category = category if category else None
+            
+            tags_str = request.form.get('tags', '')
+            podcast.tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+            
+            was_published = podcast.published
+            podcast.published = request.form.get('published') == 'on'
+            
+            # Set published_at when first publishing
+            if not was_published and podcast.published:
+                podcast.published_at = datetime.utcnow()
+            
+            podcast.updated_at = datetime.utcnow()
+            
+            db.session.commit()
+            
+            flash('Podcast updated successfully!', 'success')
+            return redirect(url_for('admin.podcasts'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating podcast: {str(e)}', 'error')
+    
+    return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
+
+
+@admin_bp.route('/podcasts/<int:podcast_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_podcast(podcast_id):
+    """Delete a podcast"""
+    try:
+        podcast = Podcast.query.get_or_404(podcast_id)
+        db.session.delete(podcast)
+        db.session.commit()
+        
+        flash('Podcast deleted successfully!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting podcast: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.podcasts'))
+
+
+@admin_bp.route('/podcasts/<int:podcast_id>/toggle-publish', methods=['POST'])
+@login_required
+@admin_required
+def toggle_publish_podcast(podcast_id):
+    """Toggle podcast published status"""
+    try:
+        podcast = Podcast.query.get_or_404(podcast_id)
+        
+        was_published = podcast.published
+        podcast.published = not podcast.published
+        
+        # Set published_at when first publishing
+        if not was_published and podcast.published:
+            podcast.published_at = datetime.utcnow()
+        
+        podcast.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        status = 'published' if podcast.published else 'unpublished'
+        flash(f'Podcast {status} successfully!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating podcast: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.podcasts'))
