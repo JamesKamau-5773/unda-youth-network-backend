@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User
+from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication
 from decorators import admin_required
 from flask_bcrypt import Bcrypt
 import secrets
@@ -119,6 +119,10 @@ def dashboard():
 
     # REFRESHER ALERTS (next 30 days)
     upcoming_refreshers = get_champions_needing_refresher(days_ahead=30)
+    
+    # PENDING REGISTRATIONS & APPLICATIONS
+    pending_registrations_count = MemberRegistration.query.filter_by(status='Pending').count()
+    pending_applications_count = ChampionApplication.query.filter_by(status='Pending').count()
 
     return render_template('admin/dashboard.html',
                            # Champion Status Counts
@@ -156,7 +160,11 @@ def dashboard():
                            high_risk_champions=get_high_risk_champions(),
                            overdue_reviews=get_overdue_reviews(),
                            high_risk_count=len(get_high_risk_champions()),
-                           overdue_count=len(get_overdue_reviews())
+                           overdue_count=len(get_overdue_reviews()),
+                           
+                           # PENDING APPROVALS
+                           pending_registrations_count=pending_registrations_count,
+                           pending_applications_count=pending_applications_count
                            )
 
 
@@ -659,3 +667,228 @@ def generate_temp_password(length=12):
     secrets.SystemRandom().shuffle(password)
 
     return ''.join(password)
+
+
+@admin_bp.route('/registrations')
+@login_required
+@admin_required
+def registrations():
+    """View and manage member registrations"""
+    status_filter = request.args.get('status', 'Pending')
+    registrations = MemberRegistration.query.filter_by(status=status_filter).order_by(MemberRegistration.submitted_at.desc()).all()
+    
+    pending_count = MemberRegistration.query.filter_by(status='Pending').count()
+    approved_count = MemberRegistration.query.filter_by(status='Approved').count()
+    rejected_count = MemberRegistration.query.filter_by(status='Rejected').count()
+    
+    return render_template('admin/registrations.html',
+                         registrations=registrations,
+                         status_filter=status_filter,
+                         pending_count=pending_count,
+                         approved_count=approved_count,
+                         rejected_count=rejected_count)
+
+
+@admin_bp.route('/registrations/<int:registration_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_registration_web(registration_id):
+    """Approve a registration from the web interface"""
+    try:
+        registration = MemberRegistration.query.get_or_404(registration_id)
+        
+        if registration.status != 'Pending':
+            flash('Registration has already been processed.', 'warning')
+            return redirect(url_for('admin.registrations'))
+        
+        # Create user account
+        user = User(
+            username=registration.username,
+            role='Champion'
+        )
+        user.password_hash = registration.password_hash
+        
+        db.session.add(user)
+        db.session.flush()
+        
+        # Update registration
+        registration.status = 'Approved'
+        registration.reviewed_at = datetime.utcnow()
+        registration.reviewed_by = current_user.user_id
+        registration.created_user_id = user.user_id
+        
+        db.session.commit()
+        
+        flash(f'Registration for {registration.full_name} ({registration.username}) has been approved!', 'success')
+        return redirect(url_for('admin.registrations'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error approving registration: {str(e)}', 'danger')
+        return redirect(url_for('admin.registrations'))
+
+
+@admin_bp.route('/registrations/<int:registration_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_registration_web(registration_id):
+    """Reject a registration from the web interface"""
+    try:
+        registration = MemberRegistration.query.get_or_404(registration_id)
+        
+        if registration.status != 'Pending':
+            flash('Registration has already been processed.', 'warning')
+            return redirect(url_for('admin.registrations'))
+        
+        reason = request.form.get('reason', 'No reason provided')
+        
+        registration.status = 'Rejected'
+        registration.reviewed_at = datetime.utcnow()
+        registration.reviewed_by = current_user.user_id
+        registration.rejection_reason = reason
+        
+        db.session.commit()
+        
+        flash(f'Registration for {registration.full_name} has been rejected.', 'info')
+        return redirect(url_for('admin.registrations'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error rejecting registration: {str(e)}', 'danger')
+        return redirect(url_for('admin.registrations'))
+
+
+@admin_bp.route('/champion-applications')
+@login_required
+@admin_required
+def champion_applications():
+    """View and manage champion applications"""
+    status_filter = request.args.get('status', 'Pending')
+    applications = ChampionApplication.query.filter_by(status=status_filter).order_by(ChampionApplication.submitted_at.desc()).all()
+    
+    pending_count = ChampionApplication.query.filter_by(status='Pending').count()
+    approved_count = ChampionApplication.query.filter_by(status='Approved').count()
+    rejected_count = ChampionApplication.query.filter_by(status='Rejected').count()
+    
+    return render_template('admin/champion_applications.html',
+                         applications=applications,
+                         status_filter=status_filter,
+                         pending_count=pending_count,
+                         approved_count=approved_count,
+                         rejected_count=rejected_count)
+
+
+@admin_bp.route('/champion-applications/<int:application_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_application_web(application_id):
+    """Approve a champion application from the web interface"""
+    try:
+        application = ChampionApplication.query.get_or_404(application_id)
+        
+        if application.status != 'Pending':
+            flash('Application has already been processed.', 'warning')
+            return redirect(url_for('admin.champion_applications'))
+        
+        assigned_champion_code = request.form.get('champion_code')
+        
+        if not assigned_champion_code:
+            flash('Champion code is required.', 'danger')
+            return redirect(url_for('admin.champion_applications'))
+        
+        # Check if champion code already exists
+        if Champion.query.filter_by(assigned_champion_code=assigned_champion_code).first():
+            flash('Champion code already exists. Please use a unique code.', 'danger')
+            return redirect(url_for('admin.champion_applications'))
+        
+        # Create champion profile
+        champion = Champion(
+            user_id=application.user_id,
+            full_name=application.full_name,
+            email=application.email,
+            phone_number=application.phone_number,
+            alternative_phone_number=application.alternative_phone_number,
+            gender=application.gender,
+            date_of_birth=application.date_of_birth,
+            county_sub_county=application.county_sub_county,
+            assigned_champion_code=assigned_champion_code,
+            emergency_contact_name=application.emergency_contact_name,
+            emergency_contact_relationship=application.emergency_contact_relationship,
+            emergency_contact_phone=application.emergency_contact_phone,
+            current_education_level=application.current_education_level,
+            education_institution_name=application.education_institution_name,
+            course_field_of_study=application.course_field_of_study,
+            year_of_study=application.year_of_study,
+            workplace_organization=application.workplace_organization,
+            date_of_application=datetime.utcnow().date(),
+            application_status='Recruited',
+            champion_status='Active'
+        )
+        
+        db.session.add(champion)
+        db.session.flush()
+        
+        # Update user to link champion profile
+        user = User.query.get(application.user_id)
+        user.champion_id = champion.champion_id
+        
+        # Update application
+        application.status = 'Approved'
+        application.reviewed_at = datetime.utcnow()
+        application.reviewed_by = current_user.user_id
+        application.created_champion_id = champion.champion_id
+        
+        db.session.commit()
+        
+        flash(f'Champion application for {application.full_name} has been approved! Champion code: {assigned_champion_code}', 'success')
+        return redirect(url_for('admin.champion_applications'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error approving application: {str(e)}', 'danger')
+        return redirect(url_for('admin.champion_applications'))
+
+
+@admin_bp.route('/champion-applications/<int:application_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_application_web(application_id):
+    """Reject a champion application from the web interface"""
+    try:
+        application = ChampionApplication.query.get_or_404(application_id)
+        
+        if application.status != 'Pending':
+            flash('Application has already been processed.', 'warning')
+            return redirect(url_for('admin.champion_applications'))
+        
+        reason = request.form.get('reason', 'No reason provided')
+        
+        application.status = 'Rejected'
+        application.reviewed_at = datetime.utcnow()
+        application.reviewed_by = current_user.user_id
+        application.rejection_reason = reason
+        
+        db.session.commit()
+        
+        flash(f'Champion application for {application.full_name} has been rejected.', 'info')
+        return redirect(url_for('admin.champion_applications'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error rejecting application: {str(e)}', 'danger')
+        return redirect(url_for('admin.champion_applications'))
+
+
+@admin_bp.route('/api/pending-counts')
+@login_required
+@admin_required
+def get_pending_counts():
+    """API endpoint for getting pending counts (for WebSocket polling)"""
+    pending_registrations = MemberRegistration.query.filter_by(status='Pending').count()
+    pending_applications = ChampionApplication.query.filter_by(status='Pending').count()
+    
+    return jsonify({
+        'registrations': pending_registrations,
+        'applications': pending_applications,
+        'total': pending_registrations + pending_applications
+    })
