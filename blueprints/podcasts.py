@@ -111,6 +111,7 @@ def create_podcast():
         podcast = Podcast(
             title=data['title'],
             description=data.get('description'),
+            guest=data.get('guest'),
             audio_url=data['audio_url'],
             thumbnail_url=data.get('thumbnail_url'),
             duration=data.get('duration'),
@@ -118,6 +119,7 @@ def create_podcast():
             season_number=data.get('season_number'),
             category=data.get('category'),
             tags=data.get('tags', []),
+            episode_date=data.get('episode_date'),
             published=data.get('published', False),
             created_by=current_user.user_id
         )
@@ -164,6 +166,8 @@ def update_podcast(podcast_id):
             podcast.title = data['title']
         if 'description' in data:
             podcast.description = data['description']
+        if 'guest' in data:
+            podcast.guest = data['guest']
         if 'audio_url' in data:
             podcast.audio_url = data['audio_url']
         if 'thumbnail_url' in data:
@@ -178,6 +182,8 @@ def update_podcast(podcast_id):
             podcast.category = data['category']
         if 'tags' in data:
             podcast.tags = data['tags']
+        if 'episode_date' in data:
+            podcast.episode_date = data['episode_date']
         if 'published' in data:
             was_published = podcast.published
             podcast.published = data['published']

@@ -583,6 +583,7 @@ class Podcast(db.Model):
   podcast_id = db.Column(db.Integer, primary_key=True)
   title = db.Column(db.String(255), nullable=False)
   description = db.Column(db.Text)
+  guest = db.Column(db.String(255))  # Guest name
   audio_url = db.Column(db.String(500), nullable=False)
   thumbnail_url = db.Column(db.String(500))
   duration = db.Column(db.Integer)  # Duration in seconds
@@ -592,6 +593,7 @@ class Podcast(db.Model):
   tags = db.Column(db.JSON)  # Array of tags
   published = db.Column(db.Boolean, default=False)
   published_at = db.Column(db.DateTime)
+  episode_date = db.Column(db.DateTime)  # Date of the episode
   created_at = db.Column(db.DateTime, default=datetime.utcnow)
   updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
   created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
@@ -604,6 +606,7 @@ class Podcast(db.Model):
       'podcast_id': self.podcast_id,
       'title': self.title,
       'description': self.description,
+      'guest': self.guest,
       'audio_url': self.audio_url,
       'thumbnail_url': self.thumbnail_url,
       'duration': self.duration,
@@ -612,6 +615,7 @@ class Podcast(db.Model):
       'category': self.category,
       'tags': self.tags or [],
       'published': self.published,
+      'episode_date': self.episode_date.isoformat() if self.episode_date else None,
       'published_at': self.published_at.isoformat() if self.published_at else None,
       'created_at': self.created_at.isoformat() if self.created_at else None,
       'updated_at': self.updated_at.isoformat() if self.updated_at else None,
