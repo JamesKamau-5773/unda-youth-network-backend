@@ -182,6 +182,7 @@ def create_app(test_config=None):
     csrf.exempt(public_auth_bp)
     csrf.exempt(podcasts_bp)
     csrf.exempt(events_bp)
+    csrf.exempt(participation_bp)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
