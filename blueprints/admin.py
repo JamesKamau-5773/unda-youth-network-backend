@@ -953,6 +953,7 @@ def create_podcast():
             # Get form data
             title = request.form.get('title')
             description = request.form.get('description')
+            guest = request.form.get('guest')
             audio_url = request.form.get('audio_url')
             thumbnail_url = request.form.get('thumbnail_url')
             duration = request.form.get('duration')
@@ -960,15 +961,25 @@ def create_podcast():
             season_number = request.form.get('season_number')
             category = request.form.get('category')
             tags_str = request.form.get('tags', '')
+            episode_date_str = request.form.get('episode_date')
             published = request.form.get('published') == 'on'
             
             # Parse tags
             tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
             
+            # Parse episode date
+            episode_date = None
+            if episode_date_str:
+                try:
+                    episode_date = datetime.fromisoformat(episode_date_str)
+                except:
+                    pass
+            
             # Create podcast
             podcast = Podcast(
                 title=title,
                 description=description,
+                guest=guest,
                 audio_url=audio_url,
                 thumbnail_url=thumbnail_url,
                 duration=int(duration) if duration else None,
@@ -976,6 +987,7 @@ def create_podcast():
                 season_number=int(season_number) if season_number else None,
                 category=category if category else None,
                 tags=tags,
+                episode_date=episode_date,
                 published=published,
                 created_by=current_user.user_id
             )
@@ -1008,6 +1020,7 @@ def edit_podcast(podcast_id):
             # Update fields
             podcast.title = request.form.get('title')
             podcast.description = request.form.get('description')
+            podcast.guest = request.form.get('guest')
             podcast.audio_url = request.form.get('audio_url')
             podcast.thumbnail_url = request.form.get('thumbnail_url')
             
@@ -1025,6 +1038,13 @@ def edit_podcast(podcast_id):
             
             tags_str = request.form.get('tags', '')
             podcast.tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+            
+            episode_date_str = request.form.get('episode_date')
+            if episode_date_str:
+                try:
+                    podcast.episode_date = datetime.fromisoformat(episode_date_str)
+                except:
+                    pass
             
             was_published = podcast.published
             podcast.published = request.form.get('published') == 'on'

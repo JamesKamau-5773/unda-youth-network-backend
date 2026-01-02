@@ -127,6 +127,15 @@
                 {% endif %}
                 
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.8125rem; color: #6b7280; margin-bottom: 1rem;">
+                    {% if podcast.guest %}
+                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        Guest: {{ podcast.guest }}
+                    </div>
+                    {% endif %}
                     {% if podcast.duration %}
                     <div style="display: flex; align-items: center; gap: 0.25rem;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -135,6 +144,9 @@
                         </svg>
                         {{ (podcast.duration // 60) }}:{{ '%02d' % (podcast.duration % 60) }}
                     </div>
+                    {% endif %}
+                    {% if podcast.episode_date %}
+                    <div>{{ podcast.episode_date.strftime('%b %d, %Y') }}</div>
                     {% endif %}
                     <div>Created {{ podcast.created_at.strftime('%b %d, %Y') }}</div>
                     {% if podcast.published_at %}
