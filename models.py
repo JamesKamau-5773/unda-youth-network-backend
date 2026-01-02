@@ -499,6 +499,84 @@ class ItemDistribution(db.Model):
   champion = db.relationship('Champion', backref='item_distributions')
 
 
+class MemberRegistration(db.Model):
+  """Model for tracking member registration requests"""
+  __tablename__ = 'member_registrations'
+  
+  registration_id = db.Column(db.Integer, primary_key=True)
+  full_name = db.Column(db.String(255), nullable=False)
+  email = db.Column(db.String(100), nullable=False)
+  phone_number = db.Column(db.String(20), nullable=False)
+  username = db.Column(db.String(100), unique=True, nullable=False)
+  password_hash = db.Column(db.String(255), nullable=False)
+  
+  # Additional info
+  date_of_birth = db.Column(db.Date)
+  gender = db.Column(db.String(20))
+  county_sub_county = db.Column(db.String(100))
+  
+  # Status tracking
+  status = db.Column(db.String(50), default='Pending')  # Pending, Approved, Rejected
+  submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+  reviewed_at = db.Column(db.DateTime)
+  reviewed_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  rejection_reason = db.Column(db.Text)
+  
+  # Created user reference
+  created_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  
+  def set_password(self, password):
+    self.password_hash = hash_password(password)
+
+
+class ChampionApplication(db.Model):
+  """Model for tracking champion applications from registered members"""
+  __tablename__ = 'champion_applications'
+  
+  application_id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+  
+  # Application details
+  full_name = db.Column(db.String(255), nullable=False)
+  email = db.Column(db.String(100), nullable=False)
+  phone_number = db.Column(db.String(20), nullable=False)
+  alternative_phone_number = db.Column(db.String(20))
+  
+  # Personal information
+  gender = db.Column(db.String(20), nullable=False)
+  date_of_birth = db.Column(db.Date, nullable=False)
+  county_sub_county = db.Column(db.String(100))
+  
+  # Emergency contact
+  emergency_contact_name = db.Column(db.String(255))
+  emergency_contact_relationship = db.Column(db.String(100))
+  emergency_contact_phone = db.Column(db.String(20))
+  
+  # Education & occupation
+  current_education_level = db.Column(db.String(100))
+  education_institution_name = db.Column(db.String(255))
+  course_field_of_study = db.Column(db.String(255))
+  year_of_study = db.Column(db.String(50))
+  workplace_organization = db.Column(db.String(255))
+  
+  # Why they want to be a champion
+  motivation = db.Column(db.Text)
+  skills_interests = db.Column(db.Text)
+  
+  # Status tracking
+  status = db.Column(db.String(50), default='Pending')  # Pending, Approved, Rejected
+  submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+  reviewed_at = db.Column(db.DateTime)
+  reviewed_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  rejection_reason = db.Column(db.Text)
+  
+  # Created champion reference
+  created_champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='SET NULL'))
+  
+  # Relationships
+  user = db.relationship('User', foreign_keys=[user_id], backref='champion_applications')
+
+
 
 
 

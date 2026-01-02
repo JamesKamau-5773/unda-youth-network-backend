@@ -78,9 +78,10 @@ def create_app(test_config=None):
     db.init_app(app)
     
     # CORS Configuration - Allow API access from different origins
+    cors_origins = os.environ.get('CORS_ORIGINS', 'http://localhost:5173,https://unda-youth-network.netlify.app')
     CORS(app, resources={
         r"/api/*": {
-            "origins": os.environ.get('CORS_ORIGINS', '*').split(','),
+            "origins": cors_origins.split(',') if cors_origins != '*' else '*',
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
             "expose_headers": ["Content-Type"],
@@ -168,6 +169,10 @@ def create_app(test_config=None):
     # M-Pesa Payment Integration
     from blueprints.mpesa import mpesa_bp
     app.register_blueprint(mpesa_bp)
+    
+    # Public Authentication & Applications
+    from blueprints.public_auth import public_auth_bp
+    app.register_blueprint(public_auth_bp)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
