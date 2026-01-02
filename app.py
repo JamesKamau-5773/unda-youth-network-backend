@@ -174,8 +174,13 @@ def create_app(test_config=None):
     from blueprints.public_auth import public_auth_bp
     app.register_blueprint(public_auth_bp)
     
+    # Podcast Management
+    from blueprints.podcasts import podcasts_bp
+    app.register_blueprint(podcasts_bp)
+    
     # Exempt API routes from CSRF protection
     csrf.exempt(public_auth_bp)
+    csrf.exempt(podcasts_bp)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
