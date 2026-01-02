@@ -10,6 +10,76 @@
 	</p>
 </div>
 
+<div class="section-header" style="margin-top: 1.5rem;">
+	<h2 class="section-title">Debaters Circle Participation</h2>
+	<p class="section-subtitle">Your debate event history and engagement score</p>
+</div>
+
+<div class="data-card" style="margin-bottom: 2rem;">
+	<div class="grid grid--4-col" style="gap: 1rem;">
+		<div class="tile">
+			<div class="tile__label">Events Joined</div>
+			<div class="tile__value">{{ debate_stats.total }}</div>
+		</div>
+		<div class="tile">
+			<div class="tile__label">Attended</div>
+			<div class="tile__value">{{ debate_stats.attended }}</div>
+		</div>
+		<div class="tile">
+			<div class="tile__label">Certificates Earned</div>
+			<div class="tile__value">{{ debate_stats.certificates }}</div>
+		</div>
+		<div class="tile">
+			<div class="tile__label">Participation Score</div>
+			<div class="tile__value">{{ debate_stats.score }}</div>
+			<div class="tile__helper">Avg feedback: {{ debate_stats.average_feedback if debate_stats.average_feedback is not none else 'N/A' }}</div>
+		</div>
+	</div>
+
+	<div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+		{% if debate_participations %}
+		<div class="data-table-container">
+			<table class="data-table">
+				<thead>
+					<tr>
+						<th>Event</th>
+						<th>Date</th>
+						<th>Status</th>
+						<th class="text-center">Attended</th>
+						<th class="text-center">Feedback</th>
+						<th class="text-center">Certificate</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for p in debate_participations %}
+					<tr>
+						<td>{{ p.event.title if p.event else 'Event removed' }}</td>
+						<td>{{ p.event.event_date.strftime('%b %d, %Y') if p.event and p.event.event_date else 'TBD' }}</td>
+						<td><span class="badge badge--secondary">{{ p.registration_status|default('Registered') }}</span></td>
+						<td class="text-center">{% if p.attended %}<span class="badge badge--success">Yes</span>{% else %}<span class="badge badge--warning">Pending</span>{% endif %}</td>
+						<td class="text-center">{{ p.feedback_score if p.feedback_score else '—' }}</td>
+						<td class="text-center">{% if p.certificate_issued %}<span class="badge badge--success">Issued</span>{% else %}<span class="badge badge--secondary">Not yet</span>{% endif %}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		{% else %}
+		<div class="empty-state">
+			<svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="12" cy="12" r="10"></circle>
+				<line x1="12" y1="8" x2="12" y2="12"></line>
+				<line x1="12" y1="16" x2="12.01" y2="16"></line>
+			</svg>
+			<div class="empty-state-title">No Debaters Circle activity yet</div>
+			<div class="empty-state-text">
+				Join a Debaters Circle event to start building your participation score and unlock certificates.
+			</div>
+		</div>
+		{% endif %}
+	</div>
+</div>
+
 {# Check for pending report status #}
 {% set report_exists = reports|selectattr('reporting_period', 'eq', current_reporting_date)|list %}
 

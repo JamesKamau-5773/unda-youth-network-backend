@@ -181,6 +181,7 @@ def create_app(test_config=None):
     # Exempt API routes from CSRF protection
     csrf.exempt(public_auth_bp)
     csrf.exempt(podcasts_bp)
+    csrf.exempt(events_bp)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template

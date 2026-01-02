@@ -4,6 +4,22 @@ from models import db, Event
 from decorators import admin_required
 from datetime import datetime
 
+ALLOWED_EVENT_TYPES = {
+    'debate': 'debate',              # Debaters Circle
+    'debaters circle': 'debate',
+    'debaters_circle': 'debate',
+    'mtaani': 'mtaani',              # UMV Mtaani Barazas
+    'umv mtaani barazas': 'mtaani',
+    'podcast': 'podcast'             # Podcast episodes
+}
+
+
+def _normalize_event_type(value, default=None):
+    if not value:
+        return default
+    normalized = ALLOWED_EVENT_TYPES.get(value.lower())
+    return normalized
+
 events_bp = Blueprint('events', __name__, url_prefix='/api/events')
 
 
@@ -15,11 +31,14 @@ def list_events():
     limit = request.args.get('limit', type=int)
     
     query = Event.query
-    
+
     if status:
         query = query.filter_by(status=status)
     if event_type:
-        query = query.filter_by(event_type=event_type)
+        normalized = _normalize_event_type(event_type)
+        if not normalized:
+            return jsonify({'success': False, 'message': 'Invalid event type'}), 400
+        query = query.filter_by(event_type=normalized)
     
     # Order by event date
     query = query.order_by(Event.event_date.desc())
@@ -94,6 +113,13 @@ def create_event():
             'success': False,
             'message': 'Invalid event_date format. Use ISO 8601 format.'
         }), 400
+
+    event_type = _normalize_event_type(data.get('event_type'), default='debate')
+    if not event_type:
+        return jsonify({
+            'success': False,
+            'message': 'Invalid event_type. Allowed: debate, mtaani, podcast'
+        }), 400
     
     registration_deadline = None
     if data.get('registration_deadline'):
@@ -107,7 +133,7 @@ def create_event():
         description=data.get('description'),
         event_date=event_date,
         location=data.get('location'),
-        event_type=data.get('event_type'),
+        event_type=event_type,
         organizer=data.get('organizer'),
         max_participants=data.get('max_participants'),
         registration_deadline=registration_deadline,
@@ -156,7 +182,13 @@ def update_event(event_id):
     if 'location' in data:
         event.location = data['location']
     if 'event_type' in data:
-        event.event_type = data['event_type']
+        normalized = _normalize_event_type(data['event_type'])
+        if not normalized:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid event_type. Allowed: debate, mtaani, podcast'
+            }), 400
+        event.event_type = normalized
     if 'organizer' in data:
         event.organizer = data['organizer']
     if 'max_participants' in data:

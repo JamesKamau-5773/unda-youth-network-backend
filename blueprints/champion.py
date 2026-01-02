@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Champion, YouthSupport
+from models import db, Champion, YouthSupport, EventParticipation, Event
 from decorators import champion_required
 from datetime import date
 from sqlalchemy.exc import IntegrityError
@@ -29,11 +29,34 @@ def dashboard():
 
 	current_reporting_date = date.today().replace(day=1)
 
+	debate_participations = (
+		EventParticipation.query
+		.join(Event, EventParticipation.event_id == Event.event_id)
+		.filter(EventParticipation.champion_id == current_user.champion_id)
+		.filter(Event.event_type.in_(['debate', 'Debaters Circle']))
+		.order_by(Event.event_date.desc())
+		.all()
+	)
+
+	attended_count = sum(1 for p in debate_participations if p.attended)
+	certificate_count = sum(1 for p in debate_participations if p.certificate_issued)
+	feedback_scores = [p.feedback_score for p in debate_participations if p.feedback_score]
+	avg_feedback = round(sum(feedback_scores) / len(feedback_scores), 1) if feedback_scores else None
+	participation_score = attended_count * 10 + certificate_count * 5 + (avg_feedback or 0)
+
 	return render_template(
 		'champion/dashboard.html',
 		champion=champion_profile,
 		reports=recent_reports,
 		current_reporting_date=current_reporting_date,
+		debate_participations=debate_participations,
+		debate_stats={
+			'total': len(debate_participations),
+			'attended': attended_count,
+			'certificates': certificate_count,
+			'average_feedback': avg_feedback,
+			'score': int(participation_score),
+		},
 	)
 
 
