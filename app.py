@@ -178,11 +178,16 @@ def create_app(test_config=None):
     from blueprints.podcasts import podcasts_bp
     app.register_blueprint(podcasts_bp)
     
+    # Seed Funding Applications
+    from blueprints.seed_funding import seed_funding_bp
+    app.register_blueprint(seed_funding_bp)
+    
     # Exempt API routes from CSRF protection
     csrf.exempt(public_auth_bp)
     csrf.exempt(podcasts_bp)
     csrf.exempt(events_bp)
     csrf.exempt(participation_bp)
+    csrf.exempt(seed_funding_bp)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template

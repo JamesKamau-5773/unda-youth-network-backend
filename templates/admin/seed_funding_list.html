@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Seed Funding Applications - Admin{% endblock %}
+
+{% block content %}
+<div class="hero-card">
+    <div class="hero-card__inner">
+        <div>
+            <h1 class="hero-card__title">Seed Funding Applications</h1>
+            <p class="hero-card__subtitle">Review and manage Campus Edition seed funding requests</p>
+        </div>
+        <div class="hero-card__actions">
+            <a href="{{ url_for('admin.workstreams') }}" class="btn btn--secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Workstreams
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid--4-col" style="gap: 1rem; margin-bottom: 2rem;">
+    <div class="stat-card">
+        <div class="stat-card__value">{{ stats.total }}</div>
+        <div class="stat-card__label">Total Applications</div>
+    </div>
+    <div class="stat-card stat-card--warning">
+        <div class="stat-card__value">{{ stats.pending }}</div>
+        <div class="stat-card__label">Pending Review</div>
+    </div>
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__value">{{ stats.approved + stats.funded }}</div>
+        <div class="stat-card__label">Approved</div>
+    </div>
+    <div class="stat-card stat-card--info">
+        <div class="stat-card__value">KES {{ "{:,.0f}".format(stats.total_approved) }}</div>
+        <div class="stat-card__label">Total Approved</div>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="filter-tabs">
+    <a href="{{ url_for('admin.seed_funding_applications', status='all') }}" 
+       class="filter-tab {% if status_filter == 'all' %}filter-tab--active{% endif %}">
+        All ({{ stats.total }})
+    </a>
+    <a href="{{ url_for('admin.seed_funding_applications', status='Pending') }}" 
+       class="filter-tab {% if status_filter == 'Pending' %}filter-tab--active{% endif %}">
+        Pending ({{ stats.pending }})
+    </a>
+    <a href="{{ url_for('admin.seed_funding_applications', status='Under Review') }}" 
+       class="filter-tab {% if status_filter == 'Under Review' %}filter-tab--active{% endif %}">
+        Under Review ({{ stats.under_review }})
+    </a>
+    <a href="{{ url_for('admin.seed_funding_applications', status='Approved') }}" 
+       class="filter-tab {% if status_filter == 'Approved' %}filter-tab--active{% endif %}">
+        Approved ({{ stats.approved }})
+    </a>
+    <a href="{{ url_for('admin.seed_funding_applications', status='Funded') }}" 
+       class="filter-tab {% if status_filter == 'Funded' %}filter-tab--active{% endif %}">
+        Funded ({{ stats.funded }})
+    </a>
+    <a href="{{ url_for('admin.seed_funding_applications', status='Rejected') }}" 
+       class="filter-tab {% if status_filter == 'Rejected' %}filter-tab--active{% endif %}">
+        Rejected ({{ stats.rejected }})
+    </a>
+</div>
+
+<!-- Applications List -->
+<div style="margin-top: 1.5rem;">
+    {% if applications %}
+        {% for app in applications %}
+        <div class="data-card" style="margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 600; color: #111827;">
+                        {{ app.project_title }}
+                    </h3>
+                    <p style="margin: 0 0 0.25rem 0; color: #6b7280; font-size: 0.875rem;">
+                        <strong>Applicant:</strong> {{ app.applicant_name }} | {{ app.email }}
+                    </p>
+                    <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">
+                        Applied {{ app.submitted_at.strftime('%B %d, %Y at %I:%M %p') }}
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <div class="pill pill--{{ 
+                        'warning' if app.status == 'Pending' else 
+                        ('info' if app.status == 'Under Review' else 
+                        ('success' if app.status in ['Approved', 'Funded'] else 'danger'))
+                    }}">
+                        {{ app.status }}
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 1.125rem; font-weight: 700; color: #1e40af;">
+                        KES {{ "{:,.2f}".format(app.total_budget_requested) }}
+                    </div>
+                    {% if app.approved_amount %}
+                    <div style="font-size: 0.875rem; color: #059669;">
+                        Approved: KES {{ "{:,.2f}".format(app.approved_amount) }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <p style="color: #374151; line-height: 1.6; margin: 0;">
+                    {{ app.project_description[:200] }}{% if app.project_description|length > 200 %}...{% endif %}
+                </p>
+            </div>
+
+            <div class="grid grid--3-col" style="gap: 1rem; margin-bottom: 1rem;">
+                {% if app.institution_name %}
+                <div>
+                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Institution</div>
+                    <div style="font-weight: 500; color: #111827;">{{ app.institution_name }}</div>
+                </div>
+                {% endif %}
+                {% if app.project_category %}
+                <div>
+                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Category</div>
+                    <div style="font-weight: 500; color: #111827;">{{ app.project_category }}</div>
+                </div>
+                {% endif %}
+                {% if app.team_size %}
+                <div>
+                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Team Size</div>
+                    <div style="font-weight: 500; color: #111827;">{{ app.team_size }} members</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                <a href="{{ url_for('admin.seed_funding_detail', application_id=app.application_id) }}" 
+                   class="btn btn--primary btn--sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View Details
+                </a>
+                
+                {% if app.status == 'Pending' %}
+                <form method="POST" action="{{ url_for('admin.update_seed_funding_review_status', application_id=app.application_id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn--secondary btn--sm">
+                        Mark Under Review
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <h3>No Applications Found</h3>
+            <p>{% if status_filter != 'all' %}No {{ status_filter|lower }} applications at the moment.{% else %}No seed funding applications submitted yet.{% endif %}</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
