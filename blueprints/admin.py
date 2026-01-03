@@ -1216,6 +1216,207 @@ def delete_campus_event(event_id):
 
 
 # ========================================
+# SEED FUNDING ROUTES
+# ========================================
+
+@admin_bp.route('/seed-funding')
+@login_required
+@admin_required
+def seed_funding_applications():
+    """View and manage seed funding applications"""
+    from models import SeedFundingApplication
+    
+    status_filter = request.args.get('status', 'all')
+    
+    query = SeedFundingApplication.query
+    if status_filter != 'all' and status_filter:
+        query = query.filter_by(status=status_filter)
+    
+    applications = query.order_by(SeedFundingApplication.submitted_at.desc()).all()
+    
+    # Get statistics
+    total = SeedFundingApplication.query.count()
+    pending = SeedFundingApplication.query.filter_by(status='Pending').count()
+    under_review = SeedFundingApplication.query.filter_by(status='Under Review').count()
+    approved = SeedFundingApplication.query.filter_by(status='Approved').count()
+    rejected = SeedFundingApplication.query.filter_by(status='Rejected').count()
+    funded = SeedFundingApplication.query.filter_by(status='Funded').count()
+    
+    # Calculate total amounts
+    from sqlalchemy import func
+    total_requested = db.session.query(
+        func.sum(SeedFundingApplication.total_budget_requested)
+    ).scalar() or 0
+    
+    total_approved = db.session.query(
+        func.sum(SeedFundingApplication.approved_amount)
+    ).filter(
+        SeedFundingApplication.status.in_(['Approved', 'Funded'])
+    ).scalar() or 0
+    
+    stats = {
+        'total': total,
+        'pending': pending,
+        'under_review': under_review,
+        'approved': approved,
+        'rejected': rejected,
+        'funded': funded,
+        'total_requested': float(total_requested) if total_requested else 0,
+        'total_approved': float(total_approved) if total_approved else 0
+    }
+    
+    return render_template(
+        'admin/seed_funding_list.html',
+        applications=applications,
+        status_filter=status_filter,
+        stats=stats,
+        now=datetime.utcnow()
+    )
+
+
+@admin_bp.route('/seed-funding/<int:application_id>')
+@login_required
+@admin_required
+def seed_funding_detail(application_id):
+    """View detailed seed funding application"""
+    from models import SeedFundingApplication
+    
+    application = SeedFundingApplication.query.get_or_404(application_id)
+    
+    return render_template(
+        'admin/seed_funding_detail.html',
+        application=application
+    )
+
+
+@admin_bp.route('/seed-funding/<int:application_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_seed_funding(application_id):
+    """Approve a seed funding application"""
+    from models import SeedFundingApplication
+    
+    application = SeedFundingApplication.query.get_or_404(application_id)
+    
+    approved_amount = request.form.get('approved_amount')
+    approval_conditions = request.form.get('approval_conditions', '').strip()
+    admin_notes = request.form.get('admin_notes', '').strip()
+    
+    if not approved_amount:
+        flash('Approved amount is required.', 'danger')
+        return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
+    
+    try:
+        application.status = 'Approved'
+        application.approved_amount = float(approved_amount)
+        application.approval_conditions = approval_conditions if approval_conditions else None
+        application.admin_notes = admin_notes if admin_notes else None
+        application.reviewed_at = datetime.utcnow()
+        application.reviewed_by = current_user.user_id
+        
+        db.session.commit()
+        flash(f'Seed funding application approved with KES {approved_amount:,.2f}', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error approving application: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
+
+
+@admin_bp.route('/seed-funding/<int:application_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_seed_funding(application_id):
+    """Reject a seed funding application"""
+    from models import SeedFundingApplication
+    
+    application = SeedFundingApplication.query.get_or_404(application_id)
+    
+    rejection_reason = request.form.get('rejection_reason', '').strip()
+    admin_notes = request.form.get('admin_notes', '').strip()
+    
+    if not rejection_reason:
+        flash('Rejection reason is required.', 'danger')
+        return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
+    
+    application.status = 'Rejected'
+    application.rejection_reason = rejection_reason
+    application.admin_notes = admin_notes if admin_notes else None
+    application.reviewed_at = datetime.utcnow()
+    application.reviewed_by = current_user.user_id
+    
+    db.session.commit()
+    flash('Seed funding application rejected.', 'success')
+    
+    return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
+
+
+@admin_bp.route('/seed-funding/<int:application_id>/mark-funded', methods=['POST'])
+@login_required
+@admin_required
+def mark_seed_funding_funded(application_id):
+    """Mark a seed funding application as funded (disbursed)"""
+    from models import SeedFundingApplication
+    
+    application = SeedFundingApplication.query.get_or_404(application_id)
+    
+    if application.status != 'Approved':
+        flash('Only approved applications can be marked as funded.', 'warning')
+        return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
+    
+    disbursement_date_raw = request.form.get('disbursement_date', '').strip()
+    disbursement_method = request.form.get('disbursement_method', '').strip()
+    disbursement_reference = request.form.get('disbursement_reference', '').strip()
+    
+    if not disbursement_date_raw or not disbursement_method:
+        flash('Disbursement date and method are required.', 'danger')
+        return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
+    
+    try:
+        disbursement_date = datetime.strptime(disbursement_date_raw, '%Y-%m-%d').date()
+        
+        application.status = 'Funded'
+        application.disbursement_date = disbursement_date
+        application.disbursement_method = disbursement_method
+        application.disbursement_reference = disbursement_reference if disbursement_reference else None
+        
+        db.session.commit()
+        flash('Application marked as funded.', 'success')
+        
+    except ValueError:
+        flash('Invalid date format. Please use YYYY-MM-DD.', 'danger')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error marking as funded: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
+
+
+@admin_bp.route('/seed-funding/<int:application_id>/update-review-status', methods=['POST'])
+@login_required
+@admin_required
+def update_seed_funding_review_status(application_id):
+    """Update seed funding application to Under Review"""
+    from models import SeedFundingApplication
+    
+    application = SeedFundingApplication.query.get_or_404(application_id)
+    
+    application.status = 'Under Review'
+    application.reviewed_at = datetime.utcnow()
+    application.reviewed_by = current_user.user_id
+    
+    admin_notes = request.form.get('admin_notes', '').strip()
+    if admin_notes:
+        application.admin_notes = admin_notes
+    
+    db.session.commit()
+    flash('Application moved to Under Review.', 'success')
+    
+    return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
+
+
+# ========================================
 # UMV MTAANI ROUTES
 # ========================================
 
@@ -1588,6 +1789,8 @@ def toggle_publish_podcast(podcast_id):
 @admin_required
 def workstreams():
     """Unified workstreams management dashboard"""
+    from models import SeedFundingApplication
+    
     workstreams_data = [
         {
             'id': 'podcasts',
@@ -1615,6 +1818,15 @@ def workstreams():
             'route': 'admin.campus_edition',
             'create_route': 'admin.create_campus_event',
             'count': Event.query.filter(Event.event_type == 'campus').count()
+        },
+        {
+            'id': 'seed_funding',
+            'name': 'Seed Funding',
+            'description': 'Review and approve seed funding applications',
+            'icon': '💰',
+            'route': 'admin.seed_funding_applications',
+            'create_route': None,  # Applications come from frontend
+            'count': SeedFundingApplication.query.count()
         },
         {
             'id': 'umv_mtaani',

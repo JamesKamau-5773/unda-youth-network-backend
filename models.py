@@ -680,6 +680,137 @@ class ChampionApplication(db.Model):
   user = db.relationship('User', foreign_keys=[user_id], backref='champion_applications')
 
 
+class SeedFundingApplication(db.Model):
+  """Model for tracking seed funding applications from members under Campus Edition"""
+  __tablename__ = 'seed_funding_applications'
+  
+  application_id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='CASCADE'))
+  
+  # Applicant Information (can be member or champion)
+  applicant_name = db.Column(db.String(255), nullable=False)
+  email = db.Column(db.String(100), nullable=False)
+  phone_number = db.Column(db.String(20), nullable=False)
+  institution_name = db.Column(db.String(255))  # University, College, etc.
+  student_id_number = db.Column(db.String(100))
+  
+  # Project Information
+  project_title = db.Column(db.String(255), nullable=False)
+  project_description = db.Column(db.Text, nullable=False)
+  project_category = db.Column(db.String(100))  # Mental Health Awareness, Community Service, etc.
+  target_beneficiaries = db.Column(db.String(255))  # Who will benefit
+  expected_impact = db.Column(db.Text)  # Expected outcomes
+  
+  # Budget Information
+  total_budget_requested = db.Column(db.Numeric(10, 2), nullable=False)  # Amount in KES
+  budget_breakdown = db.Column(db.JSON)  # Detailed budget items
+  other_funding_sources = db.Column(db.Text)  # Other funding if any
+  
+  # Timeline
+  project_start_date = db.Column(db.Date)
+  project_end_date = db.Column(db.Date)
+  implementation_timeline = db.Column(db.Text)  # Detailed timeline
+  
+  # Supporting Documents
+  proposal_document_url = db.Column(db.String(500))  # Link to full proposal
+  budget_document_url = db.Column(db.String(500))  # Link to detailed budget
+  
+  # Team Information
+  team_members = db.Column(db.JSON)  # Array of team member details
+  team_size = db.Column(db.Integer)
+  
+  # Application Status
+  status = db.Column(db.String(50), default='Pending')  # Pending, Under Review, Approved, Rejected, Funded
+  submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+  reviewed_at = db.Column(db.DateTime)
+  reviewed_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  
+  # Approval Details
+  approved_amount = db.Column(db.Numeric(10, 2))  # May be less than requested
+  approval_conditions = db.Column(db.Text)  # Any conditions for funding
+  rejection_reason = db.Column(db.Text)
+  admin_notes = db.Column(db.Text)  # Internal notes
+  
+  # Funding Disbursement
+  disbursement_date = db.Column(db.Date)
+  disbursement_method = db.Column(db.String(100))  # M-Pesa, Bank Transfer, etc.
+  disbursement_reference = db.Column(db.String(255))
+  
+  # Relationships
+  applicant = db.relationship('User', foreign_keys=[user_id], backref='seed_funding_applications')
+  reviewer = db.relationship('User', foreign_keys=[reviewed_by])
+  
+  def to_dict(self):
+    return {
+      # Snake case for Python
+      'application_id': self.application_id,
+      'user_id': self.user_id,
+      'applicant_name': self.applicant_name,
+      'email': self.email,
+      'phone_number': self.phone_number,
+      'institution_name': self.institution_name,
+      'student_id_number': self.student_id_number,
+      'project_title': self.project_title,
+      'project_description': self.project_description,
+      'project_category': self.project_category,
+      'target_beneficiaries': self.target_beneficiaries,
+      'expected_impact': self.expected_impact,
+      'total_budget_requested': float(self.total_budget_requested) if self.total_budget_requested else None,
+      'budget_breakdown': self.budget_breakdown or [],
+      'other_funding_sources': self.other_funding_sources,
+      'project_start_date': self.project_start_date.isoformat() if self.project_start_date else None,
+      'project_end_date': self.project_end_date.isoformat() if self.project_end_date else None,
+      'implementation_timeline': self.implementation_timeline,
+      'proposal_document_url': self.proposal_document_url,
+      'budget_document_url': self.budget_document_url,
+      'team_members': self.team_members or [],
+      'team_size': self.team_size,
+      'status': self.status,
+      'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None,
+      'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
+      'reviewed_by': self.reviewed_by,
+      'approved_amount': float(self.approved_amount) if self.approved_amount else None,
+      'approval_conditions': self.approval_conditions,
+      'rejection_reason': self.rejection_reason,
+      'admin_notes': self.admin_notes,
+      'disbursement_date': self.disbursement_date.isoformat() if self.disbursement_date else None,
+      'disbursement_method': self.disbursement_method,
+      'disbursement_reference': self.disbursement_reference,
+      # CamelCase for JavaScript/React
+      'id': self.application_id,
+      'userId': self.user_id,
+      'applicantName': self.applicant_name,
+      'phoneNumber': self.phone_number,
+      'institutionName': self.institution_name,
+      'studentIdNumber': self.student_id_number,
+      'projectTitle': self.project_title,
+      'projectDescription': self.project_description,
+      'projectCategory': self.project_category,
+      'targetBeneficiaries': self.target_beneficiaries,
+      'expectedImpact': self.expected_impact,
+      'totalBudgetRequested': float(self.total_budget_requested) if self.total_budget_requested else None,
+      'budgetBreakdown': self.budget_breakdown or [],
+      'otherFundingSources': self.other_funding_sources,
+      'projectStartDate': self.project_start_date.isoformat() if self.project_start_date else None,
+      'projectEndDate': self.project_end_date.isoformat() if self.project_end_date else None,
+      'implementationTimeline': self.implementation_timeline,
+      'proposalDocumentUrl': self.proposal_document_url,
+      'budgetDocumentUrl': self.budget_document_url,
+      'teamMembers': self.team_members or [],
+      'teamSize': self.team_size,
+      'submittedAt': self.submitted_at.isoformat() if self.submitted_at else None,
+      'reviewedAt': self.reviewed_at.isoformat() if self.reviewed_at else None,
+      'reviewedBy': self.reviewed_by,
+      'approvedAmount': float(self.approved_amount) if self.approved_amount else None,
+      'approvalConditions': self.approval_conditions,
+      'rejectionReason': self.rejection_reason,
+      'adminNotes': self.admin_notes,
+      'disbursementDate': self.disbursement_date.isoformat() if self.disbursement_date else None,
+      'disbursementMethod': self.disbursement_method,
+      'disbursementReference': self.disbursement_reference
+    }
+
+
 class Podcast(db.Model):
   __tablename__ = 'podcasts'
   
