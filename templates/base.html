@@ -452,6 +452,19 @@
                         </a>
                     </li>
                     <li class="sidebar-nav-item">
+                        <a href="{{ url_for('admin.workstreams') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.workstreams' %}active{% endif %}">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <g>
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                </g>
+                            </svg>
+                            Workstreams
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
                         <a href="{{ url_for('admin.settings') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.settings' %}active{% endif %}">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -523,19 +536,8 @@
                             </svg>
                             Submit Report
                         </a>
-                    </li>                    <li class="sidebar-nav-item">
-                        <a href="{{ url_for('admin.workstreams') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.workstreams' %}active{% endif %}">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <g>
-                                    <rect x="3" y="3" width="7" height="7"></rect>
-                                    <rect x="14" y="3" width="7" height="7"></rect>
-                                    <rect x="14" y="14" width="7" height="7"></rect>
-                                    <rect x="3" y="14" width="7" height="7"></rect>
-                                </g>
-                            </svg>
-                            Workstreams
-                        </a>
-                    </li>                    <li class="sidebar-nav-item">
+                    </li>
+                    <li class="sidebar-nav-item">
                         <a href="{{ url_for('admin.change_password') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
