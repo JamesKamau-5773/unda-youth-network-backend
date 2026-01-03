@@ -1292,7 +1292,8 @@ def workstreams():
             'name': 'Daily Affirmations',
             'description': 'Schedule and manage daily affirmations',
             'icon': '✨',
-            'route': None,
+            'route': 'admin.affirmations',
+            'create_route': 'admin.affirmation_form',
             'count': db.session.query(func.count(DailyAffirmation.affirmation_id)).scalar() or 0
         },
         {
@@ -1300,17 +1301,300 @@ def workstreams():
             'name': 'Symbolic Items',
             'description': 'Manage badges, kits, and certificates',
             'icon': '🏅',
-            'route': None,
+            'route': 'admin.symbolic_items',
+            'create_route': 'admin.symbolic_item_form',
             'count': db.session.query(func.count(SymbolicItem.item_id)).scalar() or 0
         },
         {
             'id': 'assessments',
             'name': 'Assessments',
-            'description': 'Manage mental health screening assessments',
+            'description': 'View and manage mental health screening assessments',
             'icon': '📋',
-            'route': None,
+            'route': 'admin.assessments',
+            'create_route': None,
             'count': db.session.query(func.count(MentalHealthAssessment.assessment_id)).scalar() or 0
         }
     ]
     
     return render_template('admin/workstreams.html', workstreams=workstreams_data)
+
+
+# ========================================
+# AFFIRMATIONS MANAGEMENT
+# ========================================
+
+@admin_bp.route('/affirmations')
+@login_required
+@admin_required
+def affirmations():
+    """List all daily affirmations"""
+    theme_filter = request.args.get('theme', '')
+    active_only = request.args.get('active', 'true').lower() == 'true'
+    
+    query = DailyAffirmation.query
+    
+    if theme_filter:
+        query = query.filter_by(theme=theme_filter)
+    if active_only:
+        query = query.filter_by(active=True)
+    
+    affirmations = query.order_by(DailyAffirmation.scheduled_date.desc()).all()
+    themes = db.session.query(DailyAffirmation.theme).distinct().filter(DailyAffirmation.theme.isnot(None)).all()
+    
+    return render_template('admin/affirmations_list.html',
+                         affirmations=affirmations,
+                         themes=[t[0] for t in themes],
+                         theme_filter=theme_filter,
+                         active_only=active_only)
+
+
+@admin_bp.route('/affirmations/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def affirmation_form():
+    """Create a new affirmation"""
+    if request.method == 'POST':
+        content = request.form.get('content', '').strip()
+        theme = request.form.get('theme', 'General').strip()
+        scheduled_date = request.form.get('scheduled_date', '').strip()
+        
+        if not content:
+            flash('Content is required', 'danger')
+            return render_template('admin/affirmation_form.html')
+        
+        try:
+            affirmation = DailyAffirmation(
+                content=content,
+                theme=theme,
+                scheduled_date=datetime.strptime(scheduled_date, '%Y-%m-%d').date() if scheduled_date else None,
+                active=True,
+                created_by=current_user.user_id
+            )
+            
+            db.session.add(affirmation)
+            db.session.commit()
+            
+            flash(f'Affirmation created successfully!', 'success')
+            return redirect(url_for('admin.affirmations'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating affirmation: {str(e)}', 'danger')
+            return render_template('admin/affirmation_form.html')
+    
+    return render_template('admin/affirmation_form.html')
+
+
+@admin_bp.route('/affirmations/<int:affirmation_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def affirmation_edit(affirmation_id):
+    """Edit an affirmation"""
+    affirmation = DailyAffirmation.query.get_or_404(affirmation_id)
+    
+    if request.method == 'POST':
+        affirmation.content = request.form.get('content', '').strip()
+        affirmation.theme = request.form.get('theme', 'General').strip()
+        scheduled_date = request.form.get('scheduled_date', '').strip()
+        affirmation.active = request.form.get('active') == 'on'
+        affirmation.updated_at = datetime.utcnow()
+        
+        if scheduled_date:
+            try:
+                affirmation.scheduled_date = datetime.strptime(scheduled_date, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Invalid date format', 'danger')
+                return render_template('admin/affirmation_form.html', affirmation=affirmation, action='Edit')
+        
+        try:
+            db.session.commit()
+            flash('Affirmation updated successfully!', 'success')
+            return redirect(url_for('admin.affirmations'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating affirmation: {str(e)}', 'danger')
+    
+    return render_template('admin/affirmation_form.html', affirmation=affirmation, action='Edit')
+
+
+@admin_bp.route('/affirmations/<int:affirmation_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def affirmation_delete(affirmation_id):
+    """Delete (deactivate) an affirmation"""
+    try:
+        affirmation = DailyAffirmation.query.get_or_404(affirmation_id)
+        affirmation.active = False
+        db.session.commit()
+        
+        flash('Affirmation deactivated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting affirmation: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.affirmations'))
+
+
+# ========================================
+# SYMBOLIC ITEMS MANAGEMENT
+# ========================================
+
+@admin_bp.route('/symbolic-items')
+@login_required
+@admin_required
+def symbolic_items():
+    """List all symbolic items"""
+    item_type_filter = request.args.get('type', '')
+    active_only = request.args.get('active', 'true').lower() == 'true'
+    
+    query = SymbolicItem.query
+    
+    if item_type_filter:
+        query = query.filter_by(item_type=item_type_filter)
+    if active_only:
+        query = query.filter_by(is_active=True)
+    
+    items = query.order_by(SymbolicItem.item_id.desc()).all()
+    item_types = db.session.query(SymbolicItem.item_type).distinct().filter(SymbolicItem.item_type.isnot(None)).all()
+    
+    return render_template('admin/symbolic_items_list.html',
+                         items=items,
+                         item_types=[t[0] for t in item_types],
+                         item_type_filter=item_type_filter,
+                         active_only=active_only)
+
+
+@admin_bp.route('/symbolic-items/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def symbolic_item_form():
+    """Create a new symbolic item"""
+    if request.method == 'POST':
+        item_name = request.form.get('item_name', '').strip()
+        item_type = request.form.get('item_type', '').strip()
+        total_quantity = request.form.get('total_quantity', '0').strip()
+        
+        if not item_name or not item_type:
+            flash('Item name and type are required', 'danger')
+            return render_template('admin/symbolic_item_form.html')
+        
+        try:
+            total_qty = int(total_quantity) if total_quantity else 0
+            
+            item = SymbolicItem(
+                item_name=item_name,
+                item_type=item_type,
+                description=request.form.get('description', '').strip() or None,
+                linked_to_training_module=request.form.get('linked_to_training_module', '').strip() or None,
+                total_quantity=total_qty,
+                is_active=True
+            )
+            
+            db.session.add(item)
+            db.session.commit()
+            
+            flash(f'Symbolic item "{item_name}" created successfully!', 'success')
+            return redirect(url_for('admin.symbolic_items'))
+            
+        except ValueError:
+            flash('Quantity must be a number', 'danger')
+            return render_template('admin/symbolic_item_form.html')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating item: {str(e)}', 'danger')
+            return render_template('admin/symbolic_item_form.html')
+    
+    return render_template('admin/symbolic_item_form.html')
+
+
+@admin_bp.route('/symbolic-items/<int:item_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def symbolic_item_edit(item_id):
+    """Edit a symbolic item"""
+    item = SymbolicItem.query.get_or_404(item_id)
+    
+    if request.method == 'POST':
+        item.item_name = request.form.get('item_name', '').strip()
+        item.item_type = request.form.get('item_type', '').strip()
+        item.description = request.form.get('description', '').strip() or None
+        item.linked_to_training_module = request.form.get('linked_to_training_module', '').strip() or None
+        item.is_active = request.form.get('is_active') == 'on'
+        
+        try:
+            total_qty = int(request.form.get('total_quantity', '0').strip())
+            item.total_quantity = total_qty
+            
+            db.session.commit()
+            flash('Symbolic item updated successfully!', 'success')
+            return redirect(url_for('admin.symbolic_items'))
+        except ValueError:
+            flash('Quantity must be a number', 'danger')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating item: {str(e)}', 'danger')
+    
+    return render_template('admin/symbolic_item_form.html', item=item, action='Edit')
+
+
+@admin_bp.route('/symbolic-items/<int:item_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def symbolic_item_delete(item_id):
+    """Delete (deactivate) a symbolic item"""
+    try:
+        item = SymbolicItem.query.get_or_404(item_id)
+        item.is_active = False
+        db.session.commit()
+        
+        flash('Symbolic item deactivated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting item: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.symbolic_items'))
+
+
+# ========================================
+# ASSESSMENTS MANAGEMENT (View Only)
+# ========================================
+
+@admin_bp.route('/assessments')
+@login_required
+@admin_required
+def assessments():
+    """List all mental health assessments"""
+    assessment_type = request.args.get('type', '')
+    champion_id = request.args.get('champion_id', '', type=int)
+    severity = request.args.get('severity', '')
+    
+    query = MentalHealthAssessment.query
+    
+    if assessment_type:
+        query = query.filter_by(assessment_type=assessment_type)
+    if champion_id:
+        query = query.filter_by(champion_id=champion_id)
+    if severity:
+        query = query.filter_by(severity_level=severity)
+    
+    assessments = query.order_by(MentalHealthAssessment.assessment_date.desc()).all()
+    assessment_types = db.session.query(MentalHealthAssessment.assessment_type).distinct().all()
+    severity_levels = db.session.query(MentalHealthAssessment.severity_level).distinct().all()
+    
+    return render_template('admin/assessments_list.html',
+                         assessments=assessments,
+                         assessment_types=[t[0] for t in assessment_types if t[0]],
+                         severity_levels=[s[0] for s in severity_levels if s[0]],
+                         assessment_type=assessment_type,
+                         champion_id=champion_id,
+                         severity=severity)
+
+
+@admin_bp.route('/assessments/<int:assessment_id>')
+@login_required
+@admin_required
+def assessment_detail(assessment_id):
+    """View assessment details"""
+    assessment = MentalHealthAssessment.query.get_or_404(assessment_id)
+    
+    return render_template('admin/assessment_detail.html', assessment=assessment)

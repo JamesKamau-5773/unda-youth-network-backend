@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Mental Health Assessments - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="hero-card">
+    <div class="hero-card__inner">
+        <div>
+            <h1 class="hero-card__title">Mental Health Assessments</h1>
+            <p class="hero-card__subtitle">View and monitor mental health screening results (PHQ-9, GAD-7, PHQ-2, GAD-2)</p>
+        </div>
+        <div class="hero-card__actions">
+            <a href="{{ url_for('admin.workstreams') }}" class="btn btn--secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <form method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155;">Assessment Type</label>
+            <select name="type" class="form-input">
+                <option value="">All Types</option>
+                {% for type in assessment_types %}
+                <option value="{{ type }}" {% if assessment_type == type %}selected{% endif %}>{{ type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155;">Severity Level</label>
+            <select name="severity" class="form-input">
+                <option value="">All Levels</option>
+                {% for level in severity_levels %}
+                <option value="{{ level }}" {% if severity == level %}selected{% endif %}>{{ level }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn--primary">Filter</button>
+        <a href="{{ url_for('admin.assessments') }}" class="btn btn--secondary">Reset</a>
+    </form>
+</div>
+
+<!-- Assessment Summary -->
+<div class="grid" style="gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
+    {% set total_assessments = assessments | length %}
+    {% set risk_flagged = assessments | selectattr('risk_flagged', 'equalto', True) | list | length %}
+    {% set referrals_made = assessments | selectattr('referral_made', 'equalto', True) | list | length %}
+    
+    <div style="padding: 1rem; background: #f0f9ff; border-left: 4px solid #2563eb; border-radius: 6px;">
+        <div style="font-size: 0.875rem; color: #1e40af; text-transform: uppercase; font-weight: 600;">Total Assessments</div>
+        <div style="font-size: 2rem; color: #2563eb; font-weight: 700; margin-top: 0.5rem;">{{ total_assessments }}</div>
+    </div>
+
+    <div style="padding: 1rem; background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px;">
+        <div style="font-size: 0.875rem; color: #991b1b; text-transform: uppercase; font-weight: 600;">Risk Flagged</div>
+        <div style="font-size: 2rem; color: #ef4444; font-weight: 700; margin-top: 0.5rem;">{{ risk_flagged }}</div>
+    </div>
+
+    <div style="padding: 1rem; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 6px;">
+        <div style="font-size: 0.875rem; color: #065f46; text-transform: uppercase; font-weight: 600;">Referrals Made</div>
+        <div style="font-size: 2rem; color: #10b981; font-weight: 700; margin-top: 0.5rem;">{{ referrals_made }}</div>
+    </div>
+</div>
+
+<!-- Assessments List -->
+{% if assessments %}
+<div style="overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Champion</th>
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Type</th>
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Score</th>
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Severity</th>
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Date</th>
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Status</th>
+                <th style="padding: 1rem; text-align: center; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for assessment in assessments %}
+            <tr style="border-bottom: 1px solid #e5e7eb; hover {% if loop.index % 2 == 0 %}background: #f9fafb{% endif %}">
+                <td style="padding: 1rem; color: #111827;">
+                    <strong>{{ assessment.champion.full_name if assessment.champion else 'N/A' }}</strong>
+                    <br><small style="color: #6b7280;">{{ assessment.champion.assigned_champion_code if assessment.champion else '' }}</small>
+                </td>
+                <td style="padding: 1rem; color: #111827; font-weight: 500;">{{ assessment.assessment_type }}</td>
+                <td style="padding: 1rem; color: #111827; font-weight: 600;">{{ assessment.total_score }}</td>
+                <td style="padding: 1rem;">
+                    {% set severity_color = 'success' if assessment.severity_level == 'None' else 'warning' if assessment.severity_level in ['Mild', 'Moderate'] else 'danger' %}
+                    <span class="pill pill--{{ severity_color }}" style="font-size: 0.875rem;">
+                        {{ assessment.severity_level or 'Not Set' }}
+                    </span>
+                </td>
+                <td style="padding: 1rem; color: #6b7280; font-size: 0.875rem;">
+                    {{ assessment.assessment_date.strftime('%b %d, %Y') if assessment.assessment_date else 'N/A' }}
+                </td>
+                <td style="padding: 1rem;">
+                    {% if assessment.risk_flagged %}
+                    <span style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.75rem; background: #fef2f2; color: #991b1b; border-radius: 20px; font-size: 0.875rem; font-weight: 500;">
+                        <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
+                        Risk Flagged
+                    </span>
+                    {% endif %}
+                    {% if assessment.referral_recommended and not assessment.referral_made %}
+                    <span style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.75rem; background: #fef3c7; color: #92400e; border-radius: 20px; font-size: 0.875rem; font-weight: 500; margin-top: 0.25rem;">
+                        <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span>
+                        Referral Pending
+                    </span>
+                    {% endif %}
+                    {% if assessment.referral_made %}
+                    <span style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.75rem; background: #f0fdf4; color: #065f46; border-radius: 20px; font-size: 0.875rem; font-weight: 500; margin-top: 0.25rem;">
+                        <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
+                        Referred
+                    </span>
+                    {% endif %}
+                </td>
+                <td style="padding: 1rem; text-align: center;">
+                    <a href="{{ url_for('admin.assessment_detail', assessment_id=assessment.assessment_id) }}" 
+                       class="btn btn--primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="tile" style="text-align: center; padding: 3rem;">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1" style="margin: 0 auto 1rem;">
+        <path d="M9 11l3 3L22 4"></path>
+        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+    </svg>
+    <h3 style="color: #6b7280; margin-bottom: 0.5rem;">No Assessments</h3>
+    <p style="color: #9ca3af; margin: 0;">No assessments found matching your filters.</p>
+</div>
+{% endif %}
+
+{% endblock %}

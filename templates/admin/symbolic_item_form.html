@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}{% if action == 'Edit' %}Edit{% else %}Create{% endif %} Symbolic Item - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="hero-card">
+    <div class="hero-card__inner">
+        <div>
+            <h1 class="hero-card__title">{% if action == 'Edit' %}Edit{% else %}Create{% endif %} Symbolic Item</h1>
+            <p class="hero-card__subtitle">{% if action == 'Edit' %}Update item details{% else %}Create a new symbolic item (badge, kit, or certificate){% endif %}</p>
+        </div>
+        <div class="hero-card__actions">
+            <a href="{{ url_for('admin.symbolic_items') }}" class="btn btn--secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Items
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="tile" style="max-width: 800px;">
+    <form method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="form-group">
+            <label for="item_name" class="form-label">Item Name *</label>
+            <input type="text" id="item_name" name="item_name" class="form-input" required placeholder="e.g., Leadership Badge, Champion Kit"
+                   value="{% if item %}{{ item.item_name }}{% endif %}">
+        </div>
+
+        <div class="grid grid--2-col">
+            <div class="form-group">
+                <label for="item_type" class="form-label">Item Type *</label>
+                <input type="text" id="item_type" name="item_type" class="form-input" required placeholder="e.g., Badge, Kit, Certificate"
+                       list="types_list" value="{% if item %}{{ item.item_type }}{% endif %}">
+                <datalist id="types_list">
+                    <option value="Badge">
+                    <option value="Kit">
+                    <option value="Certificate">
+                    <option value="Award">
+                    <option value="Training Material">
+                </datalist>
+            </div>
+
+            <div class="form-group">
+                <label for="total_quantity" class="form-label">Total Quantity *</label>
+                <input type="number" id="total_quantity" name="total_quantity" class="form-input" required min="0" 
+                       value="{% if item %}{{ item.total_quantity }}{% else %}0{% endif %}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="description" class="form-label">Description</label>
+            <textarea id="description" name="description" class="form-input" rows="4" placeholder="Describe this item...">{% if item %}{{ item.description }}{% endif %}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="linked_to_training_module" class="form-label">Linked to Training Module</label>
+            <input type="text" name="linked_to_training_module" class="form-input" placeholder="e.g., MHR-T Level 1, Safeguarding"
+                   value="{% if item %}{{ item.linked_to_training_module }}{% endif %}">
+            <small style="color: #6b7280; display: block; margin-top: 0.5rem;">Optional: Link to a specific training module</small>
+        </div>
+
+        {% if action == 'Edit' %}
+        <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: #334155; cursor: pointer;">
+                <input type="checkbox" name="is_active" value="on" {% if item and item.is_active %}checked{% endif %} style="width: 18px; height: 18px;">
+                <span>Active</span>
+            </label>
+        </div>
+
+        <div style="padding: 1rem; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 6px;">
+            <div style="font-size: 0.875rem; color: #065f46;">
+                <strong>Available Quantity:</strong> {{ (item.total_quantity - (item.distributed_quantity or 0)) if item else 0 }}<br>
+                <strong>Distributed:</strong> {{ item.distributed_quantity if item else 0 }}
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="display: flex; gap: 0.75rem;">
+            <button type="submit" class="btn btn--success">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                {% if action == 'Edit' %}Update{% else %}Create{% endif %} Item
+            </button>
+            <a href="{{ url_for('admin.symbolic_items') }}" class="btn btn--secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<!-- Help Section -->
+<div style="margin-top: 2rem; padding: 1.5rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+    <h3 style="margin: 0 0 0.5rem 0; color: #92400e;">💡 Inventory Management Tips</h3>
+    <ul style="margin: 0; color: #a16207; font-size: 0.875rem; padding-left: 1.25rem;">
+        <li>Set total quantity based on your current stock</li>
+        <li>Link items to training modules for better tracking</li>
+        <li>System alerts when stock falls below 5 items</li>
+        <li>Distribution records track where items go</li>
+        <li>Use consistent naming for easy searching</li>
+    </ul>
+</div>
+
+{% endblock %}
