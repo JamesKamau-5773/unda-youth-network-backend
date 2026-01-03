@@ -51,20 +51,7 @@ def list_events():
     return jsonify({
         'success': True,
         'total': len(events),
-        'events': [{
-            'event_id': e.event_id,
-            'title': e.title,
-            'description': e.description,
-            'event_date': e.event_date.isoformat() if e.event_date else None,
-            'location': e.location,
-            'event_type': e.event_type,
-            'organizer': e.organizer,
-            'max_participants': e.max_participants,
-            'registration_deadline': e.registration_deadline.isoformat() if e.registration_deadline else None,
-            'status': e.status,
-            'image_url': e.image_url,
-            'created_at': e.created_at.isoformat() if e.created_at else None
-        } for e in events]
+        'events': [e.to_dict() for e in events]
     }), 200
 
 
@@ -75,21 +62,7 @@ def get_event(event_id):
     
     return jsonify({
         'success': True,
-        'event': {
-            'event_id': event.event_id,
-            'title': event.title,
-            'description': event.description,
-            'event_date': event.event_date.isoformat() if event.event_date else None,
-            'location': event.location,
-            'event_type': event.event_type,
-            'organizer': event.organizer,
-            'max_participants': event.max_participants,
-            'registration_deadline': event.registration_deadline.isoformat() if event.registration_deadline else None,
-            'status': event.status,
-            'image_url': event.image_url,
-            'created_at': event.created_at.isoformat() if event.created_at else None,
-            'updated_at': event.updated_at.isoformat() if event.updated_at else None
-        }
+        'event': event.to_dict()
     }), 200
 
 

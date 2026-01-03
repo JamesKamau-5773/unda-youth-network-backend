@@ -325,6 +325,35 @@ class Event(db.Model):
   updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
   created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
 
+  def to_dict(self):
+    return {
+      # Snake case for Python/backend compatibility
+      'event_id': self.event_id,
+      'title': self.title,
+      'description': self.description,
+      'event_date': self.event_date.isoformat() if self.event_date else None,
+      'location': self.location,
+      'event_type': self.event_type,
+      'organizer': self.organizer,
+      'max_participants': self.max_participants,
+      'registration_deadline': self.registration_deadline.isoformat() if self.registration_deadline else None,
+      'status': self.status,
+      'image_url': self.image_url,
+      'created_at': self.created_at.isoformat() if self.created_at else None,
+      'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+      'created_by': self.created_by,
+      # CamelCase aliases for JavaScript/React frontend compatibility
+      'id': self.event_id,
+      'eventDate': self.event_date.isoformat() if self.event_date else None,
+      'eventType': self.event_type,
+      'maxParticipants': self.max_participants,
+      'registrationDeadline': self.registration_deadline.isoformat() if self.registration_deadline else None,
+      'imageUrl': self.image_url,
+      'createdAt': self.created_at.isoformat() if self.created_at else None,
+      'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
+      'createdBy': self.created_by
+    }
+
 
 class BlogPost(db.Model):
   """Blog posts and articles for the UNDA Youth Network."""
@@ -347,6 +376,32 @@ class BlogPost(db.Model):
   
   # Relationships
   author = db.relationship('User', backref='blog_posts', foreign_keys=[author_id])
+
+  def to_dict(self):
+    return {
+      # Snake case for Python/backend compatibility
+      'post_id': self.post_id,
+      'title': self.title,
+      'slug': self.slug,
+      'content': self.content,
+      'excerpt': self.excerpt,
+      'author_id': self.author_id,
+      'category': self.category,
+      'tags': self.tags or [],
+      'featured_image': self.featured_image,
+      'published': self.published,
+      'published_at': self.published_at.isoformat() if self.published_at else None,
+      'created_at': self.created_at.isoformat() if self.created_at else None,
+      'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+      'views': self.views,
+      # CamelCase aliases for JavaScript/React frontend compatibility
+      'id': self.post_id,
+      'authorId': self.author_id,
+      'featuredImage': self.featured_image,
+      'publishedAt': self.published_at.isoformat() if self.published_at else None,
+      'createdAt': self.created_at.isoformat() if self.created_at else None,
+      'updatedAt': self.updated_at.isoformat() if self.updated_at else None
+    }
 
 
 class MentalHealthAssessment(db.Model):
@@ -402,6 +457,27 @@ class DailyAffirmation(db.Model):
   created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
   created_at = db.Column(db.DateTime, default=datetime.utcnow)
   updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+  def to_dict(self):
+    return {
+      # Snake case for Python/backend compatibility
+      'affirmation_id': self.affirmation_id,
+      'content': self.content,
+      'theme': self.theme,
+      'scheduled_date': self.scheduled_date.isoformat() if self.scheduled_date else None,
+      'active': self.active,
+      'times_sent': self.times_sent,
+      'created_by': self.created_by,
+      'created_at': self.created_at.isoformat() if self.created_at else None,
+      'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+      # CamelCase aliases for JavaScript/React frontend compatibility
+      'id': self.affirmation_id,
+      'scheduledDate': self.scheduled_date.isoformat() if self.scheduled_date else None,
+      'timesSent': self.times_sent,
+      'createdBy': self.created_by,
+      'createdAt': self.created_at.isoformat() if self.created_at else None,
+      'updatedAt': self.updated_at.isoformat() if self.updated_at else None
+    }
 
 
 class AffirmationDelivery(db.Model):
@@ -473,6 +549,33 @@ class SymbolicItem(db.Model):
   # Metadata
   created_at = db.Column(db.DateTime, default=datetime.utcnow)
   updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+  def to_dict(self):
+    return {
+      # Snake case for Python/backend compatibility
+      'item_id': self.item_id,
+      'item_name': self.item_name,
+      'item_type': self.item_type,
+      'description': self.description,
+      'linked_to_training_module': self.linked_to_training_module,
+      'linked_to_event_type': self.linked_to_event_type,
+      'total_quantity': self.total_quantity,
+      'distributed_quantity': self.distributed_quantity,
+      'available_quantity': self.total_quantity - self.distributed_quantity,
+      'created_at': self.created_at.isoformat() if self.created_at else None,
+      'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+      # CamelCase aliases for JavaScript/React frontend compatibility
+      'id': self.item_id,
+      'itemName': self.item_name,
+      'itemType': self.item_type,
+      'linkedToTrainingModule': self.linked_to_training_module,
+      'linkedToEventType': self.linked_to_event_type,
+      'totalQuantity': self.total_quantity,
+      'distributedQuantity': self.distributed_quantity,
+      'availableQuantity': self.total_quantity - self.distributed_quantity,
+      'createdAt': self.created_at.isoformat() if self.created_at else None,
+      'updatedAt': self.updated_at.isoformat() if self.updated_at else None
+    }
 
 
 class ItemDistribution(db.Model):
@@ -602,6 +705,7 @@ class Podcast(db.Model):
   
   def to_dict(self):
     return {
+      # Snake case for Python/backend compatibility
       'podcast_id': self.podcast_id,
       'title': self.title,
       'description': self.description,
@@ -617,7 +721,17 @@ class Podcast(db.Model):
       'published_at': self.published_at.isoformat() if self.published_at else None,
       'created_at': self.created_at.isoformat() if self.created_at else None,
       'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-      'created_by': self.created_by
+      'created_by': self.created_by,
+      # CamelCase aliases for JavaScript/React frontend compatibility
+      'id': self.podcast_id,
+      'audioUrl': self.audio_url,
+      'thumbnailUrl': self.thumbnail_url,
+      'episodeNumber': self.episode_number,
+      'seasonNumber': self.season_number,
+      'publishedAt': self.published_at.isoformat() if self.published_at else None,
+      'createdAt': self.created_at.isoformat() if self.created_at else None,
+      'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
+      'createdBy': self.created_by
     }
 
 

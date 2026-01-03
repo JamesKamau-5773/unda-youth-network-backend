@@ -43,17 +43,7 @@ def list_posts():
         'success': True,
         'total': len(posts),
         'posts': [{
-            'post_id': p.post_id,
-            'title': p.title,
-            'slug': p.slug,
-            'excerpt': p.excerpt,
-            'category': p.category,
-            'tags': p.tags,
-            'featured_image': p.featured_image,
-            'published': p.published,
-            'published_at': p.published_at.isoformat() if p.published_at else None,
-            'created_at': p.created_at.isoformat() if p.created_at else None,
-            'views': p.views,
+            **p.to_dict(),
             'author': {
                 'user_id': p.author.user_id,
                 'username': p.author.username
