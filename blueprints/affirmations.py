@@ -30,15 +30,7 @@ def list_affirmations():
     return jsonify({
         'success': True,
         'total': len(affirmations),
-        'affirmations': [{
-            'affirmation_id': a.affirmation_id,
-            'content': a.content,
-            'theme': a.theme,
-            'scheduled_date': a.scheduled_date.isoformat() if a.scheduled_date else None,
-            'is_active': a.is_active,
-            'times_sent': a.times_sent,
-            'created_at': a.created_at.isoformat() if a.created_at else None
-        } for a in affirmations]
+        'affirmations': [a.to_dict() for a in affirmations]
     }), 200
 
 

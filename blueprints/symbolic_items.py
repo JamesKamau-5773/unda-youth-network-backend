@@ -30,17 +30,7 @@ def list_items():
     return jsonify({
         'success': True,
         'total': len(items),
-        'items': [{
-            'item_id': i.item_id,
-            'item_name': i.item_name,
-            'item_type': i.item_type,
-            'description': i.description,
-            'linked_to_training_module': i.linked_to_training_module,
-            'total_quantity': i.total_quantity,
-            'distributed_quantity': i.distributed_quantity,
-            'available_quantity': i.total_quantity - i.distributed_quantity,
-            'is_active': i.is_active
-        } for i in items]
+        'items': [i.to_dict() for i in items]
     }), 200
 
 
