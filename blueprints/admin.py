@@ -1056,6 +1056,326 @@ def delete_debate_event(event_id):
 
 
 # ========================================
+# CAMPUS EDITION ROUTES
+# ========================================
+
+@admin_bp.route('/campus-edition')
+@login_required
+@admin_required
+def campus_edition():
+    """View and manage Campus Edition events"""
+    status_filter = request.args.get('status', 'all')
+
+    query = Event.query.filter(Event.event_type == 'campus')
+    if status_filter != 'all' and status_filter:
+        query = query.filter_by(status=status_filter)
+
+    events = query.order_by(Event.event_date.desc()).all()
+
+    total = Event.query.filter(Event.event_type == 'campus').count()
+    upcoming = Event.query.filter(Event.event_type == 'campus', Event.status == 'Upcoming').count()
+    completed = Event.query.filter(Event.event_type == 'campus', Event.status == 'Completed').count()
+
+    return render_template(
+        'admin/campus_edition.html',
+        events=events,
+        status_filter=status_filter,
+        stats={'total': total, 'upcoming': upcoming, 'completed': completed},
+        now=datetime.utcnow()
+    )
+
+
+@admin_bp.route('/campus-edition/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_campus_event():
+    """Create a new Campus Edition event"""
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        event_date_raw = request.form.get('event_date', '').strip()
+        if not title or not event_date_raw:
+            flash('Title and event date are required.', 'danger')
+            return render_template('admin/campus_event_form.html', action='Create', event=None)
+
+        try:
+            event_date = datetime.strptime(event_date_raw, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            flash('Invalid date format. Please use the provided date picker.', 'danger')
+            return render_template('admin/campus_event_form.html', action='Create', event=None)
+
+        registration_deadline = None
+        registration_deadline_raw = request.form.get('registration_deadline', '').strip()
+        if registration_deadline_raw:
+            try:
+                registration_deadline = datetime.strptime(registration_deadline_raw, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                registration_deadline = None
+
+        try:
+            max_participants_raw = request.form.get('max_participants')
+            max_participants = int(max_participants_raw) if max_participants_raw else None
+        except ValueError:
+            flash('Max participants must be a number.', 'danger')
+            return render_template('admin/campus_event_form.html', action='Create', event=None)
+
+        event = Event(
+            title=title,
+            description=request.form.get('description'),
+            event_date=event_date,
+            location=request.form.get('location'),
+            event_type='campus',
+            organizer=request.form.get('organizer'),
+            max_participants=max_participants,
+            registration_deadline=registration_deadline,
+            status=request.form.get('status', 'Upcoming'),
+            image_url=request.form.get('image_url'),
+            created_by=current_user.user_id
+        )
+
+        db.session.add(event)
+        db.session.commit()
+
+        flash('Campus Edition event created.', 'success')
+        return redirect(url_for('admin.campus_edition'))
+
+    return render_template('admin/campus_event_form.html', action='Create', event=None)
+
+
+@admin_bp.route('/campus-edition/<int:event_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_campus_event(event_id):
+    """Edit an existing Campus Edition event"""
+    event = Event.query.get_or_404(event_id)
+    if event.event_type != 'campus':
+        flash('This event is not part of Campus Edition.', 'warning')
+        return redirect(url_for('admin.campus_edition'))
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        event_date_raw = request.form.get('event_date', '').strip()
+        if not title or not event_date_raw:
+            flash('Title and event date are required.', 'danger')
+            return render_template('admin/campus_event_form.html', action='Edit', event=event)
+
+        try:
+            event_date = datetime.strptime(event_date_raw, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            flash('Invalid date format. Please use the provided date picker.', 'danger')
+            return render_template('admin/campus_event_form.html', action='Edit', event=event)
+
+        registration_deadline = None
+        registration_deadline_raw = request.form.get('registration_deadline', '').strip()
+        if registration_deadline_raw:
+            try:
+                registration_deadline = datetime.strptime(registration_deadline_raw, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                registration_deadline = None
+
+        try:
+            max_participants_raw = request.form.get('max_participants')
+            max_participants = int(max_participants_raw) if max_participants_raw else None
+        except ValueError:
+            flash('Max participants must be a number.', 'danger')
+            return render_template('admin/campus_event_form.html', action='Edit', event=event)
+
+        event.title = title
+        event.description = request.form.get('description')
+        event.event_date = event_date
+        event.location = request.form.get('location')
+        event.organizer = request.form.get('organizer')
+        event.max_participants = max_participants
+        event.registration_deadline = registration_deadline
+        event.status = request.form.get('status', 'Upcoming')
+        event.image_url = request.form.get('image_url')
+        event.updated_at = datetime.utcnow()
+
+        db.session.commit()
+
+        flash('Campus Edition event updated.', 'success')
+        return redirect(url_for('admin.campus_edition'))
+
+    return render_template('admin/campus_event_form.html', action='Edit', event=event)
+
+
+@admin_bp.route('/campus-edition/<int:event_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_campus_event(event_id):
+    """Delete a Campus Edition event"""
+    event = Event.query.get_or_404(event_id)
+    if event.event_type != 'campus':
+        flash('This event is not part of Campus Edition.', 'warning')
+        return redirect(url_for('admin.campus_edition'))
+
+    db.session.delete(event)
+    db.session.commit()
+
+    flash('Campus Edition event deleted.', 'success')
+    return redirect(url_for('admin.campus_edition'))
+
+
+# ========================================
+# UMV MTAANI ROUTES
+# ========================================
+
+@admin_bp.route('/umv-mtaani')
+@login_required
+@admin_required
+def umv_mtaani():
+    """View and manage UMV Mtaani events"""
+    status_filter = request.args.get('status', 'all')
+
+    query = Event.query.filter(Event.event_type == 'mtaani')
+    if status_filter != 'all' and status_filter:
+        query = query.filter_by(status=status_filter)
+
+    events = query.order_by(Event.event_date.desc()).all()
+
+    total = Event.query.filter(Event.event_type == 'mtaani').count()
+    upcoming = Event.query.filter(Event.event_type == 'mtaani', Event.status == 'Upcoming').count()
+    completed = Event.query.filter(Event.event_type == 'mtaani', Event.status == 'Completed').count()
+
+    return render_template(
+        'admin/umv_mtaani.html',
+        events=events,
+        status_filter=status_filter,
+        stats={'total': total, 'upcoming': upcoming, 'completed': completed},
+        now=datetime.utcnow()
+    )
+
+
+@admin_bp.route('/umv-mtaani/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_mtaani_event():
+    """Create a new UMV Mtaani event"""
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        event_date_raw = request.form.get('event_date', '').strip()
+        if not title or not event_date_raw:
+            flash('Title and event date are required.', 'danger')
+            return render_template('admin/mtaani_event_form.html', action='Create', event=None)
+
+        try:
+            event_date = datetime.strptime(event_date_raw, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            flash('Invalid date format. Please use the provided date picker.', 'danger')
+            return render_template('admin/mtaani_event_form.html', action='Create', event=None)
+
+        registration_deadline = None
+        registration_deadline_raw = request.form.get('registration_deadline', '').strip()
+        if registration_deadline_raw:
+            try:
+                registration_deadline = datetime.strptime(registration_deadline_raw, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                registration_deadline = None
+
+        try:
+            max_participants_raw = request.form.get('max_participants')
+            max_participants = int(max_participants_raw) if max_participants_raw else None
+        except ValueError:
+            flash('Max participants must be a number.', 'danger')
+            return render_template('admin/mtaani_event_form.html', action='Create', event=None)
+
+        event = Event(
+            title=title,
+            description=request.form.get('description'),
+            event_date=event_date,
+            location=request.form.get('location'),
+            event_type='mtaani',
+            organizer=request.form.get('organizer'),
+            max_participants=max_participants,
+            registration_deadline=registration_deadline,
+            status=request.form.get('status', 'Upcoming'),
+            image_url=request.form.get('image_url'),
+            created_by=current_user.user_id
+        )
+
+        db.session.add(event)
+        db.session.commit()
+
+        flash('UMV Mtaani event created.', 'success')
+        return redirect(url_for('admin.umv_mtaani'))
+
+    return render_template('admin/mtaani_event_form.html', action='Create', event=None)
+
+
+@admin_bp.route('/umv-mtaani/<int:event_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_mtaani_event(event_id):
+    """Edit an existing UMV Mtaani event"""
+    event = Event.query.get_or_404(event_id)
+    if event.event_type != 'mtaani':
+        flash('This event is not part of UMV Mtaani.', 'warning')
+        return redirect(url_for('admin.umv_mtaani'))
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        event_date_raw = request.form.get('event_date', '').strip()
+        if not title or not event_date_raw:
+            flash('Title and event date are required.', 'danger')
+            return render_template('admin/mtaani_event_form.html', action='Edit', event=event)
+
+        try:
+            event_date = datetime.strptime(event_date_raw, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            flash('Invalid date format. Please use the provided date picker.', 'danger')
+            return render_template('admin/mtaani_event_form.html', action='Edit', event=event)
+
+        registration_deadline = None
+        registration_deadline_raw = request.form.get('registration_deadline', '').strip()
+        if registration_deadline_raw:
+            try:
+                registration_deadline = datetime.strptime(registration_deadline_raw, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                registration_deadline = None
+
+        try:
+            max_participants_raw = request.form.get('max_participants')
+            max_participants = int(max_participants_raw) if max_participants_raw else None
+        except ValueError:
+            flash('Max participants must be a number.', 'danger')
+            return render_template('admin/mtaani_event_form.html', action='Edit', event=event)
+
+        event.title = title
+        event.description = request.form.get('description')
+        event.event_date = event_date
+        event.location = request.form.get('location')
+        event.organizer = request.form.get('organizer')
+        event.max_participants = max_participants
+        event.registration_deadline = registration_deadline
+        event.status = request.form.get('status', 'Upcoming')
+        event.image_url = request.form.get('image_url')
+        event.updated_at = datetime.utcnow()
+
+        db.session.commit()
+
+        flash('UMV Mtaani event updated.', 'success')
+        return redirect(url_for('admin.umv_mtaani'))
+
+    return render_template('admin/mtaani_event_form.html', action='Edit', event=event)
+
+
+@admin_bp.route('/umv-mtaani/<int:event_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_mtaani_event(event_id):
+    """Delete a UMV Mtaani event"""
+    event = Event.query.get_or_404(event_id)
+    if event.event_type != 'mtaani':
+        flash('This event is not part of UMV Mtaani.', 'warning')
+        return redirect(url_for('admin.umv_mtaani'))
+
+    db.session.delete(event)
+    db.session.commit()
+
+    flash('UMV Mtaani event deleted.', 'success')
+    return redirect(url_for('admin.umv_mtaani'))
+
+
+# ========================================
 # PODCAST MANAGEMENT ROUTES
 # ========================================
 
@@ -1275,44 +1595,35 @@ def workstreams():
             'description': 'Manage podcast episodes and guests',
             'icon': '🎙️',
             'route': 'admin.podcasts',
-            'create_route': 'admin.podcast_form',
+            'create_route': 'admin.create_podcast',
             'count': Podcast.query.count()
         },
         {
-            'id': 'events',
-            'name': 'Debate Events',
-            'description': 'Create and manage debate events and activities',
+            'id': 'debators_circle',
+            'name': 'Debators Circle',
+            'description': 'Manage debate events and champion participation',
             'icon': '🎤',
-            'route': 'admin.debate_events',
-            'create_route': 'admin.debate_event_form',
-            'count': Event.query.count()
+            'route': 'admin.debates',
+            'create_route': 'admin.create_debate_event',
+            'count': Event.query.filter(Event.event_type.in_(['debate', 'Debaters Circle'])).count()
         },
         {
-            'id': 'affirmations',
-            'name': 'Daily Affirmations',
-            'description': 'Schedule and manage daily affirmations',
-            'icon': '✨',
-            'route': 'admin.affirmations',
-            'create_route': 'admin.affirmation_form',
-            'count': db.session.query(func.count(DailyAffirmation.affirmation_id)).scalar() or 0
+            'id': 'campus_edition',
+            'name': 'Campus Edition',
+            'description': 'Manage campus-based events and activities',
+            'icon': '🎓',
+            'route': 'admin.campus_edition',
+            'create_route': 'admin.create_campus_event',
+            'count': Event.query.filter(Event.event_type == 'campus').count()
         },
         {
-            'id': 'symbolic_items',
-            'name': 'Symbolic Items',
-            'description': 'Manage badges, kits, and certificates',
-            'icon': '🏅',
-            'route': 'admin.symbolic_items',
-            'create_route': 'admin.symbolic_item_form',
-            'count': db.session.query(func.count(SymbolicItem.item_id)).scalar() or 0
-        },
-        {
-            'id': 'assessments',
-            'name': 'Assessments',
-            'description': 'View and manage mental health screening assessments',
-            'icon': '📋',
-            'route': 'admin.assessments',
-            'create_route': None,
-            'count': db.session.query(func.count(MentalHealthAssessment.assessment_id)).scalar() or 0
+            'id': 'umv_mtaani',
+            'name': 'UMV Mtaani',
+            'description': 'Manage community barazas and mtaani events',
+            'icon': '🏘️',
+            'route': 'admin.umv_mtaani',
+            'create_route': 'admin.create_mtaani_event',
+            'count': Event.query.filter(Event.event_type == 'mtaani').count()
         }
     ]
     
