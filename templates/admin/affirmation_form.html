@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}{% if action == 'Edit' %}Edit{% else %}Create{% endif %} Affirmation - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="hero-card">
+    <div class="hero-card__inner">
+        <div>
+            <h1 class="hero-card__title">{% if action == 'Edit' %}Edit{% else %}Create{% endif %} Affirmation</h1>
+            <p class="hero-card__subtitle">{% if action == 'Edit' %}Update affirmation content{% else %}Create a new daily affirmation{% endif %}</p>
+        </div>
+        <div class="hero-card__actions">
+            <a href="{{ url_for('admin.affirmations') }}" class="btn btn--secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Affirmations
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="tile" style="max-width: 800px;">
+    <form method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="form-group">
+            <label for="content" class="form-label">Content *</label>
+            <textarea id="content" name="content" class="form-input" rows="6" required placeholder="Enter the affirmation content...">{% if affirmation %}{{ affirmation.content }}{% endif %}</textarea>
+            <small style="color: #6b7280; display: block; margin-top: 0.5rem;">Maximum 500 characters</small>
+        </div>
+
+        <div class="grid grid--2-col">
+            <div class="form-group">
+                <label for="theme" class="form-label">Theme</label>
+                <input type="text" id="theme" name="theme" class="form-input" placeholder="e.g., Resilience, Self-care, Growth" 
+                       list="themes_list" value="{% if affirmation %}{{ affirmation.theme }}{% endif %}">
+                <datalist id="themes_list">
+                    <option value="Resilience">
+                    <option value="Self-care">
+                    <option value="Growth">
+                    <option value="Leadership">
+                    <option value="Community">
+                    <option value="Courage">
+                    <option value="Mindfulness">
+                    <option value="General">
+                </datalist>
+            </div>
+
+            <div class="form-group">
+                <label for="scheduled_date" class="form-label">Scheduled Date</label>
+                <input type="date" id="scheduled_date" name="scheduled_date" class="form-input" 
+                       value="{% if affirmation and affirmation.scheduled_date %}{{ affirmation.scheduled_date.isoformat() }}{% endif %}">
+            </div>
+        </div>
+
+        {% if action == 'Edit' %}
+        <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: #334155; cursor: pointer;">
+                <input type="checkbox" name="active" value="on" {% if affirmation and affirmation.active %}checked{% endif %} style="width: 18px; height: 18px;">
+                <span>Active</span>
+            </label>
+            <small style="color: #6b7280; display: block; margin-top: 0.5rem;">Uncheck to deactivate this affirmation</small>
+        </div>
+
+        <div style="padding: 1rem; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 6px;">
+            <div style="font-size: 0.875rem; color: #065f46;">
+                <strong>Created:</strong> {{ affirmation.created_at.strftime('%B %d, %Y at %I:%M %p') if affirmation else 'N/A' }}<br>
+                <strong>Times Sent:</strong> {{ affirmation.times_sent if affirmation else 0 }}<br>
+                <strong>Last Updated:</strong> {{ affirmation.updated_at.strftime('%B %d, %Y at %I:%M %p') if affirmation and affirmation.updated_at else 'N/A' }}
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="display: flex; gap: 0.75rem;">
+            <button type="submit" class="btn btn--success">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                {% if action == 'Edit' %}Update{% else %}Create{% endif %} Affirmation
+            </button>
+            <a href="{{ url_for('admin.affirmations') }}" class="btn btn--secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<!-- Help Section -->
+<div style="margin-top: 2rem; padding: 1.5rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+    <h3 style="margin: 0 0 0.5rem 0; color: #92400e;">💡 Tips for Great Affirmations</h3>
+    <ul style="margin: 0; color: #a16207; font-size: 0.875rem; padding-left: 1.25rem;">
+        <li>Use positive, present-tense language</li>
+        <li>Keep it concise (1-2 sentences)</li>
+        <li>Focus on strengths and growth</li>
+        <li>Schedule different affirmations throughout the week</li>
+        <li>Themes help organize content by topic</li>
+    </ul>
+</div>
+
+{% endblock %}
