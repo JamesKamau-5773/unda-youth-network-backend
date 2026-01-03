@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Workstreams Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="hero-card">
+    <div class="hero-card__inner">
+        <div>
+            <h1 class="hero-card__title">Workstreams Management</h1>
+            <p class="hero-card__subtitle">Manage all content, events, and features from one unified dashboard</p>
+        </div>
+        <div class="hero-card__actions">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn--secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Workstreams Grid -->
+<div class="grid" style="gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+    {% for ws in workstreams %}
+    <div class="tile" style="display: flex; flex-direction: column; transition: all 0.3s ease;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <div style="font-size: 2.5rem;">{{ ws.icon }}</div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.25rem; color: #111827;">{{ ws.name }}</h3>
+                <p style="margin: 0.25rem 0 0 0; color: #6b7280; font-size: 0.875rem;">{{ ws.description }}</p>
+            </div>
+        </div>
+
+        <!-- Count Badge -->
+        <div style="background: #f3f4f6; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <span style="font-size: 0.875rem; color: #6b7280; font-weight: 500;">
+                <strong style="color: #111827;">{{ ws.count }}</strong> item{{ 's' if ws.count != 1 else '' }}
+            </span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: auto;">
+            {% if ws.route %}
+            <a href="{{ url_for(ws.route) }}" class="btn btn--primary btn--block" style="margin-bottom: 0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                View All
+            </a>
+            {% endif %}
+            
+            {% if ws.create_route %}
+            <a href="{{ url_for(ws.create_route) }}" class="btn btn--success btn--block">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add New
+            </a>
+            {% endif %}
+
+            <!-- API Documentation Link -->
+            <details style="margin-top: 0.5rem;">
+                <summary style="cursor: pointer; font-size: 0.875rem; color: #2563eb; font-weight: 500; padding: 0.5rem; user-select: none;">
+                    📚 API Details
+                </summary>
+                <div style="padding: 1rem; background: #f0f9ff; border-radius: 6px; margin-top: 0.5rem; font-size: 0.875rem; color: #1e40af;">
+                    {% if ws.id == 'podcasts' %}
+                    <p><strong>Endpoint:</strong> <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 3px;">/api/podcasts</code></p>
+                    <p style="margin: 0.5rem 0 0 0;"><strong>Methods:</strong> GET, POST, PUT, DELETE</p>
+                    {% elif ws.id == 'events' %}
+                    <p><strong>Endpoint:</strong> <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 3px;">/api/events</code></p>
+                    <p style="margin: 0.5rem 0 0 0;"><strong>Methods:</strong> GET, POST, PUT, DELETE</p>
+                    {% elif ws.id == 'affirmations' %}
+                    <p><strong>Endpoint:</strong> <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 3px;">/api/affirmations</code></p>
+                    <p style="margin: 0.5rem 0 0 0;"><strong>Methods:</strong> GET, POST, PUT, DELETE</p>
+                    {% elif ws.id == 'symbolic_items' %}
+                    <p><strong>Endpoint:</strong> <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 3px;">/api/symbolic-items</code></p>
+                    <p style="margin: 0.5rem 0 0 0;"><strong>Methods:</strong> GET, POST, PUT, DELETE</p>
+                    {% elif ws.id == 'assessments' %}
+                    <p><strong>Endpoint:</strong> <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 3px;">/api/assessments</code></p>
+                    <p style="margin: 0.5rem 0 0 0;"><strong>Methods:</strong> GET, POST, PUT, DELETE</p>
+                    {% endif %}
+                </div>
+            </details>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Quick Stats Section -->
+<div style="margin-top: 3rem; padding: 1.5rem; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h2 style="margin: 0 0 1rem 0; font-size: 1.125rem; color: #111827;">Content Summary</h2>
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        {% set total_items = workstreams | map(attribute='count') | sum %}
+        <div style="padding: 1rem; background: #f0f9ff; border-left: 4px solid #2563eb; border-radius: 6px;">
+            <div style="font-size: 0.875rem; color: #1e40af; text-transform: uppercase; font-weight: 600;">Total Items</div>
+            <div style="font-size: 2rem; color: #2563eb; font-weight: 700; margin-top: 0.5rem;">{{ total_items }}</div>
+        </div>
+        <div style="padding: 1rem; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 6px;">
+            <div style="font-size: 0.875rem; color: #065f46; text-transform: uppercase; font-weight: 600;">Workstreams</div>
+            <div style="font-size: 2rem; color: #10b981; font-weight: 700; margin-top: 0.5rem;">{{ workstreams | length }}</div>
+        </div>
+        <div style="padding: 1rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 6px;">
+            <div style="font-size: 0.875rem; color: #92400e; text-transform: uppercase; font-weight: 600;">Manage All</div>
+            <div style="margin-top: 0.5rem;">
+                <a href="{{ url_for('admin.dashboard') }}" style="color: #d97706; text-decoration: none; font-weight: 600;">View Dashboard →</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help Section -->
+<div style="margin-top: 2rem; padding: 1.5rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+    <h3 style="margin: 0 0 0.5rem 0; color: #92400e;">💡 Quick Tips</h3>
+    <ul style="margin: 0; color: #a16207; font-size: 0.875rem; padding-left: 1.25rem;">
+        <li>Click "View All" to see existing items and manage them</li>
+        <li>Click "Add New" to create new content for that workstream</li>
+        <li>API endpoints are available for programmatic access</li>
+        <li>All changes are logged and tracked for audit purposes</li>
+    </ul>
+</div>
+
+<style>
+    details summary::marker {
+        color: #2563eb;
+    }
+
+    details[open] summary {
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+{% endblock %}

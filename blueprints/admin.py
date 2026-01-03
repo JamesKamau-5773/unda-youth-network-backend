@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication, Podcast, Event
+from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication, Podcast, Event, DailyAffirmation, SymbolicItem, MentalHealthAssessment
 from decorators import admin_required
 from flask_bcrypt import Bcrypt
 import secrets
@@ -1257,3 +1257,60 @@ def toggle_publish_podcast(podcast_id):
         flash(f'Error updating podcast: {str(e)}', 'error')
     
     return redirect(url_for('admin.podcasts'))
+
+
+# ========================================
+# WORKSTREAMS MANAGEMENT (Unified CRUD Interface)
+# ========================================
+
+@admin_bp.route('/workstreams')
+@login_required
+@admin_required
+def workstreams():
+    """Unified workstreams management dashboard"""
+    workstreams_data = [
+        {
+            'id': 'podcasts',
+            'name': 'Podcasts',
+            'description': 'Manage podcast episodes and guests',
+            'icon': '🎙️',
+            'route': 'admin.podcasts',
+            'create_route': 'admin.podcast_form',
+            'count': Podcast.query.count()
+        },
+        {
+            'id': 'events',
+            'name': 'Debate Events',
+            'description': 'Create and manage debate events and activities',
+            'icon': '🎤',
+            'route': 'admin.debate_events',
+            'create_route': 'admin.debate_event_form',
+            'count': Event.query.count()
+        },
+        {
+            'id': 'affirmations',
+            'name': 'Daily Affirmations',
+            'description': 'Schedule and manage daily affirmations',
+            'icon': '✨',
+            'route': None,
+            'count': db.session.query(func.count(DailyAffirmation.affirmation_id)).scalar() or 0
+        },
+        {
+            'id': 'symbolic_items',
+            'name': 'Symbolic Items',
+            'description': 'Manage badges, kits, and certificates',
+            'icon': '🏅',
+            'route': None,
+            'count': db.session.query(func.count(SymbolicItem.item_id)).scalar() or 0
+        },
+        {
+            'id': 'assessments',
+            'name': 'Assessments',
+            'description': 'Manage mental health screening assessments',
+            'icon': '📋',
+            'route': None,
+            'count': db.session.query(func.count(MentalHealthAssessment.assessment_id)).scalar() or 0
+        }
+    ]
+    
+    return render_template('admin/workstreams.html', workstreams=workstreams_data)
