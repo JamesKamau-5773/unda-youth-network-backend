@@ -321,6 +321,7 @@ class Event(db.Model):
   registration_deadline = db.Column(db.DateTime)
   status = db.Column(db.String(50), default='Upcoming')  # Upcoming, Ongoing, Completed, Cancelled
   image_url = db.Column(db.String(500))
+  motion = db.Column(db.Text)  # Debate motion/topic for Debaters Circle events
   created_at = db.Column(db.DateTime, default=datetime.utcnow)
   updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
   created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
@@ -339,6 +340,7 @@ class Event(db.Model):
       'registration_deadline': self.registration_deadline.isoformat() if self.registration_deadline else None,
       'status': self.status,
       'image_url': self.image_url,
+      'motion': self.motion,
       'created_at': self.created_at.isoformat() if self.created_at else None,
       'updated_at': self.updated_at.isoformat() if self.updated_at else None,
       'created_by': self.created_by,

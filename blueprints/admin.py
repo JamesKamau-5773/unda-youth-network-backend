@@ -932,9 +932,10 @@ def create_debate_event():
     """Create a new Debaters Circle event"""
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
+        motion = request.form.get('motion', '').strip()
         event_date_raw = request.form.get('event_date', '').strip()
-        if not title or not event_date_raw:
-            flash('Title and event date are required.', 'danger')
+        if not title or not motion or not event_date_raw:
+            flash('Title, motion, and event date are required.', 'danger')
             return render_template('admin/debate_event_form.html', action='Create', event=None)
 
         try:
@@ -969,6 +970,7 @@ def create_debate_event():
             registration_deadline=registration_deadline,
             status=request.form.get('status', 'Upcoming'),
             image_url=request.form.get('image_url'),
+            motion=motion,
             created_by=current_user.user_id
         )
 
@@ -993,9 +995,10 @@ def edit_debate_event(event_id):
 
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
+        motion = request.form.get('motion', '').strip()
         event_date_raw = request.form.get('event_date', '').strip()
-        if not title or not event_date_raw:
-            flash('Title and event date are required.', 'danger')
+        if not title or not motion or not event_date_raw:
+            flash('Title, motion, and event date are required.', 'danger')
             return render_template('admin/debate_event_form.html', action='Edit', event=event)
 
         try:
@@ -1028,6 +1031,7 @@ def edit_debate_event(event_id):
         event.registration_deadline = registration_deadline
         event.status = request.form.get('status', 'Upcoming')
         event.image_url = request.form.get('image_url')
+        event.motion = motion
         event.updated_at = datetime.utcnow()
 
         db.session.commit()
