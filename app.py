@@ -78,10 +78,21 @@ def create_app(test_config=None):
     db.init_app(app)
     
     # CORS Configuration - Allow API access from different origins
-    cors_origins = os.environ.get('CORS_ORIGINS', 'http://localhost:5173,https://unda-youth-network.netlify.app')
+    cors_origins = os.environ.get('CORS_ORIGINS', '*')  # Allow all origins for now
+    
+    # Custom origin validation for Netlify preview URLs
+    def is_valid_origin(origin):
+        if cors_origins == '*':
+            return True
+        allowed = cors_origins.split(',')
+        # Allow any Netlify subdomain
+        if origin and ('netlify.app' in origin or 'localhost' in origin):
+            return True
+        return origin in allowed
+    
     CORS(app, resources={
         r"/api/*": {
-            "origins": cors_origins.split(',') if cors_origins != '*' else '*',
+            "origins": is_valid_origin if cors_origins != '*' else '*',
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
             "expose_headers": ["Content-Type"],
