@@ -193,12 +193,17 @@ def create_app(test_config=None):
     from blueprints.seed_funding import seed_funding_bp
     app.register_blueprint(seed_funding_bp)
     
+    # API Status & Health Checks
+    from blueprints.api_status import api_status_bp
+    app.register_blueprint(api_status_bp)
+    
     # Exempt API routes from CSRF protection
     csrf.exempt(public_auth_bp)
     csrf.exempt(podcasts_bp)
     csrf.exempt(events_bp)
     csrf.exempt(participation_bp)
     csrf.exempt(seed_funding_bp)
+    csrf.exempt(api_status_bp)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
