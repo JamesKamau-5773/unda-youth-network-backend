@@ -2090,38 +2090,40 @@ def symbolic_item_delete(item_id):
 @login_required
 @admin_required
 def assessments():
-    """List all mental health assessments"""
+    """
+    List all mental health assessments - PRIVACY-FIRST VIEW
+    Shows aggregated data with risk categories, NOT raw scores or champion names
+    """
     assessment_type = request.args.get('type', '')
-    champion_id = request.args.get('champion_id', '', type=int)
-    severity = request.args.get('severity', '')
+    risk_category = request.args.get('risk_category', '')
     
     query = MentalHealthAssessment.query
     
     if assessment_type:
         query = query.filter_by(assessment_type=assessment_type)
-    if champion_id:
-        query = query.filter_by(champion_id=champion_id)
-    if severity:
-        query = query.filter_by(severity_level=severity)
+    if risk_category:
+        query = query.filter_by(risk_category=risk_category)
     
     assessments = query.order_by(MentalHealthAssessment.assessment_date.desc()).all()
     assessment_types = db.session.query(MentalHealthAssessment.assessment_type).distinct().all()
-    severity_levels = db.session.query(MentalHealthAssessment.severity_level).distinct().all()
+    risk_categories = db.session.query(MentalHealthAssessment.risk_category).distinct().all()
     
     return render_template('admin/assessments_list.html',
                          assessments=assessments,
                          assessment_types=[t[0] for t in assessment_types if t[0]],
-                         severity_levels=[s[0] for s in severity_levels if s[0]],
+                         risk_categories=[r[0] for r in risk_categories if r[0]],
                          assessment_type=assessment_type,
-                         champion_id=champion_id,
-                         severity=severity)
+                         risk_category=risk_category)
 
 
 @admin_bp.route('/assessments/<int:assessment_id>')
 @login_required
 @admin_required
 def assessment_detail(assessment_id):
-    """View assessment details"""
+    """
+    View assessment details - PRIVACY: Shows risk category, NOT raw scores
+    Champion code is displayed but NOT the champion name
+    """
     assessment = MentalHealthAssessment.query.get_or_404(assessment_id)
     
     return render_template('admin/assessment_detail.html', assessment=assessment)

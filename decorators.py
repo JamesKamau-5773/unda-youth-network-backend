@@ -14,6 +14,11 @@ def roles_required(*roles):
       # Role check (case-insensitive to avoid mismatches)
       user_role = (current_user.role or '').strip()
       allowed = [r.strip() for r in roles]
+      
+      # Handle legacy 'Champion' role mapping
+      if user_role.lower() == 'champion':
+        user_role = 'Prevention Advocate'
+      
       if user_role.lower() not in [r.lower() for r in allowed]:
         flash('Access denied. You do not have the required permissions.', 'danger')
         # Redirect to user's appropriate dashboard instead of main.index
@@ -21,8 +26,8 @@ def roles_required(*roles):
           return redirect(url_for('admin.dashboard'))
         elif user_role.lower() == 'supervisor':
           return redirect(url_for('supervisor.dashboard'))
-        elif user_role.lower() == 'champion':
-          return redirect(url_for('champion.dashboard'))
+        elif user_role.lower() in ['prevention advocate', 'champion']:
+          return redirect(url_for('champion.dashboard'))  # Keep existing route for now
         else:
           return redirect(url_for('auth.login'))
       return f(*args, **kwargs)
@@ -33,4 +38,9 @@ def roles_required(*roles):
 # Use canonical role strings; decorator is case-insensitive
 admin_required = roles_required('Admin')
 supervisor_required = roles_required('Admin', 'Supervisor')
-champion_required = roles_required('Admin', 'Supervisor', 'Champion')
+
+# New UMV Prevention Program role
+prevention_advocate_required = roles_required('Admin', 'Supervisor', 'Prevention Advocate')
+
+# Legacy decorator - maps to Prevention Advocate for backward compatibility
+champion_required = roles_required('Admin', 'Supervisor', 'Prevention Advocate', 'Champion')

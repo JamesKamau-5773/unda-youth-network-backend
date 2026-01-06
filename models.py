@@ -20,13 +20,13 @@ def check_password(password, hashed_password):
 class User(db.Model, UserMixin):
   __tablename__ = 'users'
   
-  # Valid roles constant
-  VALID_ROLES = ['Admin', 'Supervisor', 'Champion']
+  # Valid roles constant - UMV Prevention Program roles
+  VALID_ROLES = ['Admin', 'Supervisor', 'Prevention Advocate']
   
   user_id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.String(100), unique=True, nullable=False)
   password_hash = db.Column(db.String(255), nullable=False)
-  role = db.Column(db.String(50), nullable=False, default='Champion')
+  role = db.Column(db.String(50), nullable=False, default='Prevention Advocate')
 
   champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='SET NULL'))
 
@@ -50,23 +50,28 @@ class User(db.Model, UserMixin):
   def set_role(self, role):
     """Set role with automatic capitalization and validation."""
     if role:
-      normalized_role = role.capitalize()
-      if normalized_role in self.VALID_ROLES:
-        self.role = normalized_role
+      # Handle legacy 'Champion' role mapping to 'Prevention Advocate'
+      if role.capitalize() == 'Champion':
+        self.role = 'Prevention Advocate'
+      elif role.title() in self.VALID_ROLES:  # Use title() for multi-word roles
+        self.role = role.title()
       else:
         raise ValueError(f"Invalid role '{role}'. Must be one of: {', '.join(self.VALID_ROLES)}")
     else:
-      self.role = 'Champion'  # Default
+      self.role = 'Prevention Advocate'  # Default
   
   def validate_role(self):
     """Validate and normalize the current role."""
     if self.role:
-      normalized = self.role.capitalize()
-      if normalized not in self.VALID_ROLES:
+      # Handle legacy 'Champion' role
+      if self.role.capitalize() == 'Champion':
+        self.role = 'Prevention Advocate'
+      elif self.role.title() in self.VALID_ROLES:
+        self.role = self.role.title()
+      elif self.role not in self.VALID_ROLES:
         raise ValueError(f"Invalid role '{self.role}'. Must be one of: {', '.join(self.VALID_ROLES)}")
-      self.role = normalized
     else:
-      self.role = 'Champion'
+      self.role = 'Prevention Advocate'
   
   def is_locked(self):
     """Check if account is currently locked."""
@@ -306,6 +311,150 @@ def get_champions_by_risk_level(risk_level):
   return Champion.query.filter_by(risk_level=risk_level).all() 
 
 
+# ============================================================================
+# MENTAL HEALTH ASSESSMENT UTILITY FUNCTIONS - PRIVACY-FIRST
+# ============================================================================
+
+def map_phq9_to_risk_category(score):
+  """
+  Convert PHQ-9 score (0-27) to color-coded risk category.
+  PHQ-9 measures depression severity.
+  
+  Returns dict with risk_category, score_range, and description.
+  RAW SCORE IS NOT STORED - only the risk category.
+  """
+  if not isinstance(score, (int, float)) or score < 0 or score > 27:
+    return {
+      'risk_category': 'Invalid',
+      'score_range': 'Invalid',
+      'description': 'Invalid Score',
+      'auto_flag': False,
+      'auto_referral': False
+    }
+  
+  if 0 <= score <= 4:
+    return {
+      'risk_category': 'Green',
+      'score_range': '0-4',
+      'description': 'Minimal or no depression',
+      'auto_flag': False,
+      'auto_referral': False
+    }
+  elif 5 <= score <= 9:
+    return {
+      'risk_category': 'Blue',
+      'score_range': '5-9',
+      'description': 'Mild depression',
+      'auto_flag': False,
+      'auto_referral': False
+    }
+  elif 10 <= score <= 14:
+    return {
+      'risk_category': 'Purple',
+      'score_range': '10-14',
+      'description': 'Moderate depression',
+      'auto_flag': True,
+      'auto_referral': False
+    }
+  elif 15 <= score <= 19:
+    return {
+      'risk_category': 'Orange',
+      'score_range': '15-19',
+      'description': 'Moderately severe depression',
+      'auto_flag': True,
+      'auto_referral': True
+    }
+  else:  # 20-27
+    return {
+      'risk_category': 'Red',
+      'score_range': '20-27',
+      'description': 'Severe depression',
+      'auto_flag': True,
+      'auto_referral': True
+    }
+
+
+def map_gad7_to_risk_category(score):
+  """
+  Convert GAD-7 score (0-21) to color-coded risk category.
+  GAD-7 measures anxiety severity.
+  
+  Returns dict with risk_category, score_range, and description.
+  RAW SCORE IS NOT STORED - only the risk category.
+  """
+  if not isinstance(score, (int, float)) or score < 0 or score > 21:
+    return {
+      'risk_category': 'Invalid',
+      'score_range': 'Invalid',
+      'description': 'Invalid Score',
+      'auto_flag': False,
+      'auto_referral': False
+    }
+  
+  if 0 <= score <= 4:
+    return {
+      'risk_category': 'Green',
+      'score_range': '0-4',
+      'description': 'Minimal anxiety',
+      'auto_flag': False,
+      'auto_referral': False
+    }
+  elif 5 <= score <= 9:
+    return {
+      'risk_category': 'Blue',
+      'score_range': '5-9',
+      'description': 'Mild anxiety',
+      'auto_flag': False,
+      'auto_referral': False
+    }
+  elif 10 <= score <= 14:
+    return {
+      'risk_category': 'Purple',
+      'score_range': '10-14',
+      'description': 'Moderate anxiety',
+      'auto_flag': True,
+      'auto_referral': False
+    }
+  else:  # 15-21
+    return {
+      'risk_category': 'Red',
+      'score_range': '15-21',
+      'description': 'Severe anxiety',
+      'auto_flag': True,
+      'auto_referral': True
+    }
+
+
+def generate_champion_code():
+  """
+  Generate unique champion code in format: UMV-YYYY-NNNNNN
+  Example: UMV-2026-000001
+  """
+  from datetime import datetime
+  import random
+  
+  year = datetime.now().year
+  
+  # Find the highest existing code for this year
+  prefix = f"UMV-{year}-"
+  existing_codes = db.session.query(Champion.assigned_champion_code)\
+    .filter(Champion.assigned_champion_code.like(f"{prefix}%"))\
+    .all()
+  
+  if existing_codes:
+    # Extract numbers and find max
+    numbers = [int(code[0].split('-')[-1]) for code in existing_codes if code[0]]
+    next_number = max(numbers) + 1 if numbers else 1
+  else:
+    next_number = 1
+  
+  # Format with 6 digits, zero-padded
+  return f"{prefix}{next_number:06d}"
+
+
+# ============================================================================
+
+
 class Event(db.Model):
   """Events and activities for the UNDA Youth Network."""
   __tablename__ = 'events'
@@ -407,37 +556,43 @@ class BlogPost(db.Model):
 
 
 class MentalHealthAssessment(db.Model):
-  """Mental health screening assessments (PHQ-9, GAD-7, PHQ-2, GAD-2)."""
+  """
+  Mental health screening assessments - PRIVACY-FIRST DESIGN
+  PHQ-9 and GAD-7 only. Stores color-coded risk categories, NOT raw scores.
+  Uses champion_code for anonymized tracking, not champion_id.
+  """
   __tablename__ = 'mental_health_assessments'
   
   assessment_id = db.Column(db.Integer, primary_key=True)
-  champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='CASCADE'), nullable=False)
-  assessment_type = db.Column(db.String(50), nullable=False)  # PHQ-9, GAD-7, PHQ-2, GAD-2
+  
+  # PRIVACY: Use champion code instead of foreign key to champion_id
+  champion_code = db.Column(db.String(20), nullable=False, index=True)  # UMV-YYYY-NNNNNN
+  
+  assessment_type = db.Column(db.String(50), nullable=False)  # PHQ-9, GAD-7
   assessment_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
   
-  # Scoring
-  total_score = db.Column(db.Integer, nullable=False)
-  severity_level = db.Column(db.String(50))  # None, Mild, Moderate, Moderately Severe, Severe
+  # PRIVACY: Color-coded risk categories instead of raw scores
+  # Green (0-4), Blue (5-9), Purple (10-14), Orange (15-19), Red (20-27 PHQ-9 or 15-21 GAD-7)
+  risk_category = db.Column(db.String(20), nullable=False)  # Green, Blue, Purple, Orange, Red
+  score_range = db.Column(db.String(20))  # e.g., "0-4", "5-9", "10-14", "15-19", "20-27"
   
   # Assessment Context
   is_baseline = db.Column(db.Boolean, default=False)  # True for initial screening
   assessment_period = db.Column(db.String(50))  # Initial, Monthly, Quarterly, Follow-up
   
-  # Individual item scores (JSON for flexibility across different assessments)
-  item_scores = db.Column(db.JSON)  # e.g., {"q1": 2, "q2": 1, "q3": 3, ...}
+  # REMOVED: total_score, severity_level, item_scores - PRIVACY VIOLATION
   
   # Clinical actions
-  risk_flagged = db.Column(db.Boolean, default=False)
-  referral_recommended = db.Column(db.Boolean, default=False)
-  referral_made = db.Column(db.Boolean, default=False)
+  risk_flagged = db.Column(db.Boolean, default=False)  # Auto-set for Orange/Red
+  referral_recommended = db.Column(db.Boolean, default=False)  # Auto-set for Orange/Red
+  referral_made = db.Column(db.Boolean, default=False)  # Set when referral is created
   
-  # Tracking
+  # Tracking - who administered (not who was assessed)
   administered_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
-  notes = db.Column(db.Text)
+  notes = db.Column(db.Text)  # Non-identifiable notes only
   created_at = db.Column(db.DateTime, default=datetime.utcnow)
   
-  # Relationships
-  champion = db.relationship('Champion', backref='mental_health_assessments')
+  # NO relationship to Champion model - privacy by design
 
 
 class DailyAffirmation(db.Model):
