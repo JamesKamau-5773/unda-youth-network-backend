@@ -427,3 +427,160 @@ def get_my_applications():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# ============================================================================
+# CHAMPION SELF-REGISTRATION - PRIVACY-FIRST
+# For frontend member portal
+# ============================================================================
+
+@public_auth_bp.route('/api/champions/register', methods=['POST'])
+def register_champion():
+    """
+    Public endpoint for champion self-registration.
+    Generates unique champion code (UMV-YYYY-NNNNNN).
+    Does NOT create User account - champions register first, then can create account later.
+    """
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = [
+            'full_name', 'gender', 'date_of_birth', 'phone_number', 'email',
+            'county_sub_county', 'consent_obtained'
+        ]
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        # Validate consent
+        if not data.get('consent_obtained'):
+            return jsonify({
+                'success': False,
+                'error': 'Consent must be obtained before registration'
+            }), 400
+        
+        # Validate email format
+        if not validate_email(data['email']):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid email format'
+            }), 400
+        
+        # Validate phone number
+        if not validate_phone(data['phone_number']):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid phone number format. Use 254XXXXXXXXX or 07XXXXXXXX'
+            }), 400
+        
+        # Check for duplicate email or phone
+        existing = Champion.query.filter(
+            (Champion.email == data['email']) | 
+            (Champion.phone_number == data['phone_number'])
+        ).first()
+        
+        if existing:
+            return jsonify({
+                'success': False,
+                'error': 'A champion with this email or phone number already exists'
+            }), 409
+        
+        # Generate unique champion code
+        from models import generate_champion_code
+        champion_code = generate_champion_code()
+        
+        # Parse date of birth
+        try:
+            dob = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid date format for date_of_birth. Use YYYY-MM-DD'
+            }), 400
+        
+        # Create champion record
+        new_champion = Champion(
+            full_name=data['full_name'],
+            gender=data['gender'],
+            date_of_birth=dob,
+            phone_number=data['phone_number'],
+            alternative_phone_number=data.get('alternative_phone_number'),
+            email=data['email'],
+            county_sub_county=data['county_sub_county'],
+            assigned_champion_code=champion_code,
+            
+            # Emergency contacts (optional)
+            emergency_contact_name=data.get('emergency_contact_name'),
+            emergency_contact_relationship=data.get('emergency_contact_relationship'),
+            emergency_contact_phone=data.get('emergency_contact_phone'),
+            
+            # Education (optional)
+            current_education_level=data.get('current_education_level'),
+            education_institution_name=data.get('education_institution_name'),
+            course_field_of_study=data.get('course_field_of_study'),
+            year_of_study=data.get('year_of_study'),
+            workplace_organization=data.get('workplace_organization'),
+            
+            # Program enrollment
+            date_of_application=date.today(),
+            recruitment_source=data.get('recruitment_source', 'Online Registration'),
+            application_status='Pending',
+            champion_status='Active',
+            
+            # Consent
+            consent_obtained=True,
+            consent_date=date.today(),
+            institution_name=data.get('institution_name'),
+            institution_consent_obtained=data.get('institution_consent_obtained', False),
+            
+            # Initialize risk level
+            risk_level='Low'
+        )
+        
+        db.session.add(new_champion)
+        db.session.commit()
+        
+        # IMPORTANT: Return champion_code to the user (they need this for assessments)
+        return jsonify({
+            'success': True,
+            'message': 'Champion registered successfully',
+            'champion_code': champion_code,
+            'champion_id': new_champion.champion_id,
+            'important_notice': 'Please save your Champion Code securely. You will need it for all future interactions.'
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': f'Registration failed: {str(e)}'
+        }), 500
+
+
+@public_auth_bp.route('/api/champions/verify-code', methods=['POST'])
+def verify_champion_code():
+    """
+    Verify a champion code exists (public endpoint for verification).
+    Does NOT return champion details for privacy.
+    """
+    data = request.get_json()
+    champion_code = data.get('champion_code', '').strip().upper()
+    
+    if not champion_code:
+        return jsonify({
+            'success': False,
+            'valid': False,
+            'message': 'Champion code is required'
+        }), 400
+    
+    champion = Champion.query.filter_by(assigned_champion_code=champion_code).first()
+    
+    return jsonify({
+        'success': True,
+        'valid': bool(champion),
+        'message': 'Champion code is valid' if champion else 'Invalid champion code'
+    }), 200
