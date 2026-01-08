@@ -447,7 +447,7 @@ def change_user_role(user_id):
 @login_required
 @admin_required
 def delete_user(user_id):
-    """Delete a user account"""
+    """Delete a user account and associated Champion profile"""
     user = User.query.get_or_404(user_id)
 
     # Prevent deleting your own account
@@ -459,9 +459,17 @@ def delete_user(user_id):
     username = user.username
 
     try:
+        # Delete associated Champion profile if exists
+        if user.champion_id:
+            champion = Champion.query.get(user.champion_id)
+            if champion:
+                db.session.delete(champion)
+                print(f"✅ Deleted Champion profile: {champion.full_name} ({champion.assigned_champion_code})")
+        
+        # Delete the user account
         db.session.delete(user)
         db.session.commit()
-        flash(f'User "{username}" deleted successfully', 'success')
+        flash(f'User "{username}" and associated records deleted successfully', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting user: {str(e)}', 'danger')
