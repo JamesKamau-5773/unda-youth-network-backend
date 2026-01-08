@@ -46,8 +46,8 @@ def dashboard():
 
   return render_template('supervisor/dashboard.html', 
                         champions=champions,
-                        counties=[c[0] for c in all_counties if c[0]],
-                        institutions=[i[0] for i in all_institutions if i[0]],
+                        all_counties=[c[0] for c in all_counties if c[0]],
+                        all_institutions=[i[0] for i in all_institutions if i[0]],
                         current_filters={
                           'status': filter_status or 'all',
                           'risk': filter_risk or 'all',

@@ -223,6 +223,7 @@
             
             {% if application.status == 'Pending' %}
             <form method="POST" action="{{ url_for('admin.update_seed_funding_review_status', application_id=application.application_id) }}" style="margin-bottom: 0.75rem;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn--info btn--block">Mark Under Review</button>
             </form>
             {% endif %}
@@ -341,6 +342,7 @@
         <h3 style="margin: 0 0 1rem 0; font-size: 1.5rem;">Approve Seed Funding</h3>
         
         <form method="POST" action="{{ url_for('admin.approve_seed_funding', application_id=application.application_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="approved_amount">Approved Amount (KES) <span style="color: #ef4444;">*</span></label>
                 <input type="number" id="approved_amount" name="approved_amount" class="form-input" required step="0.01" min="0" value="{{ application.total_budget_requested }}">
@@ -371,6 +373,7 @@
         <h3 style="margin: 0 0 1rem 0; font-size: 1.5rem;">Reject Application</h3>
         
         <form method="POST" action="{{ url_for('admin.reject_seed_funding', application_id=application.application_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="rejection_reason">Rejection Reason <span style="color: #ef4444;">*</span></label>
                 <textarea id="rejection_reason" name="rejection_reason" class="form-input" rows="4" required placeholder="Explain why this application is being rejected..."></textarea>
@@ -395,6 +398,7 @@
         <h3 style="margin: 0 0 1rem 0; font-size: 1.5rem;">Mark as Funded</h3>
         
         <form method="POST" action="{{ url_for('admin.mark_seed_funding_funded', application_id=application.application_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="disbursement_date">Disbursement Date <span style="color: #ef4444;">*</span></label>
                 <input type="date" id="disbursement_date" name="disbursement_date" class="form-input" required>

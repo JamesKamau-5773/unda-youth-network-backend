@@ -232,13 +232,13 @@ def change_password():
             flash('Password changed successfully!', 'success')
             flash('You can now use your new password on next login.', 'info')
 
-            # Redirect based on role (case-insensitive)
-            role_lower = (current_user.role or '').lower()
-            if role_lower == 'admin':
+            # Redirect based on role
+            role = current_user.role or ''
+            if role == 'Admin':
                 return redirect(url_for('admin.settings'))
-            elif role_lower == 'supervisor':
+            elif role == 'Supervisor':
                 return redirect(url_for('supervisor.dashboard'))
-            elif role_lower == 'champion':
+            elif role == 'Prevention Advocate':
                 return redirect(url_for('champion.dashboard'))
             else:
                 return redirect(url_for('auth.login'))
@@ -271,6 +271,7 @@ def create_user():
     """Create a new user account"""
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
         role = request.form.get('role', 'supervisor')
         # Normalize role casing to canonical values
         role = (role or '').strip().capitalize()
@@ -283,11 +284,22 @@ def create_user():
         if len(username) < 3:
             flash('Username must be at least 3 characters long', 'danger')
             return render_template('admin/create_user.html')
+        
+        # Prevent creating Prevention Advocates through simple user creation
+        # They must use create_champion which collects required profile data
+        if role == 'Prevention Advocate':
+            flash('Prevention Advocates must be created using the "Create Prevention Advocate" form which collects required profile information.', 'warning')
+            return redirect(url_for('admin.create_champion'))
 
         # Check if username already exists
         if User.query.filter_by(username=username).first():
             flash(
                 f'Username "{username}" already exists. Please choose a different username.', 'danger')
+            return render_template('admin/create_user.html')
+        
+        # Check if email already exists (if provided)
+        if email and User.query.filter_by(email=email).first():
+            flash(f'Email "{email}" already exists. Please use a different email.', 'danger')
             return render_template('admin/create_user.html')
 
         # Generate secure temporary password
@@ -297,6 +309,7 @@ def create_user():
         bcrypt = Bcrypt()
         new_user = User(
             username=username,
+            email=email if email else None,
             role=role,
             password_hash=bcrypt.generate_password_hash(
                 temp_password).decode('utf-8')
@@ -305,13 +318,20 @@ def create_user():
         try:
             db.session.add(new_user)
             db.session.commit()
+            
+            # Try to send email if email is provided
+            email_sent = False
+            if email:
+                from email_utils import send_password_email
+                email_sent = send_password_email(email, username, temp_password)
 
-            # Show success message with temporary password
-            flash(f'User "{username}" created successfully!', 'success')
-            flash(f'Temporary Password: {temp_password}', 'info')
-            flash('Please provide this password to the user securely. They should change it on first login.', 'warning')
-
-            return redirect(url_for('admin.manage_users'))
+            # Show success page with password modal (instead of flash message)
+            return render_template('admin/create_user_success.html',
+                                 username=username,
+                                 temp_password=temp_password,
+                                 role=role,
+                                 email=email,
+                                 email_sent=email_sent)
 
         except Exception as e:
             db.session.rollback()
@@ -340,14 +360,25 @@ def reset_user_password(user_id):
 
     try:
         db.session.commit()
-        flash(f'Password reset for user "{user.username}"', 'success')
-        flash(f'New Temporary Password: {temp_password}', 'info')
-        flash('Please provide this password to the user securely.', 'warning')
+        
+        # Try to send email if user has an email address
+        email_sent = False
+        if user.email:
+            from email_utils import send_password_email
+            email_sent = send_password_email(user.email, user.username, temp_password)
+        
+        # Show success page with password modal (instead of flash message)
+        return render_template('admin/create_user_success.html',
+                             username=user.username,
+                             temp_password=temp_password,
+                             role=user.role,
+                             email=user.email,
+                             email_sent=email_sent,
+                             is_reset=True)
     except Exception as e:
         db.session.rollback()
         flash(f'Error resetting password: {str(e)}', 'danger')
-
-    return redirect(url_for('admin.manage_users'))
+        return redirect(url_for('admin.manage_users'))
 
 
 @admin_bp.route('/users/<int:user_id>/unlock', methods=['POST'])
@@ -518,19 +549,23 @@ def create_champion():
 
             db.session.commit()
 
-            # Show success message with temporary password
-            flash(
-                f'Champion "{full_name}" ({champion_code}) created successfully!', 'success')
-            if supervisor_id:
-                supervisor = User.query.get(int(supervisor_id))
-                if supervisor:
-                    flash(
-                        f'Assigned to supervisor: {supervisor.username}', 'info')
-            flash(
-                f'Username: {username} | Temporary Password: {temp_password}', 'info')
-            flash('Please provide these credentials to the champion securely. They should change the password on first login.', 'warning')
+            # Try to send email if email is provided
+            email_sent = False
+            if email:
+                from email_utils import send_password_email
+                email_sent = send_password_email(email, username, temp_password)
 
-            return redirect(url_for('admin.dashboard'))
+            # Show success page with password modal (instead of flash messages)
+            return render_template('admin/create_user_success.html',
+                                 username=username,
+                                 temp_password=temp_password,
+                                 role='Prevention Advocate',
+                                 email=email,
+                                 email_sent=email_sent,
+                                 is_champion=True,
+                                 champion_code=champion_code,
+                                 full_name=full_name,
+                                 supervisor_username=User.query.get(int(supervisor_id)).username if supervisor_id else None)
 
         except IntegrityError as e:
             db.session.rollback()
@@ -1972,14 +2007,11 @@ def affirmation_delete(affirmation_id):
 def symbolic_items():
     """List all symbolic items"""
     item_type_filter = request.args.get('type', '')
-    active_only = request.args.get('active', 'true').lower() == 'true'
     
     query = SymbolicItem.query
     
     if item_type_filter:
         query = query.filter_by(item_type=item_type_filter)
-    if active_only:
-        query = query.filter_by(is_active=True)
     
     items = query.order_by(SymbolicItem.item_id.desc()).all()
     item_types = db.session.query(SymbolicItem.item_type).distinct().filter(SymbolicItem.item_type.isnot(None)).all()
@@ -1987,8 +2019,7 @@ def symbolic_items():
     return render_template('admin/symbolic_items_list.html',
                          items=items,
                          item_types=[t[0] for t in item_types],
-                         item_type_filter=item_type_filter,
-                         active_only=active_only)
+                         item_type_filter=item_type_filter)
 
 
 @admin_bp.route('/symbolic-items/create', methods=['GET', 'POST'])
@@ -2013,8 +2044,7 @@ def symbolic_item_form():
                 item_type=item_type,
                 description=request.form.get('description', '').strip() or None,
                 linked_to_training_module=request.form.get('linked_to_training_module', '').strip() or None,
-                total_quantity=total_qty,
-                is_active=True
+                total_quantity=total_qty
             )
             
             db.session.add(item)
@@ -2046,7 +2076,6 @@ def symbolic_item_edit(item_id):
         item.item_type = request.form.get('item_type', '').strip()
         item.description = request.form.get('description', '').strip() or None
         item.linked_to_training_module = request.form.get('linked_to_training_module', '').strip() or None
-        item.is_active = request.form.get('is_active') == 'on'
         
         try:
             total_qty = int(request.form.get('total_quantity', '0').strip())
@@ -2068,13 +2097,13 @@ def symbolic_item_edit(item_id):
 @login_required
 @admin_required
 def symbolic_item_delete(item_id):
-    """Delete (deactivate) a symbolic item"""
+    """Delete a symbolic item"""
     try:
         item = SymbolicItem.query.get_or_404(item_id)
-        item.is_active = False
+        db.session.delete(item)
         db.session.commit()
         
-        flash('Symbolic item deactivated successfully!', 'success')
+        flash('Symbolic item deleted successfully!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting item: {str(e)}', 'danger')

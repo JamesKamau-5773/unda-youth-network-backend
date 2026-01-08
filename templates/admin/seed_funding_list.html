@@ -143,6 +143,7 @@
                 
                 {% if app.status == 'Pending' %}
                 <form method="POST" action="{{ url_for('admin.update_seed_funding_review_status', application_id=app.application_id) }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn--secondary btn--sm">
                         Mark Under Review
                     </button>

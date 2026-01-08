@@ -16,13 +16,25 @@
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                New Champion
+                New Prevention Advocate
             </a>
             <a href="{{ url_for('admin.podcasts') }}" class="btn btn--secondary btn--nowrap btn--block">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M9 18V5l12-2v13M9 18l-7 2V7l7-2m0 13c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zm12-2c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z"/>
                 </svg>
                 Manage Podcasts
+            </a>
+            <a href="{{ url_for('admin.affirmations') }}" class="btn btn--secondary btn--nowrap btn--block">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+                Daily Affirmations
+            </a>
+            <a href="{{ url_for('admin.symbolic_items') }}" class="btn btn--secondary btn--nowrap btn--block">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                Symbolic Items
             </a>
             <a href="{{ url_for('admin.manage_users') }}" class="btn btn--secondary btn--nowrap btn--block">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -74,7 +86,7 @@
                     </div>
                     <div style="flex: 1;">
                         <div class="tile__value" style="color: #1e3a8a; font-size: 2rem;">{{ pending_applications_count }}</div>
-                        <div class="tile__label" style="color: #1e40af;">Pending Champion Application{{ 's' if pending_applications_count > 1 else '' }}</div>
+                        <div class="tile__label" style="color: #1e40af;">Pending Advocate Application{{ 's' if pending_applications_count > 1 else '' }}</div>
                         <div style="margin-top: 0.5rem; color: #2563eb; font-size: 0.875rem; font-weight: 500;">Click to review →</div>
                     </div>
                 </div>
@@ -102,7 +114,7 @@
                 <div style="flex: 1;">
                     <div class="pill" style="color: #991b1b; background: rgba(153, 27, 27, 0.1);">Critical Alert</div>
                     <div class="tile__value" style="color: #7f1d1d; font-size: 2rem;">{{ high_risk_count }}</div>
-                    <div class="tile__label" style="color: #991b1b;">High-risk champions need immediate attention</div>
+                    <div class="tile__label" style="color: #991b1b;">High-risk advocates need immediate attention</div>
                 </div>
             </div>
             {% if high_risk_champions %}
@@ -143,13 +155,13 @@
 {% endif %}
 
 
-<!-- Champion Status Overview - Modern Cards -->
+<!-- Prevention Advocate Overview - Modern Cards -->
 <div class="section-header section-header--spacious">
-    <h2 class="section-title">Champion Overview</h2>
+    <h2 class="section-title">Prevention Advocate Overview</h2>
 </div>
 
 <div class="grid-auto" style="margin-bottom: 2.5rem;">
-    <!-- Active Champions - Modern Card -->
+    <!-- Active Advocates - Modern Card -->
     <div class="tile" style="border-left: 4px solid #10b981;">
         <div class="tile__header">
             <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 0.75rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
@@ -161,12 +173,12 @@
             </div>
             <span class="pill" style="background: #d1fae5; color: #065f46;">ACTIVE</span>
         </div>
-        <div class="tile__label">Active Champions</div>
+        <div class="tile__label">Active Advocates</div>
         <div class="tile__value">{{ active_champions }}</div>
         <div class="tile__label">Currently supporting youth</div>
     </div>
 
-    <!-- Inactive Champions -->
+    <!-- Inactive Advocates -->
     <div class="tile" style="border-left: 4px solid #ef4444;">
         <div class="tile__header">
             <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 0.75rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(239,68,68,0.3);">
@@ -178,7 +190,7 @@
             </div>
             <span class="pill" style="background: #fee2e2; color: #991b1b;">INACTIVE</span>
         </div>
-        <div class="tile__label">Inactive Champions</div>
+        <div class="tile__label">Inactive Advocates</div>
         <div class="tile__value">{{ inactive_champions }}</div>
         <div class="tile__label">Require re-engagement</div>
     </div>
@@ -328,9 +340,9 @@
     </div>
 </div>
 
-<!-- Champion Performance -->
+<!-- Prevention Advocate Performance -->
 <div style="margin-bottom: 1rem;">
-    <h2 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">Champion Performance</h2>
+    <h2 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">Prevention Advocate Performance</h2>
     <p style="color: #64748b; font-size: 0.875rem;">Youth reach and engagement metrics</p>
 </div>
 
@@ -344,16 +356,16 @@
                 <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
             </svg>
         </div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem;">No Champions Yet</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem;">No Prevention Advocates Yet</div>
         <div style="color: #64748b; margin-bottom: 1.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
-            Start building your network by registering champions who will support youth in their communities.
+            Start building your network by registering prevention advocates who will support youth in their communities.
         </div>
         <a href="{{ url_for('admin.create_champion') }}" class="btn btn--cta btn--block btn--nowrap">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            Register First Champion
+            Register First Prevention Advocate
         </a>
     </div>
     {% else %}
@@ -361,7 +373,7 @@
         <table class="data-table table-stack">
             <thead>
                 <tr>
-                    <th>Champion Code</th>
+                    <th>Advocate Code</th>
                     <th>Full Name</th>
                     <th class="text-right">Youth Reached</th>
                 </tr>
@@ -369,7 +381,7 @@
             <tbody>
                 {% for champion in youth_per_champion %}
                 <tr>
-                    <td data-label="Champion Code">
+                    <td data-label="Advocate Code">
                         <span class="badge badge--primary">{{ champion.assigned_champion_code }}</span>
                     </td>
                     <td data-label="Full Name" class="font-medium">{{ champion.full_name }}</td>
@@ -387,7 +399,7 @@
 <!-- Recruitment Analytics -->
 <div style="margin-bottom: 1rem;">
     <h2 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">Recruitment Analytics</h2>
-    <p style="color: #64748b; font-size: 0.875rem;">Champion sources and acquisition channels</p>
+    <p style="color: #64748b; font-size: 0.875rem;">Prevention Advocate sources and acquisition channels</p>
 </div>
 
 <div class="tile">
@@ -405,7 +417,7 @@
                 {% for source in recruitment_sources %}
                 <tr>
                     <td data-label="Recruitment Source" class="font-medium">{{ source.recruitment_source or 'Not Specified' }}</td>
-                    <td data-label="Champions" class="table-cell--numeric">
+                    <td data-label="Prevention Advocates" class="table-cell--numeric">
                         <span class="badge" style="background: #f1f5f9; color: #1e293b; font-weight: 700;">{{ source.count }}</span>
                     </td>
                     <td data-label="Percentage" class="table-cell--numeric">
@@ -483,7 +495,7 @@
             <tbody>
                 {% for champion, training in upcoming_refreshers %}
                 <tr>
-                    <td data-label="Champion">
+                    <td data-label="Prevention Advocate">
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
                             <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem;">{{ champion.full_name[0] }}</div>
                             <div>

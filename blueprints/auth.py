@@ -75,13 +75,13 @@ def register():
 @limiter.limit("10 per minute", methods=["POST"], exempt_when=lambda: False)
 def login():
     if current_user.is_authenticated:
-        # Redirect authenticated users directly to their role dashboard (case-insensitive)
-        role_lower = (current_user.role or '').lower()
-        if role_lower == 'admin':
+        # Redirect authenticated users directly to their role dashboard
+        role = current_user.role or ''
+        if role == 'Admin':
             return redirect(url_for('admin.dashboard'))
-        elif role_lower == 'supervisor':
+        elif role == 'Supervisor':
             return redirect(url_for('supervisor.dashboard'))
-        elif role_lower == 'champion':
+        elif role == 'Prevention Advocate':
             return redirect(url_for('champion.dashboard'))
         else:
             # Unknown role - logout and clear session to prevent redirect loop
@@ -111,13 +111,13 @@ def login():
                 login_user(user, remember=True)
                 track_login_attempt(success=True)  # Track successful login
                 flash('Logged in successfully', 'success')
-                # Redirect directly to role-specific dashboard (case-insensitive)
-                role_lower = (user.role or '').lower()
-                if role_lower == 'admin':
+                # Redirect directly to role-specific dashboard
+                role = user.role or ''
+                if role == 'Admin':
                     return redirect(url_for('admin.dashboard'))
-                elif role_lower == 'supervisor':
+                elif role == 'Supervisor':
                     return redirect(url_for('supervisor.dashboard'))
-                elif role_lower == 'champion':
+                elif role == 'Prevention Advocate':
                     return redirect(url_for('champion.dashboard'))
                 else:
                     return redirect(url_for('auth.login'))

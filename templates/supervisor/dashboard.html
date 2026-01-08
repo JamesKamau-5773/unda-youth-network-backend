@@ -4,7 +4,7 @@
 {% block content %}
 <div class="dashboard-header">
 	<h1 class="dashboard-title">Supervisor Dashboard</h1>
-	<p class="dashboard-subtitle">Manage and monitor your assigned champions</p>
+	<p class="dashboard-subtitle">Manage and monitor your assigned Prevention Advocates</p>
 </div>
 
 <!-- Advanced Filters -->
@@ -89,11 +89,11 @@
 		<div class="metric-content">
 			<div class="metric-label">
 				{% if current_filters.status or current_filters.risk or current_filters.county or current_filters.institution %}
-				Filtered Champions
+				Filtered Advocates
 				{% else %}
-				Total Champions
+				Total Advocates
 				{% endif %}
-				<span class="tooltip-trigger" data-tooltip="Number of champions {% if current_filters.status or current_filters.risk or current_filters.county or current_filters.institution %}matching current filters{% else %}currently assigned to you{% endif %}">?</span>
+				<span class="tooltip-trigger" data-tooltip="Number of advocates {% if current_filters.status or current_filters.risk or current_filters.county or current_filters.institution %}matching current filters{% else %}currently assigned to you{% endif %}">?</span>
 			</div>
 			<div class="metric-value">{{ champions|length }}</div>
 			<div class="metric-description">Under supervision</div>
@@ -101,10 +101,10 @@
 	</div>
 </div>
 
-<!-- Champions Table -->
+<!-- Prevention Advocates Table -->
 <div class="section-header">
-	<h2 class="section-title">Your Champions</h2>
-	<p class="section-subtitle">View and manage champion performance</p>
+	<h2 class="section-title">Your Prevention Advocates</h2>
+	<p class="section-subtitle">View and manage advocate performance</p>
 </div>
 
 {% if champions %}
@@ -113,8 +113,8 @@
 		<table class="data-table table-stack">
 			<thead>
 				<tr>
-					<th>Champion Name</th>
-					<th>Champion Code</th>
+					<th>Advocate Name</th>
+					<th>Advocate Code</th>
 					<th>Cohort</th>
 					<th>Risk Level</th>
 					<th class="text-right">Actions</th>
@@ -123,8 +123,8 @@
 			<tbody>
 				{% for champion in champions %}
 				<tr>
-					<td data-label="Champion Name" class="font-medium">{{ champion.full_name }}</td>
-					<td data-label="Champion Code"><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
+					<td data-label="Advocate Name" class="font-medium">{{ champion.full_name }}</td>
+					<td data-label="Advocate Code"><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
 					<td data-label="Cohort"><span class="badge badge--secondary">{{ champion.assigned_cohort }}</span></td>
 					<td data-label="Risk Level">
 						{% if champion.risk_level == 'High' %}
@@ -177,10 +177,10 @@
 			<circle cx="9" cy="7" r="4"></circle>
 			<path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
 		</svg>
-		<div class="empty-state-title">No Champions Assigned Yet</div>
+		<div class="empty-state-title">No Advocates Assigned Yet</div>
 		<p class="empty-state-text">
-			You don't have any champions assigned to you for supervision. 
-			Champions will appear here once they are assigned by an administrator.
+			You don't have any prevention advocates assigned to you for supervision. 
+			Advocates will appear here once they are assigned by an administrator.
 		</p>
 	</div>
 </div>

@@ -22,9 +22,10 @@
 
 <div class="tile" style="max-width: 800px;">
     <form method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label for="item_name" class="form-label">Item Name *</label>
-            <input type="text" id="item_name" name="item_name" class="form-input" required placeholder="e.g., Leadership Badge, Champion Kit"
+            <input type="text" id="item_name" name="item_name" class="form-input" required placeholder="e.g., Leadership Badge, Advocate Kit"
                    value="{% if item %}{{ item.item_name }}{% endif %}">
         </div>
 

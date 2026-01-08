@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Champion Applications - Admin Dashboard{% endblock %}
+{% block title %}Prevention Advocate Applications - Admin Dashboard{% endblock %}
 
 {% block content %}
 <div class="hero-card">
     <div class="hero-card__inner">
         <div>
-            <h1 class="hero-card__title">Champion Applications</h1>
-            <p class="hero-card__subtitle">Review and approve champion applications from members</p>
+            <h1 class="hero-card__title">Prevention Advocate Applications</h1>
+            <p class="hero-card__subtitle">Review and approve prevention advocate applications from members</p>
         </div>
         <div class="hero-card__actions">
             <a href="{{ url_for('admin.dashboard') }}" class="btn btn--secondary">
@@ -150,19 +150,20 @@
         <polyline points="17 11 19 13 23 9"></polyline>
     </svg>
     <h3 style="color: #6b7280; margin-bottom: 0.5rem;">No {{ status_filter }} Applications</h3>
-    <p style="color: #9ca3af; margin: 0;">There are no {{ status_filter.lower() }} champion applications at this time.</p>
+    <p style="color: #9ca3af; margin: 0;">There are no {{ status_filter.lower() }} prevention advocate applications at this time.</p>
 </div>
 {% endif %}
 
 <!-- Approve Modal -->
 <div id="approveModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
     <div style="background: white; border-radius: 12px; max-width: 500px; width: 90%; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-        <h3 style="margin: 0 0 1rem 0; font-size: 1.5rem;">Approve Champion Application</h3>
-        <p style="color: #6b7280; margin-bottom: 1.5rem;">Assign a champion code for <strong id="approveName"></strong></p>
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.5rem;">Approve Prevention Advocate Application</h3>
+        <p style="color: #6b7280; margin-bottom: 1.5rem;">Assign an advocate code for <strong id="approveName"></strong></p>
         
         <form id="approveForm" method="POST" action="">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
-                <label for="championCode">Champion Code <span style="color: #ef4444;">*</span></label>
+                <label for="championCode">Advocate Code <span style="color: #ef4444;">*</span></label>
                 <input type="text" id="championCode" name="champion_code" class="form-input" required placeholder="e.g., UMV-2026-001" pattern="[A-Z0-9\-]+" title="Use uppercase letters, numbers, and hyphens only">
                 <small style="color: #6b7280; font-size: 0.875rem;">Format: UMV-YEAR-NUMBER (e.g., UMV-2026-001)</small>
             </div>
@@ -182,6 +183,7 @@
         <p style="color: #6b7280; margin-bottom: 1.5rem;">Are you sure you want to reject the application for <strong id="rejectName"></strong>?</p>
         
         <form id="rejectForm" method="POST" action="">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="rejectReason">Reason for Rejection</label>
                 <textarea id="rejectReason" name="reason" class="form-input" rows="4" required placeholder="Provide a reason for rejection..."></textarea>

@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}User Created Successfully - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1 class="dashboard-title">
+        {% if is_reset %}Password Reset Successfully
+        {% elif is_champion %}Prevention Advocate Created Successfully
+        {% else %}User Created Successfully
+        {% endif %}
+    </h1>
+</div>
+
+<div style="max-width: 700px; margin: 0 auto;">
+    <!-- Password Modal (Always Visible) -->
+    <div class="password-modal">
+        <div class="modal-header">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <h2 style="margin: 1rem 0 0.5rem 0; color: #333;">{% if is_reset %}New Temporary Password{% else %}Temporary Password Generated{% endif %}</h2>
+            <p style="margin: 0; color: #666; font-size: 0.95rem;">
+                {% if is_reset %}
+                    Password has been reset for <strong>{{ username }}</strong>
+                    {% if email and email_sent %}
+                        and sent to <strong>{{ email }}</strong>
+                    {% elif email and not email_sent %}
+                        (email sending failed - copy password below)
+                    {% endif %}
+                {% elif email and email_sent %}
+                    Password sent to <strong>{{ email }}</strong> and shown below
+                {% elif email and not email_sent %}
+                    Email sending failed. Please copy the password below
+                {% else %}
+                    Please copy this password and share it securely with <strong>{{ username }}</strong>
+                {% endif %}
+            </p>
+        </div>
+        
+        {% if email and email_sent %}
+        <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+            <p style="margin: 0; color: #155724; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <strong>Email Sent Successfully!</strong> The temporary password has been sent to {{ email }}
+            </p>
+        </div>
+        {% elif email and not email_sent %}
+        <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+            <p style="margin: 0; color: #721c24;">
+                <strong>Email Failed:</strong> Could not send email to {{ email }}. Please copy and share the password manually.
+            </p>
+        </div>
+        {% endif %}
+
+        <div class="password-display-section">
+            <div class="password-box">
+                <div class="password-label">Temporary Password:</div>
+                <div class="password-value" id="passwordValue">{{ temp_password }}</div>
+            </div>
+
+            <button type="button" class="btn-copy" id="copyBtn" onclick="copyPassword()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span id="copyText">Copy to Clipboard</span>
+            </button>
+        </div>
+
+        <div class="warning-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#856404" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div>
+                <strong>Important Security Notes:</strong>
+                <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem;">
+                    <li>This password will NOT be shown again after leaving this page</li>
+                    <li>User must change this password on their first login</li>
+                    <li>Share this password through a secure channel (in person, encrypted message, etc.)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="user-details-box">
+            <h3 style="margin: 0 0 1rem 0; color: #333; font-size: 1.1rem;">
+                {% if is_champion %}Prevention Advocate Details{% else %}User Account Details{% endif %}
+            </h3>
+            {% if is_champion %}
+            <div class="detail-row">
+                <span class="detail-label">Full Name:</span>
+                <span class="detail-value">{{ full_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Champion Code:</span>
+                <span class="detail-value" style="color: #2c5aa0; font-weight: 600;">{{ champion_code }}</span>
+            </div>
+            {% endif %}
+            <div class="detail-row">
+                <span class="detail-label">Username:</span>
+                <span class="detail-value">{{ username }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Role:</span>
+                <span class="detail-value">{{ role }}</span>
+            </div>
+            {% if is_champion and supervisor_username %}
+            <div class="detail-row">
+                <span class="detail-label">Assigned Supervisor:</span>
+                <span class="detail-value">{{ supervisor_username }}</span>
+            </div>
+            {% endif %}
+            {% if email %}
+            <div class="detail-row">
+                <span class="detail-label">Email:</span>
+                <span class="detail-value">{{ email }}</span>
+            </div>
+            {% endif %}
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="detail-value" style="color: #28a745; font-weight: 600;">Active</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Password Change Required:</span>
+                <span class="detail-value" style="color: #dc3545; font-weight: 600;">Yes (First Login)</span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn btn--primary" onclick="confirmAndRedirect()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                I've Copied the Password - Continue
+            </button>
+            <a href="{% if is_champion %}{{ url_for('admin.create_champion') }}{% else %}{{ url_for('admin.create_user') }}{% endif %}" class="btn btn--secondary">
+                {% if is_champion %}Create Another Prevention Advocate{% else %}Create Another User{% endif %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.password-modal {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    padding: 2rem;
+    margin: 2rem auto;
+}
+
+.modal-header {
+    text-align: center;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.password-display-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.password-box {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.password-label {
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.password-value {
+    font-family: 'Courier New', monospace;
+    font-size: 1.5rem;
+    color: #2c5aa0;
+    font-weight: bold;
+    word-break: break-all;
+    user-select: all;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 2px dashed #dee2e6;
+}
+
+.btn-copy {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    background: white;
+    color: #667eea;
+    border: 2px solid white;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-copy:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-copy.copied {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.warning-box ul {
+    font-size: 0.9rem;
+    color: #856404;
+}
+
+.user-details-box {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.detail-value {
+    color: #212529;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    flex: 1;
+    min-width: 200px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn--primary {
+    background: #28a745;
+    color: white;
+}
+
+.btn--primary:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn--secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn--secondary:hover {
+    background: #5a6268;
+}
+
+@media (max-width: 600px) {
+    .password-modal {
+        padding: 1.5rem;
+    }
+    
+    .password-value {
+        font-size: 1.2rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+let passwordCopied = false;
+
+function copyPassword() {
+    const password = document.getElementById('passwordValue').textContent;
+    const copyBtn = document.getElementById('copyBtn');
+    const copyText = document.getElementById('copyText');
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(password).then(() => {
+        // Visual feedback
+        copyBtn.classList.add('copied');
+        copyText.textContent = '✓ Copied to Clipboard!';
+        passwordCopied = true;
+        
+        // Reset button after 3 seconds
+        setTimeout(() => {
+            copyBtn.classList.remove('copied');
+            copyText.textContent = 'Copy to Clipboard';
+        }, 3000);
+    }).catch(err => {
+        alert('Failed to copy password. Please select and copy it manually.');
+        console.error('Copy failed:', err);
+    });
+}
+
+function confirmAndRedirect() {
+    if (!passwordCopied) {
+        const confirmed = confirm(
+            'Have you copied the password?\n\n' +
+            'This password will NOT be shown again after leaving this page.\n\n' +
+            'Click "OK" only if you have safely copied the password.'
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+    }
+    
+    window.location.href = "{{ url_for('admin.manage_users') }}";
+}
+
+// Warn user if trying to leave without copying
+window.addEventListener('beforeunload', (e) => {
+    if (!passwordCopied) {
+        e.preventDefault();
+        e.returnValue = 'You haven\'t copied the password yet. Are you sure you want to leave?';
+        return e.returnValue;
+    }
+});
+</script>
+{% endblock %}

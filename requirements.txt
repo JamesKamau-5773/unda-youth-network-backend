@@ -8,6 +8,7 @@ Flask-Bcrypt==1.0.1           # For strong password hashing
 Flask-Migrate==4.0.5          # Database migrations
 Flask-WTF==1.2.1              # CSRF protection
 Flask-CORS==4.0.0             # Cross-Origin Resource Sharing
+Flask-Mail==0.10.0            # Email sending
 python-dotenv==1.0.0
 requests==2.31.0              # HTTP library for M-Pesa API calls
 gunicorn==21.2.0              # Production-grade WSGI server

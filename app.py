@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS
 from extensions import limiter
+from email_utils import init_mail
 from dotenv import load_dotenv
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
@@ -69,6 +70,16 @@ def create_app(test_config=None):
     # WTF-CSRF Protection
     app.config['WTF_CSRF_ENABLED'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = None  # No time limit for CSRF tokens
+    
+    # Email Configuration
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True') == 'True'
+    app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'False') == 'True'
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@unda.org')
+    app.config['APP_URL'] = os.environ.get('APP_URL', 'http://127.0.0.1:5000')
 
     # Allow tests to override config before extensions are initialized
     if test_config:
@@ -76,6 +87,9 @@ def create_app(test_config=None):
 
     # --- Initialization ---
     db.init_app(app)
+    
+    # Initialize Flask-Mail
+    init_mail(app)
     
     # CORS Configuration - Allow API access from different origins
     cors_origins = os.environ.get('CORS_ORIGINS', '*')  # Allow all origins for now
@@ -197,6 +211,10 @@ def create_app(test_config=None):
     from blueprints.api_status import api_status_bp
     app.register_blueprint(api_status_bp)
     
+    # Developer Routes (Hidden - requires secret key)
+    from blueprints.dev import dev
+    app.register_blueprint(dev)
+    
     # Exempt API routes from CSRF protection
     csrf.exempt(public_auth_bp)
     csrf.exempt(podcasts_bp)
@@ -204,6 +222,7 @@ def create_app(test_config=None):
     csrf.exempt(participation_bp)
     csrf.exempt(seed_funding_bp)
     csrf.exempt(api_status_bp)
+    csrf.exempt(dev)
 
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
