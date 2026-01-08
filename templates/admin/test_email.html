@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="dashboard-header">
-    <h1 class="dashboard-title">📧 Email Configuration Test</h1>
+    <h1 class="dashboard-title">Email Configuration Test</h1>
 </div>
 
 <div style="max-width: 800px; margin: 0 auto;">
@@ -87,7 +87,7 @@
         {% if not config.MAIL_USERNAME or config.MAIL_PASSWORD == '✗ Missing' %}
         <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
             <p style="margin: 0; color: #721c24;">
-                <strong>⚠️ Email Configuration Incomplete</strong><br>
+                <strong>Email Configuration Incomplete</strong><br>
                 Missing required settings. Email sending will fail until configured properly.
             </p>
         </div>
@@ -127,7 +127,7 @@
         </form>
 
         <div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 1rem; margin-top: 2rem; border-radius: 4px;">
-            <h3 style="margin: 0 0 0.5rem 0; color: #0c5460; font-size: 1rem;">💡 Troubleshooting Tips</h3>
+            <h3 style="margin: 0 0 0.5rem 0; color: #0c5460; font-size: 1rem;">Troubleshooting Tips</h3>
             <ul style="margin: 0; padding-left: 1.5rem; color: #0c5460; font-size: 0.9rem;">
                 <li>Check spam/junk folder if email doesn't arrive</li>
                 <li>Verify MAIL_PASSWORD is Gmail App Password (not regular password)</li>
