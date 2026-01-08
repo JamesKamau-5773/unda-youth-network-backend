@@ -216,10 +216,8 @@ def approve_registration(registration_id):
             return jsonify({'error': 'Registration already processed'}), 400
         
         # Create user account
-        user = User(
-            username=registration.username,
-            role='Champion'  # Default role for new members
-        )
+        user = User(username=registration.username)
+        user.set_role(User.ROLE_PREVENTION_ADVOCATE)  # Default role for new members
         user.password_hash = registration.password_hash  # Use the hashed password from registration
         
         db.session.add(user)

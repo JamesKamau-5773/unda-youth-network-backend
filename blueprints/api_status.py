@@ -46,8 +46,8 @@ def api_status():
         total_assessments = MentalHealthAssessment.query.count()
         
         # Count by role
-        admins = User.query.filter_by(role='Admin').count()
-        supervisors = User.query.filter_by(role='Supervisor').count()
+        admins = User.query.filter_by(role=User.ROLE_ADMIN).count()
+        supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).count()
         advocates = User.query.filter_by(role='Prevention Advocate').count()
         
         stats_available = True
