@@ -562,33 +562,21 @@ def create_champion():
 
             db.session.commit()
 
-            # Try to send email if email is provided (Async to prevent 502 timeouts)
-            email_sent = True  # Optimistically assume success to avoid UI blocking
+            # Try to send email synchronously (much more reliable than threading)
+            email_sent = False
             if email:
                 try:
-                    # Use threading to send email in background avoids blocking the response
-                    app = current_app._get_current_object()
+                    current_app.logger.info(f"Attempting to send password email to {email}")
+                    email_sent = send_password_email(email, username, temp_password)
                     
-                    def send_async_email(app_obj, recipient, user_name, password):
-                        with app_obj.app_context():
-                            # Note: send_password_email imported at top level to avoid thread deadlocks
-                            # send_password_email handles its own exception logging
-                            try:
-                                send_password_email(recipient, user_name, password)
-                            except Exception as e:
-                                app_obj.logger.error(f"Async email failed inside thread: {str(e)}")
-                    
-                    email_thread = threading.Thread(
-                        target=send_async_email, 
-                        args=(app, email, username, temp_password)
-                    )
-                    email_thread.daemon = True
-                    email_thread.start()
-                    current_app.logger.info(f"Started async email thread for {email}")
+                    if email_sent:
+                        current_app.logger.info(f"✅ Password email sent successfully to {email}")
+                    else:
+                        current_app.logger.warning(f"⚠️ Email sending failed for {email} - check email configuration")
+                        
                 except Exception as e:
-                    current_app.logger.error(f"Failed to initiate async email: {str(e)}")
-                    # Don't fail the request if email thread fails
-                    pass
+                    current_app.logger.error(f"❌ Email exception for {email}: {str(e)}")
+                    email_sent = False
 
             # Safe supervisor name retrieval
             supervisor_name = None
@@ -2208,3 +2196,47 @@ def assessment_detail(assessment_id):
     assessment = MentalHealthAssessment.query.get_or_404(assessment_id)
     
     return render_template('admin/assessment_detail.html', assessment=assessment)
+
+
+@admin_bp.route('/test-email', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def test_email():
+    """Test email configuration - admin diagnostic tool"""
+    if request.method == 'POST':
+        test_recipient = request.form.get('test_email', '').strip()
+        
+        if not test_recipient:
+            flash('Please enter an email address', 'danger')
+            return redirect(url_for('admin.test_email'))
+        
+        try:
+            current_app.logger.info(f"Admin {current_user.username} testing email to {test_recipient}")
+            email_sent = send_password_email(
+                recipient_email=test_recipient,
+                username="test_user",
+                temp_password="TestPass123!"
+            )
+            
+            if email_sent:
+                flash(f'✅ Test email sent successfully to {test_recipient}. Check inbox and spam folder.', 'success')
+            else:
+                flash(f'❌ Email sending failed. Check server logs for details.', 'danger')
+                
+        except Exception as e:
+            current_app.logger.error(f"Email test error: {str(e)}")
+            flash(f'❌ Email error: {str(e)}', 'danger')
+        
+        return redirect(url_for('admin.test_email'))
+    
+    # GET request - show email config
+    config_status = {
+        'MAIL_SERVER': current_app.config.get('MAIL_SERVER'),
+        'MAIL_PORT': current_app.config.get('MAIL_PORT'),
+        'MAIL_USE_TLS': current_app.config.get('MAIL_USE_TLS'),
+        'MAIL_USERNAME': current_app.config.get('MAIL_USERNAME'),
+        'MAIL_PASSWORD': '✓ Set' if current_app.config.get('MAIL_PASSWORD') else '✗ Missing',
+        'MAIL_DEFAULT_SENDER': current_app.config.get('MAIL_DEFAULT_SENDER'),
+    }
+    
+    return render_template('admin/test_email.html', config=config_status)

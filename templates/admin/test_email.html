@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Test Email Configuration - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1 class="dashboard-title">📧 Email Configuration Test</h1>
+</div>
+
+<div style="max-width: 800px; margin: 0 auto;">
+    <!-- Email Configuration Status -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <h2 style="margin: 0 0 1rem 0; color: #333; font-size: 1.3rem;">Current Email Configuration</h2>
+        
+        <table class="data-table" style="margin-bottom: 1rem;">
+            <thead>
+                <tr>
+                    <th>Setting</th>
+                    <th>Value</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>MAIL_SERVER</strong></td>
+                    <td>{{ config.MAIL_SERVER or 'Not Set' }}</td>
+                    <td>
+                        {% if config.MAIL_SERVER %}
+                            <span style="color: #28a745;">✓</span>
+                        {% else %}
+                            <span style="color: #dc3545;">✗</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>MAIL_PORT</strong></td>
+                    <td>{{ config.MAIL_PORT or 'Not Set' }}</td>
+                    <td>
+                        {% if config.MAIL_PORT %}
+                            <span style="color: #28a745;">✓</span>
+                        {% else %}
+                            <span style="color: #dc3545;">✗</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>MAIL_USE_TLS</strong></td>
+                    <td>{{ config.MAIL_USE_TLS }}</td>
+                    <td><span style="color: #28a745;">✓</span></td>
+                </tr>
+                <tr>
+                    <td><strong>MAIL_USERNAME</strong></td>
+                    <td>{{ config.MAIL_USERNAME or 'Not Set' }}</td>
+                    <td>
+                        {% if config.MAIL_USERNAME %}
+                            <span style="color: #28a745;">✓</span>
+                        {% else %}
+                            <span style="color: #dc3545;">✗ REQUIRED</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>MAIL_PASSWORD</strong></td>
+                    <td>{{ config.MAIL_PASSWORD }}</td>
+                    <td>
+                        {% if config.MAIL_PASSWORD == '✓ Set' %}
+                            <span style="color: #28a745;">✓</span>
+                        {% else %}
+                            <span style="color: #dc3545;">✗ REQUIRED</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>MAIL_DEFAULT_SENDER</strong></td>
+                    <td>{{ config.MAIL_DEFAULT_SENDER or 'Not Set' }}</td>
+                    <td>
+                        {% if config.MAIL_DEFAULT_SENDER %}
+                            <span style="color: #28a745;">✓</span>
+                        {% else %}
+                            <span style="color: #ffc107;">⚠ Using fallback</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        {% if not config.MAIL_USERNAME or config.MAIL_PASSWORD == '✗ Missing' %}
+        <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+            <p style="margin: 0; color: #721c24;">
+                <strong>⚠️ Email Configuration Incomplete</strong><br>
+                Missing required settings. Email sending will fail until configured properly.
+            </p>
+        </div>
+        {% else %}
+        <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+            <p style="margin: 0; color: #155724;">
+                <strong>✓ Email Configuration Complete</strong><br>
+                All required settings are configured. Send a test email below to verify.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Test Email Form -->
+    <div class="card">
+        <h2 style="margin: 0 0 1rem 0; color: #333; font-size: 1.3rem;">Send Test Email</h2>
+        
+        <form method="POST" action="{{ url_for('admin.test_email') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <label for="test_email">Recipient Email Address</label>
+                <input type="email" 
+                       class="form-control" 
+                       id="test_email" 
+                       name="test_email" 
+                       placeholder="your-email@example.com"
+                       required>
+                <small style="color: #666; display: block; margin-top: 0.5rem;">
+                    A test email with sample credentials will be sent to this address
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn--primary" style="margin-top: 1rem;">
+                📤 Send Test Email
+            </button>
+        </form>
+
+        <div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 1rem; margin-top: 2rem; border-radius: 4px;">
+            <h3 style="margin: 0 0 0.5rem 0; color: #0c5460; font-size: 1rem;">💡 Troubleshooting Tips</h3>
+            <ul style="margin: 0; padding-left: 1.5rem; color: #0c5460; font-size: 0.9rem;">
+                <li>Check spam/junk folder if email doesn't arrive</li>
+                <li>Verify MAIL_PASSWORD is Gmail App Password (not regular password)</li>
+                <li>Ensure 2FA is enabled on Gmail account before generating App Password</li>
+                <li>Check server logs for detailed error messages</li>
+                <li>Run <code style="background: #fff; padding: 2px 6px; border-radius: 3px;">python3 test_email.py</code> from terminal</li>
+            </ul>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn--secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

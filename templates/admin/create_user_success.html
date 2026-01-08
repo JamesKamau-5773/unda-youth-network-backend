@@ -51,9 +51,27 @@
         </div>
         {% elif email and not email_sent %}
         <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
-            <p style="margin: 0; color: #721c24;">
-                <strong>Email Failed:</strong> Could not send email to {{ email }}. Please copy and share the password manually.
+            <p style="margin: 0 0 0.5rem 0; color: #721c24;">
+                <strong>⚠️ Email Delivery Failed</strong>
             </p>
+            <p style="margin: 0 0 0.5rem 0; color: #721c24; font-size: 0.9rem;">
+                The system could not send the temporary password to <strong>{{ email }}</strong>.
+            </p>
+            <p style="margin: 0; color: #721c24; font-size: 0.9rem;">
+                <strong>Action Required:</strong> Please copy the password below and share it with the user through a secure channel (in person, WhatsApp, SMS, etc.)
+            </p>
+            <details style="margin-top: 0.5rem;">
+                <summary style="cursor: pointer; color: #856404; font-size: 0.85rem;">Why did this happen?</summary>
+                <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem; color: #856404; font-size: 0.85rem;">
+                    <li>Email server may be down or misconfigured</li>
+                    <li>Invalid recipient email address</li>
+                    <li>Network connectivity issues</li>
+                    <li>SMTP authentication failure</li>
+                </ul>
+                <p style="margin: 0.5rem 0 0 0; color: #856404; font-size: 0.85rem;">
+                    <strong>For admins:</strong> Check server logs or run <code style="background: #fff3cd; padding: 2px 6px; border-radius: 3px;">python3 test_email.py</code> to diagnose.
+                </p>
+            </details>
         </div>
         {% endif %}
 

@@ -7,6 +7,17 @@
     <p class="dashboard-subtitle">Manage your profile and account preferences</p>
 </div>
 
+{% if current_user.role == 'Admin' %}
+<div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 1rem; margin-bottom: 2rem; border-radius: 4px;">
+    <p style="margin: 0; color: #0c5460; display: flex; align-items: center; gap: 0.5rem;">
+        🔧 <strong>Admin Tools:</strong>
+        <a href="{{ url_for('admin.test_email') }}" style="color: #0c5460; text-decoration: underline;">
+            Test Email Configuration
+        </a>
+    </p>
+</div>
+{% endif %}
+
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
     <!-- Account Information Card -->
     <div class="data-card">

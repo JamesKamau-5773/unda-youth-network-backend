@@ -91,6 +91,21 @@ def create_app(test_config=None):
     app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@unda.org')
     app.config['APP_URL'] = os.environ.get('APP_URL', 'http://127.0.0.1:5000')
+    
+    # Validate email configuration on startup
+    email_config_warnings = []
+    if not app.config.get('MAIL_USERNAME'):
+        email_config_warnings.append('MAIL_USERNAME not set - email sending will fail')
+    if not app.config.get('MAIL_PASSWORD'):
+        email_config_warnings.append('MAIL_PASSWORD not set - email sending will fail')
+    if not app.config.get('MAIL_DEFAULT_SENDER'):
+        email_config_warnings.append('MAIL_DEFAULT_SENDER not set - using fallback')
+    
+    if email_config_warnings:
+        print("\n⚠️  EMAIL CONFIGURATION WARNINGS:")
+        for warning in email_config_warnings:
+            print(f"   - {warning}")
+        print("   → Set these in your .env file to enable email notifications\n")
 
     # Allow tests to override config before extensions are initialized
     if test_config:
