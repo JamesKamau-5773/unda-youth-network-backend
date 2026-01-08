@@ -24,7 +24,7 @@ All missing mental health screening workflow features have been successfully imp
 - Created_by tracking
 
 ### 3. AffirmationDelivery
-**Purpose:** Track individual affirmation deliveries to champions
+**Purpose:** Track individual affirmation deliveries to prevention advocates
 - 9 fields including delivery tracking
 - Engagement metrics (viewed_at, liked_at)
 - Engagement time in seconds
@@ -47,7 +47,7 @@ All missing mental health screening workflow features have been successfully imp
 - Active/inactive status
 
 ### 6. ItemDistribution
-**Purpose:** Track distribution of symbolic items to champions
+**Purpose:** Track distribution of symbolic items to prevention advocates
 - 9 fields for distribution records
 - Links to training records and event participations
 - Distribution reason tracking
@@ -83,7 +83,7 @@ All missing mental health screening workflow features have been successfully imp
 4. **PUT /<id>** - Update assessment
    - Update scores, risk flags, referral status, notes
    
-5. **GET /champion/<id>/trend** - Get trend analysis
+5. **GET /prevention advocate/<id>/trend** - Get trend analysis
    - Shows improvement over time
    - Calculates improvement percentage from baseline
 
@@ -137,8 +137,8 @@ All missing mental health screening workflow features have been successfully imp
 8. **GET /event/<id>/stats** - Event statistics
    - Attendance rate, feedback scores, certificates
    
-9. **GET /champion/<id>/history** - Champion participation history
-   - Champions can view their own, supervisors view all
+9. **GET /prevention advocate/<id>/history** - Prevention Advocate participation history
+   - Prevention Advocates can view their own, supervisors view all
 
 ### Symbolic Items API (/api/symbolic-items) - 11 endpoints
 1. **GET /** - List items
@@ -164,8 +164,8 @@ All missing mental health screening workflow features have been successfully imp
 8. **DELETE /distributions/<id>** - Revoke distribution (Admin only)
    - Returns item to inventory
    
-9. **GET /champion/<id>/items** - Champion's items
-   - Champions view their own, supervisors view all
+9. **GET /prevention advocate/<id>/items** - Prevention Advocate's items
+   - Prevention Advocates view their own, supervisors view all
    
 10. **GET /types** - Get all item types
    
@@ -253,7 +253,7 @@ And modify 1 existing table:
 ### 1. Model Tests
 - Import validation passed
 - Create sample records
-- Test relationships (champion, user, event links)
+- Test relationships (prevention advocate, user, event links)
 - Validate JSON fields (item_scores, skills_acquired)
 
 ### 2. API Tests

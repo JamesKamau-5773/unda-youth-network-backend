@@ -44,7 +44,7 @@ All mental health screening features have been migrated to the database.
 - GET `/<id>` - Get assessment details
 - POST `/` - Create assessment
 - PUT `/<id>` - Update assessment
-- GET `/champion/<id>/trend` - Trend analysis
+- GET `/prevention advocate/<id>/trend` - Trend analysis
 
 ### Affirmations API (`/api/affirmations`) - 10 endpoints
 - GET `/` - List affirmations
@@ -67,7 +67,7 @@ All mental health screening features have been migrated to the database.
 - PUT `/<id>/feedback` - Submit feedback
 - POST `/<id>/certificate` - Issue certificate
 - GET `/event/<id>/stats` - Event statistics
-- GET `/champion/<id>/history` - Champion history
+- GET `/prevention advocate/<id>/history` - Prevention Advocate history
 
 ### Symbolic Items API (`/api/symbolic-items`) - 11 endpoints
 - GET `/` - List items
@@ -78,7 +78,7 @@ All mental health screening features have been migrated to the database.
 - GET `/distributions` - List distributions
 - POST `/distributions` - Distribute item
 - DELETE `/distributions/<id>` - Revoke distribution
-- GET `/champion/<id>/items` - Champion's items
+- GET `/prevention advocate/<id>/items` - Prevention Advocate's items
 - GET `/types` - Get item types
 - GET `/inventory/summary` - Inventory summary
 

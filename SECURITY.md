@@ -9,7 +9,7 @@ The Unda Youth Network application implements comprehensive security measures ap
 ### 1. Authentication & Authorization
 - **Bcrypt Password Hashing**: All passwords encrypted with bcrypt using automatic salt generation
 - **Flask-Login Session Management**: Secure server-side session handling
-- **Role-Based Access Control (RBAC)**: Three-tier permission system (Admin, Supervisor, Champion)
+- **Role-Based Access Control (RBAC)**: Three-tier permission system (Admin, Supervisor, Prevention Advocate)
 - **Custom Decorators**: `@admin_required`, `@supervisor_required`, `@champion_required`
 
 ### 2. Password Security

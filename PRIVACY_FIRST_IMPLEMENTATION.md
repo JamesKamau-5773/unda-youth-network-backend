@@ -14,8 +14,8 @@ Successfully implemented a **zero-compromise** privacy-first mental health scree
 
 1. ✅ **NO raw scores stored in database**
 2. ✅ **NO individual question responses stored**
-3. ✅ **NO champion names linked to assessments**
-4. ✅ **Champion codes used for anonymized tracking**
+3. ✅ **NO prevention advocate names linked to assessments**
+4. ✅ **Prevention Advocate codes used for anonymized tracking**
 5. ✅ **Color-coded risk categories instead of numeric scores**
 6. ✅ **Role-based access control (RBAC) enforced**
 7. ✅ **Auto-referral for high-risk cases**
@@ -36,8 +36,8 @@ Successfully implemented a **zero-compromise** privacy-first mental health scree
 - View referral summaries
 - **Cannot see raw screening scores**
 
-### 3. Prevention Advocates (formerly "Champions")
-- Register and manage Prevention Champions
+### 3. Prevention Advocates (formerly "Prevention Advocates")
+- Register and manage Prevention Prevention Advocates
 - Submit mental health screenings
 - View operational data (attendance, engagement)
 - **Capture screening outcomes as color flags only**
@@ -82,7 +82,7 @@ Successfully implemented a **zero-compromise** privacy-first mental health scree
 - `risk_category` (Green, Blue, Purple, Orange, Red)
 - `score_range` (e.g., "0-4", "5-9")
 
-### Champion Code Format
+### Prevention Advocate Code Format
 ```
 UMV-YYYY-NNNNNN
 ```
@@ -134,9 +134,9 @@ Authorization: Bearer <token>
 Role: Prevention Advocate
 ```
 
-#### Validate Champion Code
+#### Validate Prevention Advocate Code
 ```http
-POST /api/assessments/validate-champion-code
+POST /api/assessments/validate-prevention advocate-code
 Authorization: Bearer <token>
 
 Request Body:
@@ -176,7 +176,7 @@ Response:
 }
 ```
 
-**PRIVACY: NO individual champion data or raw scores exposed.**
+**PRIVACY: NO individual prevention advocate data or raw scores exposed.**
 
 #### Statistics
 ```http
@@ -203,9 +203,9 @@ Role: Admin
 
 ### Public Endpoints (No Auth Required)
 
-#### Champion Self-Registration
+#### Prevention Advocate Self-Registration
 ```http
-POST /api/champions/register
+POST /api/prevention advocates/register
 
 Request Body:
 {
@@ -222,16 +222,16 @@ Request Body:
 Response:
 {
   "success": true,
-  "message": "Champion registered successfully",
+  "message": "Prevention Advocate registered successfully",
   "champion_code": "UMV-2026-000042",
   "champion_id": 42,
-  "important_notice": "Please save your Champion Code securely..."
+  "important_notice": "Please save your Prevention Advocate Code securely..."
 }
 ```
 
-#### Verify Champion Code
+#### Verify Prevention Advocate Code
 ```http
-POST /api/champions/verify-code
+POST /api/prevention advocates/verify-code
 
 Request Body:
 {
@@ -249,7 +249,7 @@ Request Body:
 ```sql
 UPDATE users 
 SET role = 'Prevention Advocate' 
-WHERE role = 'Champion'
+WHERE role = 'Prevention Advocate'
 ```
 
 ### Migration 2: Refactor Assessment Schema
@@ -273,7 +273,7 @@ flask db upgrade
 
 - [x] No raw scores stored in database
 - [x] No individual question responses stored
-- [x] Champion names not linked to assessments
+- [x] Prevention Advocate names not linked to assessments
 - [x] Only champion_code used for tracking
 - [x] Prevention Advocates see only color flags
 - [x] Supervisors see only aggregated statistics
@@ -295,7 +295,7 @@ flask db upgrade
 ### API Blueprints
 - ✅ `blueprints/assessments.py` - **COMPLETELY REWRITTEN** (privacy-first)
 - ✅ `blueprints/admin.py` - Updated assessment views (no raw scores)
-- ✅ `blueprints/public_auth.py` - Added champion registration endpoints
+- ✅ `blueprints/public_auth.py` - Added prevention advocate registration endpoints
 
 ### Backup Files
 - 📦 `blueprints/assessments.py.backup` - Original (legacy) implementation
@@ -326,8 +326,8 @@ flask shell
 
 ### 4. Test Endpoints
 ```bash
-# Test champion registration
-curl -X POST http://localhost:5000/api/champions/register \
+# Test prevention advocate registration
+curl -X POST http://localhost:5000/api/prevention advocates/register \
   -H "Content-Type: application/json" \
   -d '{"full_name":"Test User","email":"test@test.com","phone_number":"254712345678","gender":"Male","date_of_birth":"2000-01-01","county_sub_county":"Nairobi","consent_obtained":true}'
 ```
@@ -340,19 +340,19 @@ curl -X POST http://localhost:5000/api/champions/register \
 - [ ] Test `map_phq9_to_risk_category()` with all score ranges
 - [ ] Test `map_gad7_to_risk_category()` with all score ranges
 - [ ] Test `generate_champion_code()` uniqueness
-- [ ] Test assessment submission with invalid champion code
+- [ ] Test assessment submission with invalid prevention advocate code
 - [ ] Test auto-referral creation for Orange/Red flags
 
 ### Integration Tests
 - [ ] Prevention Advocate can submit assessment
 - [ ] Supervisor can view dashboard (no raw scores)
 - [ ] Admin can view system overview
-- [ ] Public champion registration works
+- [ ] Public prevention advocate registration works
 - [ ] Role-based access control is enforced
 
 ### Security Tests
 - [ ] Confirm NO raw scores in database
-- [ ] Confirm NO champion names in assessment responses
+- [ ] Confirm NO prevention advocate names in assessment responses
 - [ ] Confirm unauthorized users cannot access endpoints
 - [ ] Confirm SQL injection protection
 
@@ -362,13 +362,13 @@ curl -X POST http://localhost:5000/api/champions/register \
 
 ### Member Portal Requirements
 
-1. **Champion Registration Form**
+1. **Prevention Advocate Registration Form**
    - Capture all required fields
-   - Generate and display champion code
+   - Generate and display prevention advocate code
    - Emphasize importance of saving code
 
 2. **Assessment Submission Interface**
-   - Input champion code
+   - Input prevention advocate code
    - Display PHQ-9/GAD-7 questionnaire
    - Calculate score client-side
    - Submit to `/api/assessments/submit`
@@ -399,7 +399,7 @@ curl -X POST http://localhost:5000/api/champions/register \
 
 1. **DO NOT** restore the old assessments.py.backup file
 2. **DO NOT** add endpoints that expose raw scores
-3. **DO NOT** link champion names to assessment records
+3. **DO NOT** link prevention advocate names to assessment records
 4. **ALWAYS** use champion_code, never champion_id in assessments
 5. **VERIFY** all API responses before frontend integration
 

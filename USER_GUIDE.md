@@ -10,7 +10,7 @@ UNDA Youth Network is a **digital platform** designed to help youth organization
 
 - **Youth Workers & Supervisors**: Manage young people's information, track their progress, and monitor safeguarding concerns
 - **Program Administrators**: Oversee the entire youth program, generate reports, and ensure compliance
-- **Champions (Young People)**: Access their own information and track their personal development journey
+- **Prevention Advocates (Young People)**: Access their own information and track their personal development journey
 
 ---
 
@@ -26,8 +26,8 @@ Just like logging into your email or social media:
 
 ### **Role-Based Access**
 Everyone sees only what they need:
-- **Champions** see their own information only
-- **Supervisors** see their assigned champions
+- **Prevention Advocates** see their own information only
+- **Supervisors** see their assigned prevention advocates
 - **Admins** see everything and manage the system
 
 Think of it like a **hospital**: patients see their own records, nurses see their assigned patients, and hospital administrators oversee everything.
@@ -36,7 +36,7 @@ Think of it like a **hospital**: patients see their own records, nurses see thei
 
 ## Key Features That Make UNDA Stand Out
 
-### 1. **Comprehensive Champion Profiles**
+### 1. **Comprehensive Prevention Advocate Profiles**
 Unlike basic databases that only store names and addresses, UNDA captures the **complete picture** of each young person:
 
 #### **Personal Development Tracking**
@@ -48,7 +48,7 @@ Unlike basic databases that only store names and addresses, UNDA captures the **
 **Why It Matters**: Helps supervisors provide **personalized support** and identify opportunities that match each young person's interests and abilities.
 
 #### **Health & Wellbeing**
-UNDA captures critical health information to ensure champion safety during programs and activities:
+UNDA captures critical health information to ensure prevention advocate safety during programs and activities:
 
 **Medical Information**:
 - Medical conditions (asthma, diabetes, epilepsy, etc.)
@@ -68,7 +68,7 @@ UNDA captures critical health information to ensure champion safety during progr
 - **Emergency Response**: Critical medical information accessible instantly if urgent care needed
 - **Person-Centered Care**: Support tailored to individual health needs
 
-**Example**: If a champion has severe peanut allergies, supervisors are alerted before any event involving food. The system flags this during meal planning to prevent potentially life-threatening exposure.
+**Example**: If a prevention advocate has severe peanut allergies, supervisors are alerted before any event involving food. The system flags this during meal planning to prevent potentially life-threatening exposure.
 
 #### **Risk Assessment & Safeguarding**
 
@@ -86,34 +86,34 @@ UNDA includes a **risk categorization system** to prioritize support and ensure 
    - Protective factors (supportive family, engaged in school)
    - Intervention plans and referral actions
    - Safeguarding concerns documented
-3. **Last Contact Date**: When supervisor last had meaningful interaction with champion
+3. **Last Contact Date**: When supervisor last had meaningful interaction with prevention advocate
 4. **Next Review Date**: Scheduled date for reassessing risk level
 5. **Assessment History**: Date/time of last risk assessment update
 
 **Automated Alerts**:
 The system automatically flags:
-- **High-risk champions** who need immediate attention
+- **High-risk prevention advocates** who need immediate attention
 - **Overdue reviews** where assessment date has passed
 
 **Dashboard Alerts** (Admin View):
 Admin dashboard displays urgent alerts prominently:
-- High-risk champion count with detailed list
-- Overdue review count with champion names and due dates
+- High-risk prevention advocate count with detailed list
+- Overdue review count with prevention advocate names and due dates
 - Color-coded visual indicators (red for high-risk, orange for overdue)
-- Quick links to champion profiles for immediate action
+- Quick links to prevention advocate profiles for immediate action
 
 **Why This System Matters**:
-- **Prevents Cases Falling Through Cracks**: No champion is forgotten; overdue reviews automatically surface
+- **Prevents Cases Falling Through Cracks**: No prevention advocate is forgotten; overdue reviews automatically surface
 - **Prioritizes Resources**: High-risk cases get immediate supervisor attention
 - **Evidence-Based Decision Making**: Documented risk factors support referral decisions
 - **Accountability**: Clear record of when and why risk levels changed
 - **Compliance**: Meets safeguarding best practices and regulatory requirements
 
-**Example Scenario**: A supervisor notices a champion has missed three consecutive sessions. They update the risk level from Low to Medium, set a next review date for 2 weeks, and document concerns in risk notes. The system automatically includes this champion in the "Requires Monitoring" filter, ensuring they receive additional check-ins.
+**Example Scenario**: A supervisor notices a prevention advocate has missed three consecutive sessions. They update the risk level from Low to Medium, set a next review date for 2 weeks, and document concerns in risk notes. The system automatically includes this prevention advocate in the "Requires Monitoring" filter, ensuring they receive additional check-ins.
 
 #### **Advanced Filtering & Search**
 
-Supervisors can quickly find champions using multiple filter criteria:
+Supervisors can quickly find prevention advocates using multiple filter criteria:
 
 **Available Filters**:
 - **Status**: Active, Inactive, On Hold
@@ -124,25 +124,25 @@ Supervisors can quickly find champions using multiple filter criteria:
 **How It Works**:
 1. Navigate to Supervisor Dashboard
 2. Use dropdown filters at top of page
-3. Click "Apply Filters" to refine champion list
+3. Click "Apply Filters" to refine prevention advocate list
 4. Active filters shown as color-coded badges
-5. "Clear Filters" button resets to show all champions
+5. "Clear Filters" button resets to show all prevention advocates
 
 **Filter Combinations**: 
 Combine multiple filters for precise searches:
-- "Show me all High-Risk champions in Nairobi County" → Status: Active + Risk: High + County: Nairobi
-- "Find inactive champions needing follow-up" → Status: Inactive + Risk: Medium/High
+- "Show me all High-Risk prevention advocates in Nairobi County" → Status: Active + Risk: High + County: Nairobi
+- "Find inactive prevention advocates needing follow-up" → Status: Inactive + Risk: Medium/High
 
-**Champion Count Updates**: 
-The "Total Champions" metric dynamically updates to show filtered count vs total count, giving supervisors clear visibility into how many champions match their criteria.
+**Prevention Advocate Count Updates**: 
+The "Total Prevention Advocates" metric dynamically updates to show filtered count vs total count, giving supervisors clear visibility into how many prevention advocates match their criteria.
 
 **Why This Matters**:
-- **Efficiency**: Find specific champion groups in seconds instead of manual searching
-- **Targeted Interventions**: Identify high-risk champions in specific locations for group interventions
-- **Workload Management**: See how many champions match specific criteria for planning
+- **Efficiency**: Find specific prevention advocate groups in seconds instead of manual searching
+- **Targeted Interventions**: Identify high-risk prevention advocates in specific locations for group interventions
+- **Workload Management**: See how many prevention advocates match specific criteria for planning
 - **Data-Driven Decisions**: Quick insights into distribution of risk levels, statuses, locations
 
-**Example**: A supervisor wants to organize a support group for champions with mental health needs in Kiambu County. They filter: Risk: Medium/High → County: Kiambu → Review health notes → Contact relevant champions directly.
+**Example**: A supervisor wants to organize a support group for prevention advocates with mental health needs in Kiambu County. They filter: Risk: Medium/High → County: Kiambu → Review health notes → Contact relevant prevention advocates directly.
 
 
 - Medical conditions and allergies
@@ -150,7 +150,7 @@ The "Total Champions" metric dynamically updates to show filtered count vs total
 - Disability information
 - Mental health support needs
 
-**Why It Matters**: Ensures **safety during activities** and helps staff provide appropriate support. If a champion has a nut allergy, supervisors know to avoid certain foods at events.
+**Why It Matters**: Ensures **safety during activities** and helps staff provide appropriate support. If a prevention advocate has a nut allergy, supervisors know to avoid certain foods at events.
 
 #### **Family Support Network**
 - Emergency contacts
@@ -177,7 +177,7 @@ The "Total Champions" metric dynamically updates to show filtered count vs total
 - Missing information highlighted
 - Overdue reviews shown in red
 
-**Why It Matters**: No young person falls through the cracks. The system acts like a **safety net**, ensuring vulnerable champions receive timely support.
+**Why It Matters**: No young person falls through the cracks. The system acts like a **safety net**, ensuring vulnerable prevention advocates receive timely support.
 
 ---
 
@@ -188,13 +188,13 @@ Find information instantly:
 - Filter by risk level, engagement, or support needs
 - Sort by any field in alphabetical order
 
-**Time-Saving Example**: Instead of flipping through hundreds of paper files to find all champions attending a specific school, supervisors can filter the list in **2 seconds**.
+**Time-Saving Example**: Instead of flipping through hundreds of paper files to find all prevention advocates attending a specific school, supervisors can filter the list in **2 seconds**.
 
 ---
 
 ### 4. **Detailed Status Tracking**
 
-Track every champion's journey:
+Track every prevention advocate's journey:
 - **Active**: Currently participating
 - **Inactive**: Temporarily away
 - **Graduated**: Successfully completed the program
@@ -209,14 +209,14 @@ Track every champion's journey:
 ### 5. **Interactive Dashboards**
 
 #### **Supervisor Dashboard**
-- See all assigned champions at a glance
+- See all assigned prevention advocates at a glance
 - Color-coded risk indicators (red = high, orange = medium, green = low)
-- Quick access to add or edit champion information
+- Quick access to add or edit prevention advocate information
 - Search and filter tools built-in
 
 #### **Admin Dashboard**
 - Overview of entire youth network
-- Statistics (total champions, supervisors, high-risk cases)
+- Statistics (total prevention advocates, supervisors, high-risk cases)
 - System-wide search capabilities
 - User management tools
 
@@ -227,8 +227,8 @@ Track every champion's journey:
 ### 6. **Real-Time Data Updates**
 
 Changes appear instantly across all devices:
-- Supervisor updates a champion's status → Admin sees it immediately
-- Champion's information updated → Dashboard refreshes automatically
+- Supervisor updates a prevention advocate's status → Admin sees it immediately
+- Prevention Advocate's information updated → Dashboard refreshes automatically
 
 **Why It Matters**: No confusion from outdated information. Everyone works with the **same current data**, like Google Docs where multiple people can edit simultaneously.
 
@@ -241,7 +241,7 @@ Works perfectly on:
 - Tablets
 - Smartphones
 
-**Practical Use**: Supervisors can update champion information during home visits using their phone, without waiting to return to the office.
+**Practical Use**: Supervisors can update prevention advocate information during home visits using their phone, without waiting to return to the office.
 
 ---
 
@@ -293,7 +293,7 @@ Example: A fake website can't secretly make you delete data while you're logged 
 - **Saves Time**: Fix errors immediately instead of submitting the form and seeing errors later
 
 ### **3. Success Notifications**
-- Green toast messages confirm actions (e.g., "Champion added successfully!")
+- Green toast messages confirm actions (e.g., "Prevention Advocate added successfully!")
 - Auto-dismiss after 3 seconds
 - **Reduces Uncertainty**: You know immediately that your action worked
 
@@ -342,7 +342,7 @@ Example: A fake website can't secretly make you delete data while you're logged 
 - **Data-driven decisions** with comprehensive profiles
 - **Compliance-ready** with detailed record-keeping
 
-### **For Young People (Champions):**
+### **For Young People (Prevention Advocates):**
 - **Personalized support** based on comprehensive profiles
 - **Safer activities** with health information readily available
 - **Better opportunities** matched to their skills and interests
@@ -356,7 +356,7 @@ Example: A fake website can't secretly make you delete data while you're logged 
 Your administrator will:
 1. Log into the admin dashboard
 2. Click "Manage Users" → "Create New User"
-3. Enter your username and assign your role (Admin, Supervisor, or Champion)
+3. Enter your username and assign your role (Admin, Supervisor, or Prevention Advocate)
 4. System generates a secure temporary password automatically
 5. Admin provides you with:
    - Your username
@@ -368,7 +368,7 @@ Your administrator will:
 2. Click **"Create New User"**
 3. Fill in the form:
    - **Username**: Use first.last format (e.g., john.doe)
-   - **Role**: Select Admin, Supervisor, or Champion
+   - **Role**: Select Admin, Supervisor, or Prevention Advocate
 4. Click **"Create User"**
 5. **IMPORTANT**: Copy the temporary password shown on screen
 6. Share credentials securely with the new user (in person, encrypted email, or secure message)
@@ -382,8 +382,8 @@ Your administrator will:
 
 ### **Step 3: Explore Your Dashboard**
 - Admins: Start by adding supervisors
-- Supervisors: Begin adding your champions
-- Champions: View and update your profile information
+- Supervisors: Begin adding your prevention advocates
+- Prevention Advocates: View and update your profile information
 
 ---
 
@@ -427,11 +427,11 @@ Yes! Your browser's print function works with all pages. Alternatively, export d
 ## Success Stories
 
 ### **Time Savings**
-Before UNDA: 30 minutes to find a champion's file and update information
+Before UNDA: 30 minutes to find a prevention advocate's file and update information
 After UNDA: **2 minutes** to search, edit, and save
 
 ### **Better Safeguarding**
-Before UNDA: High-risk champion overlooked for 2 weeks
+Before UNDA: High-risk prevention advocate overlooked for 2 weeks
 After UNDA: **Instant alerts** ensure timely intervention
 
 ### **Improved Communication**
@@ -458,8 +458,8 @@ From your admin dashboard, click the **"Manage Users"** button in the Quick Acti
    - Use format: first.last (e.g., sarah.jones)
    - Keep it professional and easy to remember
 3. Select a **role**:
-   - **Champion**: Can only view/edit their own profile
-   - **Supervisor**: Can view/edit all champions + see dashboard analytics
+   - **Prevention Advocate**: Can only view/edit their own profile
+   - **Supervisor**: Can view/edit all prevention advocates + see dashboard analytics
    - **Admin**: Full system access including user management
 4. Click **"Create User"**
 5. **IMPORTANT**: Copy the temporary password shown on screen (12-character secure password)
@@ -475,10 +475,10 @@ From your admin dashboard, click the **"Manage Users"** button in the Quick Acti
 ### **User Management Dashboard Overview**
 
 The user management page shows:
-- **Statistics**: Total users, admins, supervisors, champions at a glance
+- **Statistics**: Total users, admins, supervisors, prevention advocates at a glance
 - **User Table**: Complete list with:
   - Username
-  - Role (color-coded: green=admin, blue=supervisor, yellow=champion)
+  - Role (color-coded: green=admin, blue=supervisor, yellow=prevention advocate)
   - Last login date
   - Status (active/locked)
   - Failed login attempts
@@ -522,18 +522,18 @@ The user management page shows:
 **How to change:**
 1. Find the user in the user table
 2. Use the **role dropdown** in the Actions column
-3. Select new role (Admin/Supervisor/Champion)
+3. Select new role (Admin/Supervisor/Prevention Advocate)
 4. Change takes effect immediately
 5. User will see new permissions at next login
 
 **Important:**
 - You cannot change your own role (prevents accidental self-demotion)
-- Downgrading admin to supervisor/champion removes user management access
-- Upgrading champion to supervisor grants access to all champion profiles
+- Downgrading admin to supervisor/prevention advocate removes user management access
+- Upgrading prevention advocate to supervisor grants access to all prevention advocate profiles
 
 ### **Deleting Users**
 
-**When to use:** User no longer needs access (employee left, champion aged out, etc.)
+**When to use:** User no longer needs access (employee left, prevention advocate aged out, etc.)
 
 **How to delete:**
 1. Find the user in the user table
@@ -569,7 +569,7 @@ The user management page shows:
 - Give users the minimum access they need
 - Regularly audit user roles (quarterly recommended)
 - Remove access for inactive users
-- Champion role is sufficient for most youth workers
+- Prevention Advocate role is sufficient for most youth workers
 - Supervisor role for team leads and case managers
 - Admin role only for IT staff and program directors
 
@@ -595,7 +595,7 @@ The user management page shows:
 - Instruct user: Login → Click username → Settings → Change Password
 
 **"User needs different access"**
-- Use role dropdown to change: Champion → Supervisor → Admin
+- Use role dropdown to change: Prevention Advocate → Supervisor → Admin
 - Changes take effect immediately (no restart needed)
 - User may need to log out and back in to see new permissions
 
@@ -652,7 +652,7 @@ Health information is confidential and only visible to supervisors and admins.
 
 **How to Add Health Data:**
 1. Navigate to Supervisor Dashboard
-2. Click "Review" next to champion name
+2. Click "Review" next to prevention advocate name
 3. Scroll to "Health & Safety Information" section
 4. Complete relevant fields:
    - Medical Conditions (asthma, diabetes, etc.)
@@ -684,7 +684,7 @@ Health information is confidential and only visible to supervisors and admins.
 - At scheduled review intervals (3-6 months)
 
 **How to Assess:**
-1. Access champion detail page
+1. Access prevention advocate detail page
 2. Select Risk Level dropdown
 3. Set Last Contact Date
 4. Set Next Review Date (required):
@@ -700,13 +700,13 @@ Health information is confidential and only visible to supervisors and admins.
 
 ### Responding to Dashboard Alerts
 
-**High-Risk Champions Alert (Red):**
-- Shows count and list of high-risk champions
+**High-Risk Prevention Advocates Alert (Red):**
+- Shows count and list of high-risk prevention advocates
 - Displays last contact date
 - Action: Contact immediately, escalate safeguarding concerns, document actions
 
 **Overdue Reviews Alert (Orange):**
-- Shows champions past review date
+- Shows prevention advocates past review date
 - Lists due dates
 - Action: Schedule review, conduct reassessment, set new date
 
@@ -722,7 +722,7 @@ Health information is confidential and only visible to supervisors and admins.
 1. Go to Supervisor Dashboard
 2. Select criteria from dropdowns
 3. Click "Apply Filters"
-4. View filtered champions
+4. View filtered prevention advocates
 5. Click "Clear" to reset
 
 **Filter Examples:**
@@ -747,11 +747,11 @@ Hover over badge to see assessment date and next review.
 - Document specific details in risk notes
 - Respond to alerts within 24 hours
 - Set realistic review dates
-- Involve champions in assessment process
+- Involve prevention advocates in assessment process
 
 **DON'T:**
 - Assume old health info is still accurate
-- Set all champions to Low without proper assessment
+- Set all prevention advocates to Low without proper assessment
 - Ignore overdue review alerts
 - Share health data with unauthorized staff
 - Use risk levels punitively
