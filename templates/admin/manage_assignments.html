@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Manage Champion Assignments - Admin Dashboard{% endblock %}
+{% block title %}Manage Advocate Assignments - Admin Dashboard{% endblock %}
 
 {% block content %}
 <div class="dashboard-header">
-    <h1 class="dashboard-title">Manage Champion-Supervisor Assignments</h1>
+    <h1 class="dashboard-title">Manage Advocate-Supervisor Assignments</h1>
     <p class="dashboard-subtitle">Assign champions to supervisors for mentorship and monitoring</p>
 </div>
 
@@ -31,7 +31,7 @@
         </div>
         <div class="stat-content">
             <p class="stat-value">{{ champions|length }}</p>
-            <p class="stat-label">Total Champions</p>
+            <p class="stat-label">Total Prevention Advocates</p>
         </div>
     </div>
     
@@ -57,7 +57,7 @@
         </div>
         <div class="stat-content">
             <p class="stat-value">{{ unassigned_champions|length }}</p>
-            <p class="stat-label">Unassigned Champions</p>
+            <p class="stat-label">Unassigned Prevention Advocates</p>
         </div>
     </div>
 </div>

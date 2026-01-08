@@ -27,6 +27,7 @@ class User(db.Model, UserMixin):
   username = db.Column(db.String(100), unique=True, nullable=False)
   password_hash = db.Column(db.String(255), nullable=False)
   role = db.Column(db.String(50), nullable=False, default='Prevention Advocate')
+  email = db.Column(db.String(100), unique=True, nullable=True)  # Email for password recovery and notifications
 
   champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='SET NULL'))
 

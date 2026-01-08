@@ -32,6 +32,23 @@
                 </small>
             </div>
 
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email" class="form-label">
+                    Email Address (Optional)
+                </label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    class="form-input" 
+                    placeholder="user@example.com"
+                >
+                <small class="form-help">
+                    If provided, temporary password will be sent to this email automatically
+                </small>
+            </div>
+
             <!-- Role -->
             <div class="form-group">
                 <label for="role" class="form-label">
@@ -40,12 +57,11 @@
                 <select id="role" name="role" class="form-input" required>
                     <option value="supervisor" selected>Supervisor</option>
                     <option value="admin">Administrator</option>
-                    <option value="champion">Champion</option>
                 </select>
                 <small class="form-help">
-                    <strong>Supervisor:</strong> Can manage assigned champions<br>
+                    <strong>Supervisor:</strong> Can manage assigned prevention advocates<br>
                     <strong>Administrator:</strong> Full system access and user management<br>
-                    <strong>Champion:</strong> Can view their own information only
+                    <strong>Note:</strong> To create Prevention Advocates, use the "Create Prevention Advocate" menu option which collects required profile information.
                 </small>
             </div>
 

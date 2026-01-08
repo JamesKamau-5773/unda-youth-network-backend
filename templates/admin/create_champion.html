@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Register New Champion - Admin Dashboard{% endblock %}
+{% block title %}Register New Prevention Advocate - Admin Dashboard{% endblock %}
 
 {% block content %}
 <div class="dashboard-header">
-    <h1 class="dashboard-title">Register New Champion</h1>
-    <p class="dashboard-subtitle">Create user account and champion profile</p>
+    <h1 class="dashboard-title">Register New Prevention Advocate</h1>
+    <p class="dashboard-subtitle">Create user account and advocate profile</p>
 </div>
 
 <div style="margin-bottom: 2rem;">
@@ -30,14 +30,14 @@
                 </svg>
                 Account Information
             </h3>
-            <p style="font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0;">Login credentials for the champion</p>
+            <p style="font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0;">Login credentials for the advocate</p>
         </div>
         
         <div style="padding: 1.5rem;">
             <div class="form-group">
                 <label for="username" class="form-label">Username <span style="color: #dc2626;">*</span></label>
                 <input type="text" id="username" name="username" class="form-input" required minlength="3" placeholder="Enter unique username">
-                <span class="form-hint">Champion will use this to log in (minimum 3 characters)</span>
+                <span class="form-hint">Advocate will use this to log in (minimum 3 characters)</span>
             </div>
             
             <div class="form-group">
@@ -48,7 +48,7 @@
                     <option value="{{ supervisor.user_id }}">{{ supervisor.username }}</option>
                     {% endfor %}
                 </select>
-                <span class="form-hint">Champion can be assigned to a supervisor now or later</span>
+                <span class="form-hint">Advocate can be assigned to a supervisor now or later</span>
             </div>
         </div>
 
@@ -62,7 +62,7 @@
                 </svg>
                 Personal Information
             </h3>
-            <p style="font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0;">Basic champion details</p>
+            <p style="font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0;">Basic advocate details</p>
         </div>
         
         <div style="padding: 1.5rem;">
@@ -74,7 +74,7 @@
                 
                 <div class="form-group">
                     <label for="email" class="form-label">Email Address <span style="color: #dc2626;">*</span></label>
-                    <input type="email" id="email" name="email" class="form-input" required placeholder="champion@example.com">
+                    <input type="email" id="email" name="email" class="form-input" required placeholder="advocate@example.com">
                 </div>
                 
                 <div class="form-group">
@@ -117,8 +117,8 @@
                 <div>
                     <h4 style="font-weight: 600; color: #1e40af; margin: 0 0 0.5rem 0;">What happens next?</h4>
                     <ul style="margin: 0; padding-left: 1.25rem; color: #1e40af; font-size: 0.875rem; line-height: 1.6;">
-                        <li>A user account will be created with Champion role</li>
-                        <li>A champion profile will be created with a unique code (e.g., CH-001)</li>
+                        <li>A user account will be created with Prevention Advocate role</li>
+                        <li>An advocate profile will be created with a unique code (e.g., CH-001)</li>
                         <li>Status will be set to "Active" with "Low" risk level</li>
                         <li>A secure temporary password will be generated</li>
                         <li>You can add more details (education, health, training) later via the supervisor dashboard</li>
@@ -136,7 +136,7 @@
                     <circle cx="8.5" cy="7" r="4"></circle>
                     <polyline points="17 11 19 13 23 9"></polyline>
                 </svg>
-                Register Champion
+                Register Prevention Advocate
             </button>
         </div>
     </form>
