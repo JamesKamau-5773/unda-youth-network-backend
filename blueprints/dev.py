@@ -7,7 +7,7 @@ from flask import Blueprint, jsonify, request, abort, render_template_string
 import os
 import sys
 from datetime import datetime
-from models import db, User, Champion, Event, BlogPost, Assessment, Participation
+from models import db, User, Champion, Event, BlogPost, MentalHealthAssessment, EventParticipation
 import sqlalchemy
 
 dev = Blueprint('dev', __name__, url_prefix='/__dev__')
