@@ -5,7 +5,7 @@
 {% block content %}
 <div class="dashboard-header">
     <h1 class="dashboard-title">Manage Advocate-Supervisor Assignments</h1>
-    <p class="dashboard-subtitle">Assign champions to supervisors for mentorship and monitoring</p>
+    <p class="dashboard-subtitle">Assign prevention advocates to supervisors for mentorship and monitoring</p>
 </div>
 
 <div style="margin-bottom: 2rem;">
@@ -72,9 +72,9 @@
                 <line x1="12" y1="9" x2="12" y2="13"></line>
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
-            Unassigned Champions ({{ unassigned_champions|length }})
+            Unassigned Prevention Advocates ({{ unassigned_champions|length }})
         </h3>
-        <p style="font-size: 0.875rem; color: #78350f; margin: 0.25rem 0 0 0;">These champions need supervisor assignment for proper mentorship</p>
+        <p style="font-size: 0.875rem; color: #78350f; margin: 0.25rem 0 0 0;">These advocates need supervisor assignment for proper mentorship</p>
     </div>
     
     <div style="padding: 1.5rem;">
@@ -82,7 +82,7 @@
             <table class="data-table table-stack">
                 <thead>
                     <tr>
-                        <th>Champion Code</th>
+                        <th>Advocate Code</th>
                         <th>Full Name</th>
                         <th>Username</th>
                         <th>Status</th>
@@ -92,7 +92,7 @@
                 <tbody>
                     {% for champion in unassigned_champions %}
                     <tr>
-                        <td data-label="Champion Code"><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
+                        <td data-label="Advocate Code"><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
                         <td data-label="Full Name" class="font-medium">{{ champion.full_name }}</td>
                         <td data-label="Username">{{ champion.username }}</td>
                         <td data-label="Status">
@@ -131,9 +131,9 @@
                 <path d="M23 21v-2a4 4 0 00-3-3.87"></path>
                 <path d="M16 3.13a4 4 0 010 7.75"></path>
             </svg>
-            Assigned Champions by Supervisor
+            Assigned Advocates by Supervisor
         </h3>
-        <p style="font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0;">View and reassign champions under each supervisor</p>
+        <p style="font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0;">View and reassign advocates under each supervisor</p>
     </div>
     
     <div style="padding: 1.5rem;">
@@ -149,7 +149,7 @@
                         {{ supervisor.username }}
                     </span>
                     <span class="badge badge--info">
-                        {{ assigned_champions.get(supervisor.user_id, [])|length }} Champions
+                        {{ assigned_champions.get(supervisor.user_id, [])|length }} Advocates
                     </span>
                 </h4>
                 
@@ -158,7 +158,7 @@
                     <table class="data-table table-stack">
                         <thead>
                             <tr>
-                                <th>Champion Code</th>
+                                <th>Advocate Code</th>
                                 <th>Full Name</th>
                                 <th>Username</th>
                                 <th>Status</th>
@@ -168,7 +168,7 @@
                         <tbody>
                             {% for champion in assigned_champions.get(supervisor.user_id, []) %}
                             <tr>
-                                <td data-label="Champion Code"><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
+                                <td data-label="Advocate Code"><span class="badge badge--primary">{{ champion.assigned_champion_code }}</span></td>
                                 <td data-label="Full Name" class="font-medium">{{ champion.full_name }}</td>
                                 <td data-label="Username">{{ champion.username }}</td>
                                 <td data-label="Status">
@@ -196,7 +196,7 @@
                     </table>
                 </div>
                 {% else %}
-                <p style="color: #64748b; font-style: italic; margin: 0;">No champions assigned to this supervisor yet</p>
+                <p style="color: #64748b; font-style: italic; margin: 0;">No advocates assigned to this supervisor yet</p>
                 {% endif %}
             </div>
             {% endfor %}

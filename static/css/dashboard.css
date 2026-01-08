@@ -3,34 +3,43 @@
    Professional Mental Health Platform CSS
    ======================================== */
 
+
 :root {
-    /* Color Palette */
-    --deep-navy: #1e1b4b;
-    --trust-blue: #2563eb;
-    --clean-bg: #f8fafc;
+    /* Color Palette - Modern Light Theme */
+    --deep-navy: #1e293b; /* Slate 800 - Replacing deep navy with dark slate for text */
+    --trust-blue: #2563eb; /* Blue 600 - Slightly darker for better visibility on white */
+    
+    /* Vibrancy Pack */
+    --neon-blue: #3b82f6;
+    --neon-purple: #8b5cf6;
+    --neon-accent: #0ea5e9;
+    --glass-border: rgba(0, 0, 0, 0.1); /* Darker border for light mode */
+    --glass-highlight: rgba(255, 255, 255, 0.5);
+
+    --clean-bg: #f8fafc; /* Slate 50 - Light background */
     --white: #ffffff;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
+    --text-primary: #0f172a; /* Slate 900 - Dark text */
+    --text-secondary: #475569; /* Slate 600 - Medium text */
+    --text-muted: #64748b; /* Slate 500 - Muted text */
     
-    /* Improved Sidebar Colors (WCAG AA Compliant) */
-    --sidebar-text: rgba(255, 255, 255, 0.95);
+    /* Sidebar - Dark High Contrast Theme */
+    --sidebar-text: rgba(255, 255, 255, 0.9);
     --sidebar-text-hover: #ffffff;
-    --sidebar-text-muted: rgba(255, 255, 255, 0.75);
+    --sidebar-text-muted: rgba(255, 255, 255, 0.6);
     
-    /* Status Colors - Unda Blue Variations */
+    /* Status Colors */
     --status-certified: #2563eb;
-    --status-pending: #60a5fa;
-    --status-declined: #1e40af;
-    --status-attended: #2563eb;
+    --status-pending: #3b82f6;
+    --status-declined: #dc2626;
+    --status-attended: #059669;
     
-    /* Safety Alert Colors - Unda Palette */
-    --alert-warning: #dbeafe;
-    --alert-warning-border: #60a5fa;
-    --alert-danger: #e0e7ff;
-    --alert-danger-border: #1e40af;
-    --alert-info: #dbeafe;
-    --alert-info-border: #2563eb;
+    /* Safety Alert Colors */
+    --alert-warning: #fffbeb; /* Amber 50 */
+    --alert-warning-border: #fcd34d; /* Amber 300 */
+    --alert-danger: #fef2f2; /* Red 50 */
+    --alert-danger-border: #fca5a5; /* Red 300 */
+    --alert-info: #eff6ff; /* Blue 50 */
+    --alert-info-border: #93c5fd; /* Blue 300 */
     
     /* Spacing */
     --spacing-xs: 0.5rem;
@@ -42,17 +51,17 @@
     
     /* Borders */
     --border-radius: 0.5rem;
-    --border-radius-lg: 0.75rem;
-    --border-color: #e2e8f0;
+    --border-radius-lg: 1rem;
+    --border-color: #e2e8f0; /* Slate 200 */
     
-    /* Shadows */
+    /* Shadows - Adjusted for Light Mode */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     
     /* Sidebar */
-    --sidebar-width: 260px;
+    --sidebar-width: 280px; 
     
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -119,7 +128,7 @@ textarea:focus-visible {
 /* Sidebar Navigation */
 .sidebar {
     width: var(--sidebar-width);
-    background: linear-gradient(180deg, #1e1b4b 0%, #1a1640 50%, #16122e 100%);
+    background: #0f172a; /* Solid Deep Navy - No Transparency */
     color: var(--sidebar-text);
     padding: var(--spacing-xl) var(--spacing-lg);
     position: fixed;
@@ -131,19 +140,19 @@ textarea:focus-visible {
     z-index: 1000;
     transition: transform var(--transition-base);
     will-change: transform;
-    border-right: 1px solid rgba(139, 92, 246, 0.1);
+    border-right: 1px solid rgba(255, 255, 255, 0.05); /* Subtle dark mode border */
 }
 
 .sidebar-logo {
-    font-size: 1.375rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 800;
     margin-bottom: var(--spacing-2xl);
     padding: var(--spacing-md);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); /* Lighter, more vibrant gradient for dark bg */
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    border-bottom: 2px solid rgba(139, 92, 246, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: var(--spacing-lg);
     letter-spacing: -0.025em;
     display: flex;
@@ -154,7 +163,7 @@ textarea:focus-visible {
 .sidebar-logo::before {
     content: '●';
     font-size: 1.75rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -246,13 +255,13 @@ textarea:focus-visible {
     transform: translateY(-50%);
     width: 3px;
     height: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
     border-radius: 0 2px 2px 0;
     transition: height var(--transition-fast);
 }
 
 .sidebar-nav-link:hover {
-    background-color: rgba(139, 92, 246, 0.15);
+    background-color: rgba(255, 255, 255, 0.1);
     color: var(--sidebar-text-hover);
     transform: translateX(4px) translateZ(0);
     padding-left: 1.25rem;
@@ -263,9 +272,9 @@ textarea:focus-visible {
 }
 
 .sidebar-nav-link.active {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-    color: var(--white);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
@@ -309,8 +318,28 @@ textarea:focus-visible {
     padding: var(--spacing-2xl);
     overflow-y: auto;
     max-height: 100vh;
-    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    background-color: var(--clean-bg);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.03) 0px, transparent 50%);
     position: relative;
+    color: var(--text-primary);
+}
+
+/* Override global text color for main content */
+.main-content h1, 
+.main-content h2, 
+.main-content h3, 
+.main-content h4, 
+.main-content h5, 
+.main-content h6 {
+    color: var(--text-primary);
+}
+
+.main-content p, 
+.main-content li {
+    color: var(--text-secondary);
 }
 
 .main-content::before {
@@ -320,7 +349,7 @@ textarea:focus-visible {
     right: 0;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.05) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
 }
@@ -467,25 +496,30 @@ textarea:focus-visible {
 }
 
 .btn--secondary {
-    background: transparent;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
+    background: #ffffff;
+    color: #334155; /* Slate 700 */
+    border: 1px solid #e2e8f0; /* Slate 200 */
+    backdrop-filter: blur(4px);
 }
 
 .btn--secondary:hover {
-    background: #f1f5f9;
-    color: var(--text-primary);
+    background: #f8fafc; /* Slate 50 */
+    color: #0f172a; /* Slate 900 */
+    border-color: #cbd5e1; /* Slate 300 */
+    transform: translateY(-1px);
 }
 
 .btn--cta {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn--cta:hover {
-    box-shadow: 0 8px 20px rgba(102,126,234,0.4);
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
     transform: translateY(-2px);
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
 }
 
 .btn--cta:active {
@@ -506,13 +540,37 @@ textarea:focus-visible {
    ======================================== */
 
 .hero-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.4) 0%, rgba(79, 70, 229, 0.4) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 2.5rem 2rem;
     border-radius: 16px;
     margin-bottom: 2rem;
-    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     color: #ffffff;
+    position: relative;
+    overflow: hidden;
 }
+
+/* Shine effect for hero card */
+.hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.05) 45%, transparent 50%);
+    animation: shine 8s infinite linear;
+    pointer-events: none;
+}
+
+@keyframes shine {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(50%); }
+}
+
 
 .hero-card__inner {
     display: flex;
@@ -565,40 +623,31 @@ textarea:focus-visible {
     background: #ffffff;
     border-radius: 16px;
     padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border-color, #e2e8f0);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.tile--shadowless {
-    box-shadow: none;
-    border: 1px solid #e2e8f0;
-}
-
-.tile--gradient-purple {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
-}
-
-.tile__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.tile__label {
-    color: #64748b;
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
+.card:hover, .panel:hover, .tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: #cbd5e1;
 }
 
 .tile__value {
     font-size: 2.25rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
 }
+
+.tile__label {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
 
 .stat-grid {
     display: grid;
@@ -617,22 +666,24 @@ textarea:focus-visible {
 .section-title {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1e293b;
+    color: #f8fafc;
     margin: 0 0 0.5rem 0;
 }
 
 .section-subtitle {
-    color: #64748b;
+    color: #94a3b8;
     font-size: 0.875rem;
     margin: 0;
 }
 
 .table-card {
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 1rem;
-    background: #ffffff;
-    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    color: #e2e8f0;
 }
 
 .table-card + .table-card {
@@ -644,7 +695,7 @@ textarea:focus-visible {
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem 1rem;
     padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .table-card__row:last-child {
@@ -745,7 +796,7 @@ textarea:focus-visible {
 }
 
 .data-table thead {
-    background-color: #f8fafc;
+    background-color: #f1f5f9; /* Slate 100 */
     position: sticky;
     top: 0;
     z-index: 10;
@@ -755,30 +806,27 @@ textarea:focus-visible {
     padding: var(--spacing-md) var(--spacing-lg);
     text-align: left;
     font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-secondary);
+    font-weight: 700;
+    color: #475569; /* Slate 600 */
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 2px solid #e2e8f0;
 }
 
 .data-table td {
     padding: var(--spacing-md) var(--spacing-lg);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #e2e8f0;
     font-size: 0.875rem;
-    color: var(--text-primary);
+    color: #334155; /* Slate 700 */
 }
 
 .data-table tbody tr {
     transition: background-color 0.15s ease;
-}
-
-.data-table tbody tr:nth-child(even) {
-    background-color: #fafbfc;
+    background-color: transparent !important; 
 }
 
 .data-table tbody tr:hover {
-    background-color: #f1f5f9;
+    background-color: #f8fafc !important; /* Slate 50 */
 }
 
 .data-table tbody tr:last-child td {
@@ -826,30 +874,49 @@ textarea:focus-visible {
    ======================================== */
 
 .safety-section {
-    background-color: var(--white);
+    background-color: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(8px);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: var(--spacing-xl);
     margin-bottom: var(--spacing-2xl);
+    color: var(--text-primary);
 }
 
 .safety-section--warning {
     background-color: var(--alert-warning);
     border-color: var(--alert-warning-border);
     border-left-width: 4px;
+    color: #fca5a5; /* Light Red/Orange for warning text specifically if needed, but inheriting is safer usually. Let's force readable text. */
+    color: #fdba74;
 }
 
 .safety-section--danger {
     background-color: var(--alert-danger);
     border-color: var(--alert-danger-border);
     border-left-width: 4px;
+    color: #fca5a5;
 }
 
 .safety-section--info {
     background-color: var(--alert-info);
     border-color: var(--alert-info-border);
     border-left-width: 4px;
+    color: #93c5fd;
+}
+
+.safety-section--success {
+    background-color: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+    border-left-width: 4px;
+    color: #6ee7b7;
+}
+
+/* Override links in alerts to be readable */
+.safety-section a {
+    color: inherit;
+    text-decoration: underline;
 }
 
 .safety-header {
@@ -1125,12 +1192,13 @@ textarea:focus-visible {
    ======================================== */
 
 .data-card {
-    background: var(--white);
+    background: #ffffff;
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
     margin-bottom: var(--spacing-xl);
     border: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
 .data-table-wrapper {
@@ -1406,33 +1474,36 @@ textarea:focus-visible {
 .form-label {
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.25rem;
+    color: #e2e8f0; /* Light label */
+    margin-bottom: 0.5rem;
+    display: block;
 }
 
 .form-input {
+    width: 100%;
     padding: 0.75rem 1rem;
     font-size: 0.9375rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid #cbd5e1;
     border-radius: var(--border-radius);
-    background: var(--white);
+    background: #ffffff;
     color: var(--text-primary);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: all 0.2s ease;
 }
 
 .form-input:focus {
     outline: none;
-    border-color: var(--trust-blue);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: #3b82f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .form-input::placeholder {
-    color: var(--text-muted);
+    color: #94a3b8;
 }
 
 .form-hint {
     font-size: 0.8125rem;
-    color: var(--text-secondary);
+    color: #94a3b8;
     margin-top: 0.25rem;
 }
 
@@ -1444,12 +1515,17 @@ textarea.form-input {
 
 select.form-input {
     cursor: pointer;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); /* Lighter chevron */
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 16px 12px;
     padding-right: 2.5rem;
     appearance: none;
+}
+
+select.form-input option {
+    background-color: #1e293b; /* Solid dark background for options to be readable */
+    color: #f8fafc;
 }
 
 /* ========================================
@@ -1935,4 +2011,154 @@ select.form-input {
         box-shadow: none;
         break-inside: avoid;
     }
+}
+
+/* ========================================
+   Modern Glass & Animation Additions
+   ======================================== */
+
+@keyframes float {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes float-delayed {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(-30px, 50px) scale(0.9); }
+    66% { transform: translate(20px, -20px) scale(1.1); }
+    100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-float {
+    animation: float 12s infinite ease-in-out;
+}
+
+.animate-float-delayed {
+    animation: float-delayed 15s infinite ease-in-out;
+}
+
+/* Glass Utility */
+.glass-effect {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ========================================
+   Global Animations & Vibrancy
+   ======================================== */
+
+@keyframes float {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes float-delayed {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(-30px, 50px) scale(0.9); }
+    66% { transform: translate(20px, -20px) scale(1.1); }
+    100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-float {
+    animation: float 12s infinite ease-in-out;
+}
+
+.animate-float-delayed {
+    animation: float-delayed 15s infinite ease-in-out;
+}
+
+/* Global Background Setup */
+.global-animated-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+/* Global Animated Background - Light Mode */
+.global-animated-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Behind everything */
+    overflow: hidden;
+    pointer-events: none;
+    background: radial-gradient(circle at top right, #f8fafc, #f1f5f9);
+}
+
+.bg-blob-1 {
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 50vw;
+    height: 50vw;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+    filter: blur(80px);
+    opacity: 0.8;
+}
+
+.bg-blob-2 {
+    position: absolute;
+    bottom: -10%;
+    right: -10%;
+    width: 50vw;
+    height: 50vw;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+    filter: blur(80px);
+    opacity: 0.8;
+}
+
+.bg-blob-3 {
+    position: absolute;
+    top: 40%;
+    left: 40%;
+    width: 30vw;
+    height: 30vw;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+    filter: blur(60px);
+    opacity: 0.6;
+}
+
+/* Enhance existing Glass elements to pop more - Light Mode */
+.glass-effect, .card, .table-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    color: #0f172a !important;
+}
+
+.sidebar {
+    /* Sidebar keeps its own Dark theme as defined earlier, but if overridden here, ensure it stays usable */
+    /* If this block was targeting sidebar too, we should be careful. 
+       The original block had .sidebar in the list. 
+       If we want Dark Sidebar + Light Content, we should exclude .sidebar from the white background rule above. */
+}
+
+/* Make headers gradient - Dark Mode Text */
+h1, h2, .page-title {
+    background: linear-gradient(to right, #0f172a, #334155);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: #0f172a; /* Fallback */
+}
+
+.sidebar-logo {
+    background: linear-gradient(135deg, var(--neon-blue) 0%, var(--neon-purple) 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
 }

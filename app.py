@@ -1,6 +1,6 @@
 from models import db, User, Champion
 import os
-from flask import Flask, redirect, url_for, flash, request
+from flask import Flask, redirect, url_for, flash, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -56,6 +56,17 @@ def create_app(test_config=None):
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Database connection pool settings
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_size': 10,
+        'pool_recycle': 3600,
+        'pool_pre_ping': True,  # Verify connections before using
+        'connect_args': {
+            'connect_timeout': 10,  # 10 second connection timeout
+            'options': '-c statement_timeout=30000'  # 30 second query timeout
+        }
+    }
     
     # Rate limiting storage
     app.config.setdefault('RATELIMIT_STORAGE_URL', os.environ.get(
@@ -126,6 +137,75 @@ def create_app(test_config=None):
             flash('Security token expired or invalid. Please try again.', 'danger')
             return redirect(request.url if request.referrer else url_for('admin.dashboard')), 400
         return e
+    
+    # Global error handlers for common HTTP errors
+    @app.errorhandler(403)
+    def forbidden(e):
+        """Handle 403 Forbidden errors"""
+        if request.is_json or request.path.startswith('/api/'):
+            return jsonify({
+                'error': 'Forbidden',
+                'message': 'You do not have permission to access this resource',
+                'status': 403
+            }), 403
+        flash('Access denied. You do not have permission to access this resource.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    @app.errorhandler(404)
+    def not_found(e):
+        """Handle 404 Not Found errors"""
+        if request.is_json or request.path.startswith('/api/'):
+            return jsonify({
+                'error': 'Not Found',
+                'message': 'The requested resource was not found',
+                'status': 404
+            }), 404
+        flash('The page you are looking for does not exist.', 'warning')
+        # Redirect to appropriate dashboard based on user role
+        if current_user.is_authenticated:
+            role_lower = (current_user.role or '').lower()
+            if role_lower == 'admin':
+                return redirect(url_for('admin.dashboard'))
+            elif role_lower == 'supervisor':
+                return redirect(url_for('supervisor.dashboard'))
+            elif role_lower in ['champion', 'prevention advocate']:
+                return redirect(url_for('champion.dashboard'))
+        return redirect(url_for('auth.login'))
+    
+    @app.errorhandler(429)
+    def ratelimit_handler(e):
+        """Handle 429 Too Many Requests (rate limit exceeded)"""
+        if request.is_json or request.path.startswith('/api/'):
+            return jsonify({
+                'error': 'Too Many Requests',
+                'message': 'Rate limit exceeded. Please try again later.',
+                'status': 429
+            }), 429
+        flash('Too many requests. Please slow down and try again in a few minutes.', 'warning')
+        return redirect(request.referrer or url_for('auth.login'))
+    
+    @app.errorhandler(500)
+    def internal_error(e):
+        """Handle 500 Internal Server errors"""
+        # Log the error for debugging
+        app.logger.error(f'Internal Server Error: {str(e)}', exc_info=True)
+        
+        # Rollback any pending database transactions
+        try:
+            db.session.rollback()
+        except:
+            pass
+        
+        if request.is_json or request.path.startswith('/api/'):
+            return jsonify({
+                'error': 'Internal Server Error',
+                'message': 'An unexpected error occurred. Our team has been notified.',
+                'status': 500
+            }), 500
+        
+        flash('An unexpected error occurred. Our team has been notified. Please try again later.', 'danger')
+        # Safely redirect to login (avoid redirect loops)
+        return redirect('/auth/login')
 
     # Flask-Login setup
     login_manager = LoginManager()

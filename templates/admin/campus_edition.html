@@ -44,7 +44,7 @@
 
 <div class="mb-lg" style="background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
     <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-        <span style="font-weight: 700; color: #334155;">Status:</span>
+        <span style="font-weight: 700; color: #374151;">Status:</span>
         <a href="{{ url_for('admin.campus_edition', status='all') }}" class="btn {{ 'btn--primary' if status_filter == 'all' else 'btn--secondary' }}">All</a>
         <a href="{{ url_for('admin.campus_edition', status='Upcoming') }}" class="btn {{ 'btn--primary' if status_filter == 'Upcoming' else 'btn--secondary' }}">Upcoming</a>
         <a href="{{ url_for('admin.campus_edition', status='Ongoing') }}" class="btn {{ 'btn--primary' if status_filter == 'Ongoing' else 'btn--secondary' }}">Ongoing</a>
@@ -61,7 +61,7 @@
             <div style="flex: 1; min-width: 0;">
                 <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start;">
                     <div style="flex: 1; min-width: 0;">
-                        <h3 style="margin: 0; color: #0f172a;">{{ event.title }}</h3>
+                        <h3 style="margin: 0; color: #111827;">{{ event.title }}</h3>
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.35rem;">
                             <span class="pill pill--secondary">{{ event.status }}</span>
                             <span class="pill" style="background: #e0f2fe; color: #0ea5e9;">{{ event.event_date.strftime('%b %d, %Y %I:%M %p') }}</span>
@@ -75,10 +75,10 @@
                 </div>
 
                 {% if event.description %}
-                <p style="margin: 0.75rem 0; color: #475569;">{{ event.description[:200] }}{% if event.description|length > 200 %}...{% endif %}</p>
+                <p style="margin: 0.75rem 0; color: #4b5563;">{{ event.description[:200] }}{% if event.description|length > 200 %}...{% endif %}</p>
                 {% endif %}
 
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.9rem; color: #475569;">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.9rem; color: #4b5563;">
                     {% if event.organizer %}<div style="display: flex; align-items: center; gap: 0.4rem;"><strong>Organizer:</strong> {{ event.organizer }}</div>{% endif %}
                     {% if event.max_participants %}<div style="display: flex; align-items: center; gap: 0.4rem;"><strong>Capacity:</strong> {{ event.max_participants }}</div>{% endif %}
                     {% if event.registration_deadline %}<div style="display: flex; align-items: center; gap: 0.4rem;"><strong>Register by:</strong> {{ event.registration_deadline.strftime('%b %d, %Y %I:%M %p') }}</div>{% endif %}
