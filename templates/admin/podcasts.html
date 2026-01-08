@@ -47,7 +47,7 @@
 <div class="mb-lg" style="background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
     <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
         <div style="flex: 1; min-width: 200px;">
-            <label style="font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.5rem; display: block;">Status</label>
+            <label style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; display: block;">Status</label>
             <div style="display: flex; gap: 0.5rem;">
                 <a href="{{ url_for('admin.podcasts', status='all', category=category_filter) }}" 
                    class="btn {{ 'btn--primary' if status_filter == 'all' else 'btn--secondary' }}" style="flex: 1;">
@@ -66,7 +66,7 @@
         
         {% if categories %}
         <div style="flex: 1; min-width: 200px;">
-            <label style="font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 0.5rem; display: block;">Category</label>
+            <label style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; display: block;">Category</label>
             <select onchange="window.location.href='{{ url_for('admin.podcasts', status=status_filter) }}&category=' + this.value" 
                     class="form-input" style="width: 100%;">
                 <option value="all" {{ 'selected' if category_filter == 'all' else '' }}>All Categories</option>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <meta name="theme-color" content="#1e1b4b">
+    <meta name="theme-color" content="#f8fafc">
     <meta name="mobile-web-app-capable" content="yes">
     <title>{% block title %}Unda Youth Network{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,8 +12,8 @@
             theme: {
                 extend: {
                     colors: {
-                        'deep-navy': '#1e1b4b',
-                        'trust-blue': '#2563eb',
+                        'deep-navy': '#0f172a',
+                        'trust-blue': '#3b82f6',
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -36,14 +36,15 @@
         width: 18px;
         height: 18px;
         border-radius: 50%;
-        background-color: #93c5fd;
-        color: #1e40af;
+        background-color: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
         font-size: 12px;
         font-weight: 700;
         cursor: help;
         margin-left: 0.5rem;
         position: relative;
         vertical-align: middle;
+        border: 1px solid rgba(59, 130, 246, 0.3);
     }
     
     .tooltip-trigger:hover::after {
@@ -53,6 +54,7 @@
         left: 50%;
         transform: translateX(-50%);
         background-color: #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         color: white;
         padding: 0.5rem 0.75rem;
         border-radius: 0.375rem;
@@ -60,7 +62,7 @@
         font-weight: 400;
         white-space: nowrap;
         z-index: 1000;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         pointer-events: none;
         max-width: 250px;
         white-space: normal;
@@ -116,19 +118,21 @@
         width: 64px;
         height: 64px;
         margin: 0 auto 1rem;
-        opacity: 0.3;
+        opacity: 0.8;
+        color: #3b82f6;
     }
     
     .empty-state-title {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #1e293b;
+        color: #0f172a;
         margin-bottom: 0.5rem;
     }
     
     .empty-state-text {
         font-size: 0.9375rem;
         margin-bottom: 1.5rem;
+        color: #64748b;
     }
     
     .empty-state-action {
@@ -142,12 +146,14 @@
         border-radius: 0.5rem;
         font-weight: 500;
         transition: background-color 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
     
     .empty-state-action:hover {
-        background-color: #1e40af;
+        background-color: #1d4ed8;
     }
     
+
     /* Password Strength Indicator */
     .password-strength {
         height: 4px;
@@ -242,9 +248,11 @@
     }
     
     .toast {
-        background-color: white;
+        background-color: rgba(30, 41, 59, 0.95);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 0.5rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
         padding: 1rem 1.25rem;
         margin-bottom: 0.75rem;
         display: flex;
@@ -254,6 +262,7 @@
         pointer-events: auto;
         animation: slideIn 0.3s ease-out;
         max-width: 100%;
+        color: #f8fafc;
     }
     
     @keyframes slideIn {
@@ -267,21 +276,10 @@
         }
     }
     
-    .toast.toast-success {
-        border-left-color: #10b981;
-    }
-    
-    .toast.toast-error {
-        border-left-color: #ef4444;
-    }
-    
-    .toast.toast-warning {
-        border-left-color: #f59e0b;
-    }
-    
-    .toast.toast-info {
-        border-left-color: #3b82f6;
-    }
+    .toast.toast-success { border-left-color: #10b981; }
+    .toast.toast-error { border-left-color: #ef4444; }
+    .toast.toast-warning { border-left-color: #f59e0b; }
+    .toast.toast-info { border-left-color: #3b82f6; }
     
     .toast-icon {
         flex-shrink: 0;
@@ -294,24 +292,33 @@
     .toast-warning .toast-icon { color: #f59e0b; }
     .toast-info .toast-icon { color: #3b82f6; }
     
-    .toast-content {
-        flex: 1;
-    }
+    .toast-content { flex: 1; }
     
     .toast-title {
         font-weight: 600;
         font-size: 0.9375rem;
-        color: #1e293b;
+        color: #f8fafc;
         margin-bottom: 0.25rem;
     }
     
     .toast-message {
         font-size: 0.875rem;
-        color: #64748b;
+        color: #cbd5e1;
         line-height: 1.5;
     }
     
     .toast-close {
+        flex-shrink: 0;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: color 0.2s;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .toast-close:hover {
+        color: #f8fafc;
+    }
         flex-shrink: 0;
         cursor: pointer;
         color: #94a3b8;
@@ -379,7 +386,17 @@
     }
     </style>
 </head>
-<body>
+<body class="selection:bg-pink-500 selection:text-white">
+    <!-- Global Animated Background -->
+    <div class="global-animated-bg">
+        <div class="bg-blob-1 animate-float"></div>
+        <div class="bg-blob-2 animate-float-delayed"></div>
+        <div class="bg-blob-3 animate-float"></div>
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 fill=%22black%22/%3E%3C/svg%3E');"></div>
+    </div>
+    
+    <!-- Main Content Wrapper -->
+    <div class="relative z-10 h-full flex flex-col min-h-screen">
     {% set page_content %}{% block content %}{% endblock %}{% endset %}
     
     {% if current_user.is_authenticated %}
@@ -590,7 +607,7 @@
         </main>
     </div>
     {% else %}
-    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #f8fafc;">
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #0f172a;">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div style="position: fixed; top: 1rem; right: 1rem; z-index: 9999;">
@@ -830,5 +847,6 @@
     });
     </script>
     {% block extra_js %}{% endblock %}
+    </div> <!-- End Main Content Wrapper -->
 </body>
 </html>

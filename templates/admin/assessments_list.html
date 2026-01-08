@@ -24,7 +24,7 @@
 <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
     <form method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
         <div style="flex: 1; min-width: 200px;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155;">Assessment Type</label>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Assessment Type</label>
             <select name="type" class="form-input">
                 <option value="">All Types</option>
                 {% for type in assessment_types %}
@@ -33,7 +33,7 @@
             </select>
         </div>
         <div style="flex: 1; min-width: 200px;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155;">Severity Level</label>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Severity Level</label>
             <select name="severity" class="form-input">
                 <option value="">All Levels</option>
                 {% for level in severity_levels %}

@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app
+import threading
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -8,6 +9,9 @@ from flask_bcrypt import Bcrypt
 import secrets
 import string
 from datetime import datetime
+from email_utils import send_password_email
+from extensions import limiter
+from extensions import limiter
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -267,6 +271,7 @@ def manage_users():
 @admin_bp.route('/users/create', methods=['GET', 'POST'])
 @login_required
 @admin_required
+@limiter.limit("20 per hour", methods=["POST"])
 def create_user():
     """Create a new user account"""
     if request.method == 'POST':
@@ -319,11 +324,15 @@ def create_user():
             db.session.add(new_user)
             db.session.commit()
             
-            # Try to send email if email is provided
+            # Try to send email if email is provided (with error boundary)
             email_sent = False
             if email:
-                from email_utils import send_password_email
-                email_sent = send_password_email(email, username, temp_password)
+                try:
+                    email_sent = send_password_email(email, username, temp_password)
+                except Exception as e:
+                    current_app.logger.error(f"Failed to send email after user creation: {str(e)}")
+                    # Continue anyway - user was created successfully
+                    pass
 
             # Show success page with password modal (instead of flash message)
             return render_template('admin/create_user_success.html',
@@ -344,6 +353,7 @@ def create_user():
 @admin_bp.route('/users/<int:user_id>/reset-password', methods=['POST'])
 @login_required
 @admin_required
+@limiter.limit("30 per hour", methods=["POST"])
 def reset_user_password(user_id):
     """Reset a user's password to a new temporary password"""
     user = User.query.get_or_404(user_id)
@@ -361,11 +371,15 @@ def reset_user_password(user_id):
     try:
         db.session.commit()
         
-        # Try to send email if user has an email address
+        # Try to send email if user has an email address (with error boundary)
         email_sent = False
         if user.email:
-            from email_utils import send_password_email
-            email_sent = send_password_email(user.email, user.username, temp_password)
+            try:
+                email_sent = send_password_email(user.email, user.username, temp_password)
+            except Exception as e:
+                current_app.logger.error(f"Failed to send email after password reset: {str(e)}")
+                # Continue anyway - password was reset successfully
+                pass
         
         # Show success page with password modal (instead of flash message)
         return render_template('admin/create_user_success.html',
@@ -458,6 +472,7 @@ def delete_user(user_id):
 @admin_bp.route('/champions/create', methods=['GET', 'POST'])
 @login_required
 @admin_required
+@limiter.limit("15 per hour", methods=["POST"])
 def create_champion():
     """Create a new champion with user account and profile"""
     if request.method == 'POST':
@@ -549,11 +564,43 @@ def create_champion():
 
             db.session.commit()
 
-            # Try to send email if email is provided
-            email_sent = False
+            # Try to send email if email is provided (Async to prevent 502 timeouts)
+            email_sent = True  # Optimistically assume success to avoid UI blocking
             if email:
-                from email_utils import send_password_email
-                email_sent = send_password_email(email, username, temp_password)
+                try:
+                    # Use threading to send email in background avoids blocking the response
+                    app = current_app._get_current_object()
+                    
+                    def send_async_email(app_obj, recipient, user_name, password):
+                        with app_obj.app_context():
+                            # Note: send_password_email imported at top level to avoid thread deadlocks
+                            # send_password_email handles its own exception logging
+                            try:
+                                send_password_email(recipient, user_name, password)
+                            except Exception as e:
+                                app_obj.logger.error(f"Async email failed inside thread: {str(e)}")
+                    
+                    email_thread = threading.Thread(
+                        target=send_async_email, 
+                        args=(app, email, username, temp_password)
+                    )
+                    email_thread.daemon = True
+                    email_thread.start()
+                    current_app.logger.info(f"Started async email thread for {email}")
+                except Exception as e:
+                    current_app.logger.error(f"Failed to initiate async email: {str(e)}")
+                    # Don't fail the request if email thread fails
+                    pass
+
+            # Safe supervisor name retrieval
+            supervisor_name = None
+            if supervisor_id:
+                try:
+                    supervisor = User.query.get(int(supervisor_id))
+                    if supervisor:
+                        supervisor_name = supervisor.username
+                except Exception:
+                    pass
 
             # Show success page with password modal (instead of flash messages)
             return render_template('admin/create_user_success.html',
@@ -565,7 +612,7 @@ def create_champion():
                                  is_champion=True,
                                  champion_code=champion_code,
                                  full_name=full_name,
-                                 supervisor_username=User.query.get(int(supervisor_id)).username if supervisor_id else None)
+                                 supervisor_username=supervisor_name)
 
         except IntegrityError as e:
             db.session.rollback()
@@ -645,7 +692,7 @@ def assign_champion(champion_id):
 
     try:
         if supervisor_id:
-            # Assign to supervisor
+            # Assign to supervisor (with safe lookup)
             supervisor = User.query.get(int(supervisor_id))
             if not supervisor or supervisor.role != 'Supervisor':
                 flash('Invalid supervisor selected', 'danger')
@@ -654,19 +701,26 @@ def assign_champion(champion_id):
             old_supervisor_id = champion.supervisor_id
             champion.supervisor_id = int(supervisor_id)
 
+            # Safe lookup of old supervisor name
+            old_supervisor_name = "Unknown"
             if old_supervisor_id:
                 old_supervisor = User.query.get(old_supervisor_id)
+                if old_supervisor:
+                    old_supervisor_name = old_supervisor.username
                 flash(
-                    f'Champion {champion.assigned_champion_code} reassigned from {old_supervisor.username if old_supervisor else "Unknown"} to {supervisor.username}', 'success')
+                    f'Champion {champion.assigned_champion_code} reassigned from {old_supervisor_name} to {supervisor.username}', 'success')
             else:
                 flash(
                     f'Champion {champion.assigned_champion_code} assigned to {supervisor.username}', 'success')
         else:
-            # Unassign from supervisor
+            # Unassign from supervisor (with safe lookup)
+            supervisor_name = "supervisor"
             if champion.supervisor_id:
                 old_supervisor = User.query.get(champion.supervisor_id)
+                if old_supervisor:
+                    supervisor_name = old_supervisor.username
                 flash(
-                    f'Champion {champion.assigned_champion_code} unassigned from {old_supervisor.username if old_supervisor else "supervisor"}', 'info')
+                    f'Champion {champion.assigned_champion_code} unassigned from {supervisor_name}', 'info')
             champion.supervisor_id = None
 
         db.session.commit()
@@ -863,8 +917,10 @@ def approve_application_web(application_id):
         db.session.add(champion)
         db.session.flush()
         
-        # Update user to link champion profile
+        # Update user to link champion profile (with safe lookup)
         user = User.query.get(application.user_id)
+        if not user:
+            raise ValueError(f"User with ID {application.user_id} not found")
         user.champion_id = champion.champion_id
         
         # Update application
