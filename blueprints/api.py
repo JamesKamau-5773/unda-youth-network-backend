@@ -108,9 +108,12 @@ def impact_stats():
     
     # User Statistics
     total_users = User.query.count()
-    admin_users = User.query.filter_by(role='Admin').count()
-    supervisor_users = User.query.filter_by(role='Supervisor').count()
-    champion_users = User.query.filter_by(role='Champion').count()
+    admin_users = User.query.filter_by(role=User.ROLE_ADMIN).count()
+    supervisor_users = User.query.filter_by(role=User.ROLE_SUPERVISOR).count()
+    # Count both 'Prevention Advocate' and legacy 'Champion' roles
+    champion_users = User.query.filter(
+        db.or_(User.role == User.ROLE_PREVENTION_ADVOCATE, User.role == 'Champion')
+    ).count()
     
     # Event Statistics
     total_events = Event.query.count()

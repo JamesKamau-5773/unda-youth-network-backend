@@ -319,7 +319,7 @@ def create_app(test_config=None):
                 return redirect(url_for('admin.dashboard'))
             elif role_lower == 'supervisor':
                 return redirect(url_for('supervisor.dashboard'))
-            elif role_lower == 'champion':
+            elif role_lower in ['champion', 'prevention advocate']:
                 return redirect(url_for('champion.dashboard'))
             else:
                 # Unknown role - logout and redirect to login

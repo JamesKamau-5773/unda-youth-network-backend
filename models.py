@@ -23,6 +23,11 @@ class User(db.Model, UserMixin):
   # Valid roles constant - UMV Prevention Program roles
   VALID_ROLES = ['Admin', 'Supervisor', 'Prevention Advocate']
   
+  # Role constants to prevent typos and inconsistencies
+  ROLE_ADMIN = 'Admin'
+  ROLE_SUPERVISOR = 'Supervisor'
+  ROLE_PREVENTION_ADVOCATE = 'Prevention Advocate'
+  
   user_id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.String(100), unique=True, nullable=False)
   password_hash = db.Column(db.String(255), nullable=False)
@@ -53,26 +58,41 @@ class User(db.Model, UserMixin):
     if role:
       # Handle legacy 'Champion' role mapping to 'Prevention Advocate'
       if role.capitalize() == 'Champion':
-        self.role = 'Prevention Advocate'
+        self.role = self.ROLE_PREVENTION_ADVOCATE
       elif role.title() in self.VALID_ROLES:  # Use title() for multi-word roles
         self.role = role.title()
       else:
         raise ValueError(f"Invalid role '{role}'. Must be one of: {', '.join(self.VALID_ROLES)}")
     else:
-      self.role = 'Prevention Advocate'  # Default
+      self.role = self.ROLE_PREVENTION_ADVOCATE  # Default
   
   def validate_role(self):
     """Validate and normalize the current role."""
     if self.role:
       # Handle legacy 'Champion' role
       if self.role.capitalize() == 'Champion':
-        self.role = 'Prevention Advocate'
+        self.role = self.ROLE_PREVENTION_ADVOCATE
       elif self.role.title() in self.VALID_ROLES:
         self.role = self.role.title()
       elif self.role not in self.VALID_ROLES:
         raise ValueError(f"Invalid role '{self.role}'. Must be one of: {', '.join(self.VALID_ROLES)}")
     else:
-      self.role = 'Prevention Advocate'
+      self.role = self.ROLE_PREVENTION_ADVOCATE
+  
+  def is_role(self, role_name):
+    """Case-insensitive role check. Accepts both 'Champion' and 'Prevention Advocate' for advocates."""
+    if not self.role:
+      return False
+    role_lower = self.role.lower()
+    check_lower = role_name.lower()
+    
+    # Handle legacy Champion role
+    if check_lower == 'champion' and role_lower == 'prevention advocate':
+      return True
+    if check_lower == 'prevention advocate' and role_lower == 'champion':
+      return True
+    
+    return role_lower == check_lower
   
   def is_locked(self):
     """Check if account is currently locked."""

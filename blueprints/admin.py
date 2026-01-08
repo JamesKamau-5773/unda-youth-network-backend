@@ -493,33 +493,33 @@ def create_champion():
         # Validation
         if not username or not full_name or not email or not phone_number:
             flash('Username, Full Name, Email, and Phone Number are required', 'danger')
-            supervisors = User.query.filter_by(role='Supervisor').all()
+            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
             return render_template('admin/create_champion.html', supervisors=supervisors)
 
         if len(username) < 3:
             flash('Username must be at least 3 characters long', 'danger')
-            supervisors = User.query.filter_by(role='Supervisor').all()
+            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
             return render_template('admin/create_champion.html', supervisors=supervisors)
 
         # Check if username already exists
         if User.query.filter_by(username=username).first():
             flash(
                 f'Username "{username}" already exists. Please choose a different username.', 'danger')
-            supervisors = User.query.filter_by(role='Supervisor').all()
+            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
             return render_template('admin/create_champion.html', supervisors=supervisors)
 
         # Check if email already exists
         if Champion.query.filter_by(email=email).first():
             flash(
                 f'Email "{email}" already exists. Please use a different email.', 'danger')
-            supervisors = User.query.filter_by(role='Supervisor').all()
+            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
             return render_template('admin/create_champion.html', supervisors=supervisors)
 
         # Check if phone number already exists
         if Champion.query.filter_by(phone_number=phone_number).first():
             flash(
                 f'Phone number "{phone_number}" already exists. Please use a different phone number.', 'danger')
-            supervisors = User.query.filter_by(role='Supervisor').all()
+            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
             return render_template('admin/create_champion.html', supervisors=supervisors)
 
         # Generate secure temporary password
@@ -528,12 +528,10 @@ def create_champion():
         try:
             # Create user account
             bcrypt = Bcrypt()
-            new_user = User(
-                username=username,
-                role='Champion',
-                password_hash=bcrypt.generate_password_hash(
-                    temp_password).decode('utf-8')
-            )
+            new_user = User(username=username)
+            new_user.set_role(User.ROLE_PREVENTION_ADVOCATE)  # Use constant to prevent typos
+            new_user.password_hash = bcrypt.generate_password_hash(
+                temp_password).decode('utf-8')
             db.session.add(new_user)
             db.session.flush()  # Get the user_id
 
@@ -606,7 +604,7 @@ def create_champion():
             return render_template('admin/create_user_success.html',
                                  username=username,
                                  temp_password=temp_password,
-                                 role='Prevention Advocate',
+                                 role=User.ROLE_PREVENTION_ADVOCATE,
                                  email=email,
                                  email_sent=email_sent,
                                  is_champion=True,
@@ -632,17 +630,17 @@ def create_champion():
                 flash(
                     f'A champion with this information already exists. Please check phone number, email, and username.', 'danger')
 
-            supervisors = User.query.filter_by(role='Supervisor').all()
+            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
             return render_template('admin/create_champion.html', supervisors=supervisors)
 
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating champion: {str(e)}', 'danger')
-            supervisors = User.query.filter_by(role='Supervisor').all()
+            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
             return render_template('admin/create_champion.html', supervisors=supervisors)
 
     # GET request - show form with supervisors list
-    supervisors = User.query.filter_by(role='Supervisor').all()
+    supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
     return render_template('admin/create_champion.html', supervisors=supervisors)
 
 
@@ -660,7 +658,7 @@ def manage_assignments():
         User.username
     ).all()
 
-    supervisors = User.query.filter_by(role='Supervisor').all()
+    supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
 
     # Group champions by supervisor for easier viewing
     assigned_champions = {}
@@ -791,10 +789,8 @@ def approve_registration_web(registration_id):
             return redirect(url_for('admin.registrations'))
         
         # Create user account
-        user = User(
-            username=registration.username,
-            role='Champion'
-        )
+        user = User(username=registration.username)
+        user.set_role(User.ROLE_PREVENTION_ADVOCATE)  # Use constant to prevent typos
         user.password_hash = registration.password_hash
         
         db.session.add(user)
