@@ -31,7 +31,7 @@ PRODUCTION ROLE FIX SCRIPT
 Found X total users
 
 OK: admin - 'Admin'
-FIXED: alice - 'champion' -> 'Champion'
+FIXED: alice - 'prevention advocate' -> 'Prevention Advocate'
 ...
 
 ====================================
@@ -41,7 +41,7 @@ SUCCESS: Fixed X user roles
 FINAL ROLE DISTRIBUTION:
 Admin: X users
 Supervisor: X users  
-Champion: X users
+Prevention Advocate: X users
 
 ====================================
 DEPLOYMENT READY - No redirect loops expected
@@ -70,7 +70,7 @@ with app.app_context():
         try:
             user.validate_role()
         except:
-            user.role = 'Champion'
+            user.role = 'Prevention Advocate'
     db.session.commit()
     print("Roles fixed!")
 ```
@@ -96,7 +96,7 @@ If redirect loop continues after running the fix:
        # Replace 'username' with the problematic user
        user = User.query.filter_by(username='alice').first()
        print(f"Role: {user.role}")
-       user.role = 'Champion'  # or 'Admin' or 'Supervisor'
+       user.role = 'Prevention Advocate'  # or 'Admin' or 'Supervisor'
        db.session.commit()
    ```
 

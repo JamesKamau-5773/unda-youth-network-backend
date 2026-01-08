@@ -87,10 +87,10 @@ const logout = async () => {
 
 ## Members Portal API Endpoints
 
-### 1. Champion Registration (Public - No Auth)
+### 1. Prevention Advocate Registration (Public - No Auth)
 ```javascript
 const registerChampion = async (formData) => {
-  const response = await api.post('/api/champions/register', {
+  const response = await api.post('/api/prevention advocates/register', {
     first_name: formData.firstName,
     last_name: formData.lastName,
     date_of_birth: formData.dob, // YYYY-MM-DD
@@ -115,16 +115,16 @@ const registerChampion = async (formData) => {
 ```json
 {
   "success": true,
-  "message": "Champion registered successfully",
+  "message": "Prevention Advocate registered successfully",
   "champion_code": "UMV-2026-000001",
   "warning": "Please save this code. You will need it for assessments."
 }
 ```
 
-### 2. Verify Champion Code (Public - No Auth)
+### 2. Verify Prevention Advocate Code (Public - No Auth)
 ```javascript
 const verifyChampionCode = async (code) => {
-  const response = await api.post('/api/champions/verify-code', {
+  const response = await api.post('/api/prevention advocates/verify-code', {
     champion_code: code
   });
   
@@ -289,8 +289,8 @@ api.interceptors.response.use(
 ### Roles & Permissions
 | Endpoint | Admin | Supervisor | Prevention Advocate | Public |
 |----------|-------|------------|---------------------|--------|
-| `/api/champions/register` | ✅ | ✅ | ✅ | ✅ |
-| `/api/champions/verify-code` | ✅ | ✅ | ✅ | ✅ |
+| `/api/prevention advocates/register` | ✅ | ✅ | ✅ | ✅ |
+| `/api/prevention advocates/verify-code` | ✅ | ✅ | ✅ | ✅ |
 | `/api/assessments/submit` | ✅ | ✅ | ✅ | ❌ |
 | `/api/assessments/my-submissions` | ✅ | ✅ | ✅ | ❌ |
 | `/api/assessments/dashboard` | ✅ | ✅ | ❌ | ❌ |
@@ -315,12 +315,12 @@ if (user.role === 'Prevention Advocate') {
 
 ### What Frontend Should NOT Display
 - ❌ Raw assessment scores (PHQ-9/GAD-7 numbers)
-- ❌ Champion personal information alongside assessment results
+- ❌ Prevention Advocate personal information alongside assessment results
 - ❌ Individual assessment details to supervisors (only aggregated stats)
 
 ### What Frontend SHOULD Display
 - ✅ Risk categories (Green/Blue/Purple/Orange/Red) as colors
-- ✅ Champion codes (UMV-YYYY-NNNNNN)
+- ✅ Prevention Advocate codes (UMV-YYYY-NNNNNN)
 - ✅ Auto-referral flags
 - ✅ Aggregated statistics (counts, percentages)
 - ✅ Score ranges (0-4, 5-9, etc.) instead of exact scores
@@ -364,13 +364,13 @@ const getRiskColor = (category) => {
 ### During Integration
 - [ ] Login sets session cookie (check browser DevTools → Application → Cookies)
 - [ ] `withCredentials: true` set in axios/fetch
-- [ ] Champion registration returns `champion_code`
+- [ ] Prevention Advocate registration returns `champion_code`
 - [ ] Assessment submission returns risk category (not raw score)
 - [ ] Logout clears session
 
 ### Privacy Validation
 - [ ] No raw scores visible in UI
-- [ ] No champion names visible alongside assessments
+- [ ] No prevention advocate names visible alongside assessments
 - [ ] Only aggregated data shown to supervisors
 - [ ] Auto-referral flags displayed for Orange/Red
 
@@ -431,9 +431,9 @@ curl -X POST http://localhost:5000/api/assessments/submit \
 - Solution: Check session cookie is being sent
 - Login first, then make authenticated requests
 
-**Issue: Champion code not found**
+**Issue: Prevention Advocate code not found**
 - Solution: Verify code format: `UMV-YYYY-NNNNNN`
-- Use `/api/champions/verify-code` to check validity
+- Use `/api/prevention advocates/verify-code` to check validity
 
 **Issue: Role permission denied**
 - Solution: Check user role with `/api/me`
@@ -454,5 +454,5 @@ Your backend is **fully operational** and ready for frontend integration. All en
 1. Configure your frontend API client (axios/fetch) with `withCredentials: true`
 2. Test health check: `http://localhost:5000/api/health`
 3. Implement login flow
-4. Start with champion registration
+4. Start with prevention advocate registration
 5. Add assessment submission form

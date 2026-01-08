@@ -13,7 +13,7 @@ UNDA is like a **digital assistant** for youth organizations. Instead of using p
 
 ## Who Uses It?
 
-### **Champions** (Young People)
+### **Prevention Advocates** (Young People)
 Young volunteers who work directly with other youth in their communities.
 
 **What they do:**
@@ -26,15 +26,15 @@ Young volunteers who work directly with other youth in their communities.
 ---
 
 ### **Supervisors** (Youth Workers)
-Experienced professionals who mentor and support multiple champions.
+Experienced professionals who mentor and support multiple prevention advocates.
 
 **What they do:**
-- Monitor the champions assigned to them
-- Review weekly reports from champions
+- Monitor the prevention advocates assigned to them
+- Review weekly reports from prevention advocates
 - Add confidential notes about safeguarding concerns
 - Make referrals to professional services when needed
 
-**Example:** James supervises 8 champions across different neighborhoods. He uses UNDA to check if any champion needs support and to track high-risk cases.
+**Example:** James supervises 8 prevention advocates across different neighborhoods. He uses UNDA to check if any prevention advocate needs support and to track high-risk cases.
 
 ---
 
@@ -43,8 +43,8 @@ People who oversee the entire youth network program.
 
 **What they do:**
 - See the big picture of the entire program
-- Create new champion and supervisor accounts
-- Assign champions to supervisors
+- Create new prevention advocate and supervisor accounts
+- Assign prevention advocates to supervisors
 - Generate reports for funders and stakeholders
 - Monitor compliance and safety across the organization
 
@@ -69,23 +69,23 @@ Just like logging into your email:
 
 Depending on who you are, you see different information:
 
-#### **Champion Dashboard**
+#### **Prevention Advocate Dashboard**
 Looks like a clean, modern app with:
-- Your profile summary (name, champion code, assigned supervisor)
+- Your profile summary (name, prevention advocate code, assigned supervisor)
 - Button to submit your weekly report
 - List of your previous reports with color-coded performance
 - Notifications about pending tasks
 
 #### **Supervisor Dashboard**
 Shows:
-- Cards for each champion you supervise
+- Cards for each prevention advocate you supervise
 - Color-coded risk levels (Green: Low, Yellow: Medium, Red: High)
-- Quick filters to find specific champions
-- Alerts for champions who need immediate attention
+- Quick filters to find specific prevention advocates
+- Alerts for prevention advocates who need immediate attention
 
 #### **Admin Dashboard**
 Displays:
-- Total number of champions, supervisors, and youth reached
+- Total number of prevention advocates, supervisors, and youth reached
 - Performance statistics across the whole program
 - Alerts for high-risk cases
 - Quick links to create accounts and manage assignments
@@ -94,7 +94,7 @@ Displays:
 
 ### **Step 3: Do Your Work**
 
-#### **For Champions:**
+#### **For Prevention Advocates:**
 
 **Submit a Weekly Report** (takes 2-3 minutes):
 1. Click "Submit Monthly Report"
@@ -112,8 +112,8 @@ Displays:
 
 #### **For Supervisors:**
 
-**Review a Champion**:
-1. Click on a champion's card from your dashboard
+**Review a Prevention Advocate**:
+1. Click on a prevention advocate's card from your dashboard
 2. See their full profile with all information
 3. View their weekly report history
 4. Add notes if needed:
@@ -128,8 +128,8 @@ Displays:
 
 #### **For Administrators:**
 
-**Create a New Champion Account**:
-1. Click "Create Champion"
+**Create a New Prevention Advocate Account**:
+1. Click "Create Prevention Advocate"
 2. Fill in their details:
    - Name, email, phone number
    - Education information
@@ -137,13 +137,13 @@ Displays:
    - Assign to a supervisor (optional)
 3. Click "Create Account"
 4. System generates:
-   - Unique champion code (e.g., CH-015)
+   - Unique prevention advocate code (e.g., CH-015)
    - Temporary password
    - Login credentials shown to you
 
-**Assign Champions to Supervisors**:
+**Assign Prevention Advocates to Supervisors**:
 1. Go to "Manage Assignments"
-2. See all champions organized by supervisor
+2. See all prevention advocates organized by supervisor
 3. Drag-and-drop or select to reassign
 4. Changes take effect immediately
 
@@ -162,7 +162,7 @@ Displays:
 - Health and safety information forms
 - Safeguarding notes
 - Supervisor notes
-- Champion reports
+- Prevention Advocate reports
 
 ---
 
@@ -194,7 +194,7 @@ Error: Please enter valid numbers for screenings delivered, referrals initiated,
 **Problem:** If someone's account had an invalid role (typo, wrong capitalization), the system got stuck in an endless redirect loop.
 
 **UNDA Solution:** 
-- System only allows three roles: Admin, Supervisor, Champion
+- System only allows three roles: Admin, Supervisor, Prevention Advocate
 - Automatically fixes capitalization (admin → Admin)
 - Rejects invalid roles before accounts are created
 - If somehow an invalid role exists, user sees clear error instead of infinite loading
@@ -226,7 +226,7 @@ Error: Please enter valid numbers for screenings delivered, referrals initiated,
 - Forms don't break on small screens
 - Navigation menu adapts to mobile size
 
-**Why it matters:** Supervisors can check on champions while in the field. Champions can submit reports from their phones.
+**Why it matters:** Supervisors can check on prevention advocates while in the field. Prevention Advocates can submit reports from their phones.
 
 ---
 
@@ -265,7 +265,7 @@ Error: Please enter valid numbers for screenings delivered, referrals initiated,
 
 **Why it works this way:** Prevents confusion - you always know if you're entering new data or viewing old data.
 
-**Champion Profile Info:**
+**Prevention Advocate Profile Info:**
 - Always shows current saved data
 - Editing updates the existing record
 - History is preserved
@@ -279,7 +279,7 @@ Error: Please enter valid numbers for screenings delivered, referrals initiated,
 | Paper Files | UNDA System |
 |------------|-------------|
 | Files get lost | Everything backed up in database |
-| Can't search quickly | Find any champion in seconds |
+| Can't search quickly | Find any prevention advocate in seconds |
 | No automatic alerts | System flags high-risk cases |
 | Hard to share info | Supervisors and admins see same data instantly |
 | Forms filled out repeatedly | Data entered once, used everywhere |
@@ -379,7 +379,7 @@ Error: Please enter valid numbers for screenings delivered, referrals initiated,
 
 ## Why Organizations Love UNDA
 
-### **For Champions:**
+### **For Prevention Advocates:**
 - Quick weekly reporting (2-3 minutes)
 - See their own progress over time
 - Know their supervisor cares (supervisor notes visible)
@@ -388,7 +388,7 @@ Error: Please enter valid numbers for screenings delivered, referrals initiated,
 ---
 
 ### **For Supervisors:**
-- All assigned champions in one view
+- All assigned prevention advocates in one view
 - Color-coded risk levels (spot issues fast)
 - Confidential note-taking for safeguarding
 - Quick referral tracking
@@ -443,7 +443,7 @@ Error: Please enter valid numbers for screenings delivered, referrals initiated,
 
 ## Tips for Getting Started
 
-### **For Champions:**
+### **For Prevention Advocates:**
 1. Log in with credentials your admin gave you
 2. Change your password immediately (Settings → Change Password)
 3. Explore your dashboard
@@ -453,10 +453,10 @@ Error: Please enter valid numbers for screenings delivered, referrals initiated,
 ---
 
 ### **For Supervisors:**
-1. Log in and review your assigned champions
-2. Click on a champion to see their full profile
+1. Log in and review your assigned prevention advocates
+2. Click on a prevention advocate to see their full profile
 3. Practice adding a test note
-4. Filter champions by risk level to prioritize work
+4. Filter prevention advocates by risk level to prioritize work
 5. Check dashboard daily for alerts
 
 ---
@@ -464,7 +464,7 @@ Error: Please enter valid numbers for screenings delivered, referrals initiated,
 ### **For Administrators:**
 1. Run `fix_user_roles.py` to validate all user accounts
 2. Create test accounts to familiarize yourself
-3. Assign test champions to supervisors
+3. Assign test prevention advocates to supervisors
 4. Review the dashboard metrics
 5. Set up regular data review routines
 
@@ -488,7 +488,7 @@ A: You'll see a green success message, and the form will clear automatically.
 A: Contact your supervisor or admin - only they can delete records to maintain data integrity.
 
 **Q: Is my data private?**
-A: Yes. Champions only see their own data. Supervisors only see their assigned champions. Admins see everything but are bound by confidentiality policies.
+A: Yes. Prevention Advocates only see their own data. Supervisors only see their assigned prevention advocates. Admins see everything but are bound by confidentiality policies.
 
 ---
 

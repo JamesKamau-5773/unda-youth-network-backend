@@ -1,35 +1,40 @@
 # Unda Youth Network
 
-A comprehensive web application for managing youth mental health engagement programs through a peer champion network. Built with Flask, PostgreSQL, and modern responsive design with **85-90% UNDA requirements coverage**.
+A comprehensive web application for managing youth mental health engagement programs through a peer prevention advocate network. Built with Flask, PostgreSQL, and modern responsive design with **85-90% UNDA requirements coverage**.
 
 ## Overview
 
-Unda Youth Network is a professional platform designed to support youth mental health initiatives by facilitating the management of peer champions who work directly with young people in their communities. The system provides role-based dashboards for administrators, supervisors, and champions to track engagement, monitor wellbeing, manage referrals, and ensure safeguarding compliance.
+Unda Youth Network is a professional platform designed to support youth mental health initiatives by facilitating the management of peer prevention advocates who work directly with young people in their communities. The system provides role-based dashboards for administrators, supervisors, and prevention advocates to track engagement, monitor wellbeing, manage referrals, and ensure safeguarding compliance.
 
-**Latest Update (Phase 7)**: Comprehensive implementation of UNDA Youth Network requirements with 33 new database fields, champion status tracking, enhanced performance metrics, and operational analytics.
+**Latest Update (v1.1.0 - January 2026)**: 
+- Terminology updated: "Champion" → "Prevention Advocate"
+- Email functionality added with Flask-Mail integration
+- Comprehensive user manual and documentation
+- Enhanced security and developer tools
+- Full backwards compatibility maintained
 
 ## Features
 
 ### Multi-Role Dashboard System
 
 #### Admin Dashboard
-- **Champion Status Overview**: Real-time tracking of Active, Inactive, and On Hold champions with color-coded metrics
+- **Prevention Advocate Status Overview**: Real-time tracking of Active, Inactive, and On Hold prevention advocates with color-coded metrics
 - **Screening Completion Rate**: Average background check and assessment completion percentage
 - **System-Wide Metrics**: Check-in rates, referral conversion, compliance scores, satisfaction ratings, and response times
-- **Youth Reach Analytics**: Total youth reached across all champions with individual caseload tracking
-- **Champion Performance Monitoring**: View engagement metrics, attendance rates, and peer ratings per champion
-- **Recruitment Analytics**: Monitor champions by recruitment source (Campus Edition, Mtaani, Referral, etc.)
+- **Youth Reach Analytics**: Total youth reached across all prevention advocates with individual caseload tracking
+- **Prevention Advocate Performance Monitoring**: View engagement metrics, attendance rates, and peer ratings per prevention advocate
+- **Recruitment Analytics**: Monitor prevention advocates by recruitment source (Campus Edition, Mtaani, Referral, etc.)
 - **Compliance Tracking**: Safeguarding consent monitoring with alert systems for missing documentation
 - **Training Management**: Track certifications with trainer details, locations, and certificate numbers
 
 #### Supervisor Dashboard
-- **Champion Management**: View and manage assigned champions with their codes, cohorts, and certification status
-- **Performance Review**: Access detailed champion reports and engagement data
+- **Prevention Advocate Management**: View and manage assigned prevention advocates with their codes, cohorts, and certification status
+- **Performance Review**: Access detailed prevention advocate reports and engagement data
 - **Safeguarding Notes**: Document and track safeguarding concerns
 - **Referral Management**: Submit and monitor referrals to professional services
-- **Quality Assessment**: Rate and provide feedback on champion performance
+- **Quality Assessment**: Rate and provide feedback on prevention advocate performance
 
-#### Champion Dashboard
+#### Prevention Advocate Dashboard
 - **Report Submission**: Submit weekly reports including check-in rates, screenings, referrals, and quality scores
 - **Wellbeing Tracking**: Document personal wellbeing and support needs
 - **Historical Data**: View submission history with color-coded performance metrics
@@ -38,7 +43,7 @@ Unda Youth Network is a professional platform designed to support youth mental h
 ### Security & Authentication
 - **Bcrypt Password Hashing**: Industry-standard password encryption with automatic salting
 - **Flask-Login Integration**: Secure session management with httpOnly and SameSite cookies
-- **Role-Based Access Control**: Three-tier permission system (Admin, Supervisor, Champion)
+- **Role-Based Access Control**: Three-tier permission system (Admin, Supervisor, Prevention Advocate)
 - **Rate Limiting**: Redis-backed request throttling (10 requests/minute on login)
 - **CSRF Protection**: Flask-WTF token-based form security on all POST requests
 - **Password Strength Requirements**: Minimum 8 characters with uppercase, lowercase, numbers, and special characters
@@ -81,8 +86,8 @@ Unda Youth Network is a professional platform designed to support youth mental h
 - **Responsive Grid/Flexbox**: Modern CSS layout techniques
 
 ### Database Schema 
-- **Users Table**: Authentication and role management with champion linkage
-- **Champions Table**: Comprehensive champion profiles with:
+- **Users Table**: Authentication and role management with prevention advocate linkage
+- **Prevention Advocates Table**: Comprehensive prevention advocate profiles with:
   - Personal data (full_name, date_of_birth, gender, phone, alternative phone, email)
   - Emergency contacts (name, relationship, phone)
   - Education & occupation (level, institution, course/field, year of study, workplace)
@@ -99,7 +104,7 @@ Unda Youth Network is a professional platform designed to support youth mental h
   - **Performance**: Attendance rates, UMV event participation, youth feedback scores, peer ratings
   - **Safeguarding**: Training completion, availability status, incident tracking, escalation flags
   - Weekly check-ins, screenings, documentation quality
-  - Champion wellbeing and supervisor notes
+  - Prevention Advocate wellbeing and supervisor notes
 - **RefferalPathway Table**: Professional service referral tracking with outcomes
 - **AccessAuditLog Table**: User activity logging for security and compliance
 
@@ -199,25 +204,25 @@ After running `python seed.py`, the following test accounts are available:
 ### Administrator Account
 - **Username**: `admin`
 - **Password**: `Admin@123`
-- **Access**: Full system access, user management, system-wide analytics with champion status tracking
+- **Access**: Full system access, user management, system-wide analytics with prevention advocate status tracking
 
 ### Supervisor Accounts
 - **Username**: `supervisor1` | **Password**: `Super@123`
 - **Username**: `supervisor2` | **Password**: `Super@123`
-- **Access**: Champion management, performance review, referrals, safeguarding notes
+- **Access**: Prevention Advocate management, performance review, referrals, safeguarding notes
 
-### Champion Accounts
-- **Champion 1 (Alice Wanjiru)**: `alice` / `Alice@123`
+### Prevention Advocate Accounts
+- **Prevention Advocate 1 (Alice Wanjiru)**: `alice` / `Alice@123`
   - Education: University of Nairobi, Psychology Year 3
   - Status: Active, 18 youth under support
   - Emergency Contact: Jane Wanjiru (Mother)
   
-- **Champion 2 (Brian Ochieng)**: `brian` / `Brian@123`
+- **Prevention Advocate 2 (Brian Ochieng)**: `brian` / `Brian@123`
   - Education: Kisumu Technical College, Community Development Year 2
   - Status: Active, 12 youth under support
   - Emergency Contact: Peter Ochieng (Father)
   
-- **Champion 3 (Catherine Muthoni)**: `catherine` / `Cath@123`
+- **Prevention Advocate 3 (Catherine Muthoni)**: `catherine` / `Cath@123`
   - Education: High School Graduate, Working at Nakuru Youth Center
   - Status: On Hold, 15 youth under support
   - Emergency Contact: Mary Muthoni (Sister)
@@ -232,17 +237,27 @@ unda/
 ├── models.py                   # SQLAlchemy database models
 ├── extensions.py               # Flask extensions configuration
 ├── decorators.py               # Custom route decorators
+├── email_utils.py              # Email utilities and configuration
 ├── seed.py                     # Database seeding script with comprehensive sample data
 ├── requirements.txt            # Python dependencies
 ├── run.sh                      # Application startup script
-├── README.md                   # This file - comprehensive documentation
+├── CHANGELOG.md                # Version history and changes
+├── USER_MANUAL.md              # Comprehensive user guide
+├── README.md                   # This file - project overview
 ├── IMPLEMENTATION_SUMMARY.md   # Phase 7 implementation details (33 new fields)
+├── EMAIL_SETUP.md              # Email configuration guide
 ├── blueprints/                 # Flask blueprints
 │   ├── __init__.py
 │   ├── auth.py                 # Authentication routes
 │   ├── admin.py                # Admin dashboard routes
 │   ├── supervisor.py           # Supervisor dashboard routes
-│   ├── champion.py             # Champion dashboard routes
+│   ├── champion.py             # Prevention Advocate dashboard routes
+│   ├── events.py               # Event management
+│   ├── blog.py                 # Blog content
+│   ├── assessments.py          # Mental health assessments
+│   ├── affirmations.py         # Daily affirmations
+│   ├── mpesa.py                # M-Pesa payments
+│   ├── seed_funding.py         # Funding applications
 │   └── main.py                 # General routes
 ├── templates/                  # Jinja2 templates
 │   ├── base.html               # Base template with navigation
@@ -254,7 +269,7 @@ unda/
 │   ├── supervisor/             # Supervisor templates
 │   │   ├── dashboard.html
 │   │   └── champion_details.html
-│   └── champion/               # Champion templates
+│   └── prevention advocate/               # Prevention Advocate templates
 │       └── dashboard.html
 ├── static/                     # Static assets
 │   └── css/
@@ -281,15 +296,15 @@ unda/
 
 ### Supervisor Routes
 - `GET /supervisor/dashboard` - Supervisor overview
-- `GET /supervisor/champion/<id>` - Champion detail view
-- `POST /supervisor/champion/<id>/safeguarding` - Add safeguarding note
-- `POST /supervisor/champion/<id>/notes` - Add supervisor note
-- `POST /supervisor/champion/<id>/quality` - Update quality score
-- `POST /supervisor/champion/<id>/referral` - Create referral
+- `GET /supervisor/prevention advocate/<id>` - Prevention Advocate detail view
+- `POST /supervisor/prevention advocate/<id>/safeguarding` - Add safeguarding note
+- `POST /supervisor/prevention advocate/<id>/notes` - Add supervisor note
+- `POST /supervisor/prevention advocate/<id>/quality` - Update quality score
+- `POST /supervisor/prevention advocate/<id>/referral` - Create referral
 
-### Champion Routes
-- `GET /champion/dashboard` - Champion dashboard
-- `POST /champion/submit-report` - Submit weekly report
+### Prevention Advocate Routes
+- `GET /prevention advocate/dashboard` - Prevention Advocate dashboard
+- `POST /prevention advocate/submit-report` - Submit weekly report
 
 ## Development
 
@@ -403,12 +418,12 @@ For issues, questions, or feature requests, please contact the development team 
 
 **Database Extensions**:
 - 33 new fields across 3 core models
-- Champion model: +12 fields (emergency contacts, education, enrollment status)
+- Prevention Advocate model: +12 fields (emergency contacts, education, enrollment status)
 - TrainingRecord model: +3 fields (trainer details, location, certificates)
 - YouthSupport model: +18 fields (operational, performance, safeguarding)
 
 **New Features**:
-- Champion lifecycle status tracking (Active/Inactive/On Hold)
+- Prevention Advocate lifecycle status tracking (Active/Inactive/On Hold)
 - Screening completion rate metrics
 - Total youth reached aggregation
 - Enhanced operational analytics (clusters, caseload, engagement styles)
@@ -422,7 +437,7 @@ For detailed implementation information, see `IMPLEMENTATION_SUMMARY.md`.
 
 ## Key Metrics & Statistics
 
-- **Database Fields**: 80+ comprehensive data points per champion
+- **Database Fields**: 80+ comprehensive data points per prevention advocate
 - **Requirements Coverage**: 85-90% of UNDA specification
 - **Test Coverage**: 21 passing tests
 - **Code Quality**: PEP 8 compliant, modular blueprint architecture
@@ -436,7 +451,7 @@ For detailed implementation information, see `IMPLEMENTATION_SUMMARY.md`.
 - **Inter Font**: By Rasmus Andersson
 - **PostgreSQL**: For robust database management
 - **UNDA Youth Network**: For detailed requirements specification and domain expertise
-- **Youth Mental Health Organizations**: For insights on peer champion program management
+- **Youth Mental Health Organizations**: For insights on peer prevention advocate program management
 
 ---
 

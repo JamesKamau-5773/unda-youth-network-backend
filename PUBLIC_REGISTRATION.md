@@ -1,12 +1,12 @@
-# Public Registration & Champion Application System
+# Public Registration & Prevention Advocate Application System
 
-This document describes the public member registration and champion application workflow.
+This document describes the public member registration and prevention advocate application workflow.
 
 ## Overview
 
 The system allows:
 1. Public users to register as members (requires admin approval)
-2. Registered members to apply to become champions (requires admin approval)
+2. Registered members to apply to become prevention advocates (requires admin approval)
 3. Admins to review and approve/reject both registrations and applications
 
 ## Database Models
@@ -32,7 +32,7 @@ Tracks pending member registration requests.
 - `created_user_id`: Created User ID if approved
 
 ### ChampionApplication
-Tracks champion applications from registered members.
+Tracks prevention advocate applications from registered members.
 
 **Fields:**
 - `application_id`: Primary key
@@ -48,14 +48,14 @@ Tracks champion applications from registered members.
 - `emergency_contact_phone`: Emergency phone
 - `current_education_level`: Education level
 - `education_institution_name`: Institution
-- `motivation`: Why they want to be a champion
+- `motivation`: Why they want to be a prevention advocate
 - `skills_interests`: Skills and interests
 - `status`: Pending, Approved, or Rejected
 - `submitted_at`: Submission timestamp
 - `reviewed_at`: Review timestamp
 - `reviewed_by`: Admin user_id who reviewed
 - `rejection_reason`: Reason if rejected
-- `created_champion_id`: Created Champion ID if approved
+- `created_champion_id`: Created Prevention Advocate ID if approved
 
 ## API Endpoints
 
@@ -100,13 +100,13 @@ Register as a new member (no authentication required).
 - Phone must be Kenya format (254XXXXXXXXX or 07XXXXXXXX)
 - Password must meet strength requirements
 - Username must be unique
-- Email must not already exist in Champion records
+- Email must not already exist in Prevention Advocate records
 
-### 2. Apply to Become Champion
+### 2. Apply to Become Prevention Advocate
 
-**POST** `/api/champion/apply`
+**POST** `/api/prevention advocate/apply`
 
-Submit champion application (requires login).
+Submit prevention advocate application (requires login).
 
 **Headers:**
 ```
@@ -145,14 +145,14 @@ Authorization: Bearer <token>
 **Response (201):**
 ```json
 {
-  "message": "Champion application submitted successfully. An administrator will review your application.",
+  "message": "Prevention Advocate application submitted successfully. An administrator will review your application.",
   "application_id": 1,
   "status": "Pending"
 }
 ```
 
 **Validation:**
-- User must not already have a champion profile
+- User must not already have a prevention advocate profile
 - User must not have a pending application
 - Age must be between 15 and 35 years
 - Email and phone must be valid formats
@@ -161,7 +161,7 @@ Authorization: Bearer <token>
 
 **GET** `/api/my-applications`
 
-Get current user's champion applications (requires login).
+Get current user's prevention advocate applications (requires login).
 
 **Response (200):**
 ```json
@@ -248,11 +248,11 @@ Reject a member registration (admin only).
 }
 ```
 
-### 7. Get Champion Applications
+### 7. Get Prevention Advocate Applications
 
-**GET** `/api/admin/champion-applications?status=Pending`
+**GET** `/api/admin/prevention advocate-applications?status=Pending`
 
-Get champion applications (admin only).
+Get prevention advocate applications (admin only).
 
 **Query Parameters:**
 - `status`: Filter by status (Pending, Approved, Rejected) - default: Pending
@@ -283,11 +283,11 @@ Get champion applications (admin only).
 }
 ```
 
-### 8. Approve Champion Application
+### 8. Approve Prevention Advocate Application
 
-**POST** `/api/admin/champion-applications/<application_id>/approve`
+**POST** `/api/admin/prevention advocate-applications/<application_id>/approve`
 
-Approve a champion application (admin only).
+Approve a prevention advocate application (admin only).
 
 **Request Body:**
 ```json
@@ -297,29 +297,29 @@ Approve a champion application (admin only).
 ```
 
 **Required:**
-- `assigned_champion_code`: Unique champion code
+- `assigned_champion_code`: Unique prevention advocate code
 
 **Response (200):**
 ```json
 {
-  "message": "Champion application approved successfully",
+  "message": "Prevention Advocate application approved successfully",
   "champion_id": 456,
   "champion_code": "UMV-2026-001"
 }
 ```
 
 **Actions Performed:**
-- Creates Champion profile with all application details
-- Links Champion to User account
+- Creates Prevention Advocate profile with all application details
+- Links Prevention Advocate to User account
 - Updates application status to Approved
-- Sets champion status to Active
+- Sets prevention advocate status to Active
 - Sets application_status to Recruited
 
-### 9. Reject Champion Application
+### 9. Reject Prevention Advocate Application
 
-**POST** `/api/admin/champion-applications/<application_id>/reject`
+**POST** `/api/admin/prevention advocate-applications/<application_id>/reject`
 
-Reject a champion application (admin only).
+Reject a prevention advocate application (admin only).
 
 **Request Body:**
 ```json
@@ -331,7 +331,7 @@ Reject a champion application (admin only).
 **Response (200):**
 ```json
 {
-  "message": "Champion application rejected",
+  "message": "Prevention Advocate application rejected",
   "reason": "Does not meet age requirements"
 }
 ```
@@ -351,33 +351,33 @@ Reject a champion application (admin only).
 
 3. **Admin Approves/Rejects**
    - **Approve**: POST `/api/admin/registrations/<id>/approve`
-     - Creates User account with role "Champion"
+     - Creates User account with role "Prevention Advocate"
      - User can now log in
    - **Reject**: POST `/api/admin/registrations/<id>/reject`
      - Registration marked as rejected
      - Rejection reason stored
 
-### Champion Application Workflow
+### Prevention Advocate Application Workflow
 
 1. **Member Logs In**
    - Uses approved credentials
 
 2. **Member Submits Application**
-   - POST `/api/champion/apply`
+   - POST `/api/prevention advocate/apply`
    - Status: Pending
    - Member receives confirmation
 
 3. **Admin Reviews Applications**
-   - GET `/api/admin/champion-applications?status=Pending`
+   - GET `/api/admin/prevention advocate-applications?status=Pending`
    - Admin sees all pending applications with full details
 
 4. **Admin Approves/Rejects**
-   - **Approve**: POST `/api/admin/champion-applications/<id>/approve`
-     - Creates Champion profile
+   - **Approve**: POST `/api/admin/prevention advocate-applications/<id>/approve`
+     - Creates Prevention Advocate profile
      - Links to User account
-     - Assigns champion code
-     - User becomes a Champion
-   - **Reject**: POST `/api/admin/champion-applications/<id>/reject`
+     - Assigns prevention advocate code
+     - User becomes a Prevention Advocate
+   - **Reject**: POST `/api/admin/prevention advocate-applications/<id>/reject`
      - Application marked as rejected
      - Rejection reason stored
      - User remains a regular member
@@ -395,7 +395,7 @@ Reject a champion application (admin only).
 - Validated by `password_validator.validate_password_strength()`
 - Must meet application security requirements
 
-### Age Requirements (Champion Application)
+### Age Requirements (Prevention Advocate Application)
 - Minimum age: 15 years
 - Maximum age: 35 years
 - Calculated from date_of_birth
@@ -468,14 +468,14 @@ curl -X POST http://localhost:5000/api/auth/register \
   }'
 ```
 
-### Test Champion Application
+### Test Prevention Advocate Application
 ```bash
-curl -X POST http://localhost:5000/api/champion/apply \
+curl -X POST http://localhost:5000/api/prevention advocate/apply \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
   -d '{
-    "full_name": "Test Champion",
-    "email": "champion@example.com",
+    "full_name": "Test Prevention Advocate",
+    "email": "prevention advocate@example.com",
     "phone_number": "254787654321",
     "gender": "Female",
     "date_of_birth": "1998-05-20",
@@ -508,7 +508,7 @@ curl -X POST http://localhost:5000/api/champion/apply \
 - Email notifications to users on approval/rejection
 - Bulk approval functionality
 - Advanced filtering and search for admin review
-- Document upload for champion applications
+- Document upload for prevention advocate applications
 - SMS notifications using M-Pesa integration
 - Application deadline management
 - Waitlist functionality

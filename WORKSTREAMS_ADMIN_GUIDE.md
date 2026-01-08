@@ -242,7 +242,7 @@ Delete: POST /admin/umv-mtaani/<id>/delete
 - `@login_required` - Must be logged in
 - `@admin_required` - Must have Admin role
 
-❌ **Supervisors and Champions cannot:**
+❌ **Supervisors and Prevention Advocates cannot:**
 - Access workstreams dashboard
 - Create, edit, or delete any workstream content
 - View admin-specific routes

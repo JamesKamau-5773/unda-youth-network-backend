@@ -15,7 +15,7 @@ Users with invalid or unrecognized roles caused infinite redirect loops between 
 **Location:** `models.py` - User model
 
 ```python
-VALID_ROLES = ['Admin', 'Supervisor', 'Champion']
+VALID_ROLES = ['Admin', 'Supervisor', 'Prevention Advocate']
 ```
 
 - Defined valid roles as a constant
@@ -72,7 +72,7 @@ Run this script to:
 - Scan all users for invalid roles
 - Auto-fix capitalization issues
 - Report any truly invalid roles
-- Optionally set invalid roles to default (Champion)
+- Optionally set invalid roles to default (Prevention Advocate)
 
 **Usage:**
 ```bash
@@ -119,7 +119,7 @@ if role_lower == 'admin':
    ```sql
    SELECT username, role 
    FROM users 
-   WHERE role NOT IN ('Admin', 'Supervisor', 'Champion');
+   WHERE role NOT IN ('Admin', 'Supervisor', 'Prevention Advocate');
    ```
 
 3. **Monitor error logs** for role-related issues
@@ -130,12 +130,12 @@ To add a CHECK constraint at database level:
 ```sql
 ALTER TABLE users 
 ADD CONSTRAINT valid_role_check 
-CHECK (role IN ('Admin', 'Supervisor', 'Champion'));
+CHECK (role IN ('Admin', 'Supervisor', 'Prevention Advocate'));
 ```
 
 ## Testing Checklist
 
-- [ ] Create user with valid role (Admin/Supervisor/Champion)
+- [ ] Create user with valid role (Admin/Supervisor/Prevention Advocate)
 - [ ] Try creating user with invalid role (should fail gracefully)
 - [ ] Try creating user with lowercase role (should auto-capitalize)
 - [ ] Login with valid role user (should route to correct dashboard)
@@ -157,7 +157,7 @@ If redirect loop occurs in production:
    with app.app_context():
        # Find problematic user
        user = User.query.filter_by(username='problematic_user').first()
-       user.role = 'Champion'  # or appropriate role
+       user.role = 'Prevention Advocate'  # or appropriate role
        db.session.commit()
    ```
 

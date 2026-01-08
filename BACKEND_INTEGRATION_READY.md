@@ -83,8 +83,8 @@ api.get('/api/health')
 ## Available Endpoints (Summary)
 
 ### Public (No Authentication)
-- `POST /api/champions/register` - Champion self-registration
-- `POST /api/champions/verify-code` - Verify champion code
+- `POST /api/prevention advocates/register` - Prevention Advocate self-registration
+- `POST /api/prevention advocates/verify-code` - Verify prevention advocate code
 - `GET /api/health` - Health check
 - `GET /api/status` - API status
 - `GET /api/cors-test` - CORS test
@@ -94,7 +94,7 @@ api.get('/api/health')
 ### Prevention Advocate Role
 - `POST /api/assessments/submit` - Submit PHQ-9/GAD-7 assessment
 - `GET /api/assessments/my-submissions` - View own submissions
-- `POST /api/assessments/validate-champion-code` - Validate code exists
+- `POST /api/assessments/validate-prevention advocate-code` - Validate code exists
 - `GET /api/me` - Get current user info
 - `POST /auth/logout` - Logout
 
@@ -116,7 +116,7 @@ api.get('/api/health')
 ### What Gets Stored
 - ✅ Risk categories (Green/Blue/Purple/Orange/Red)
 - ✅ Score ranges (0-4, 5-9, 10-14, 15-19, 20-27)
-- ✅ Champion codes (UMV-2026-000001)
+- ✅ Prevention Advocate codes (UMV-2026-000001)
 - ✅ Auto-referral flags
 - ✅ Assessment type (PHQ-9 or GAD-7)
 - ✅ Date and time
@@ -124,7 +124,7 @@ api.get('/api/health')
 ### What Does NOT Get Stored
 - ❌ Raw assessment scores (converted server-side, then discarded)
 - ❌ Individual question responses
-- ❌ Champion personal info with assessments (only code)
+- ❌ Prevention Advocate personal info with assessments (only code)
 
 ### Auto-Referral System
 - 🟠 **Orange** (PHQ-9: 15-19) → Auto-referral created
@@ -250,12 +250,12 @@ Production readiness:
 - Ensure `withCredentials: true` on ALL requests (not just login)
 - Check backend logs for session validation errors
 
-### Issue: Champion Code Not Found
-**Symptoms:** Assessment submission returns "Champion code not found"  
+### Issue: Prevention Advocate Code Not Found
+**Symptoms:** Assessment submission returns "Prevention Advocate code not found"  
 **Solution:**  
 - Verify code format: `UMV-YYYY-NNNNNN` (uppercase, exactly 16 characters)
-- Use `/api/champions/verify-code` to check if code exists
-- Ensure champion was registered successfully first
+- Use `/api/prevention advocates/verify-code` to check if code exists
+- Ensure prevention advocate was registered successfully first
 
 ### Issue: Role Permission Denied
 **Symptoms:** 403 Forbidden on endpoint access  
@@ -272,7 +272,7 @@ Production readiness:
 1. ✅ Configure API client with `withCredentials: true`
 2. ✅ Test health check: `http://localhost:5000/api/health`
 3. ✅ Implement login flow (creates session cookie)
-4. ✅ Build champion registration form
+4. ✅ Build prevention advocate registration form
 5. ✅ Build assessment submission form
 6. ✅ Display risk categories as colors (Green/Blue/Purple/Orange/Red)
 7. ✅ Show auto-referral flags for Orange/Red assessments

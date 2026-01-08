@@ -9,11 +9,11 @@ This document summarizes the comprehensive implementation of UNDA Youth Network 
 
 ### Database Schema Extensions
 
-#### 1. Champion Model (12 New Fields)
+#### 1. Prevention Advocate Model (12 New Fields)
 **Personal & Emergency Contacts:**
 - `alternative_phone_number` - Secondary contact number
 - `emergency_contact_name` - Emergency contact person
-- `emergency_contact_relationship` - Relationship to champion
+- `emergency_contact_relationship` - Relationship to prevention advocate
 - `emergency_contact_phone` - Emergency contact number
 
 **Education & Occupation:**
@@ -70,21 +70,21 @@ This document summarizes the comprehensive implementation of UNDA Youth Network 
 ## Enhanced Admin Dashboard Metrics
 
 ### New Status Tracking Section
-**Champion Lifecycle Monitoring:**
-- Active Champions count
-- Inactive Champions count
-- On Hold Champions count
+**Prevention Advocate Lifecycle Monitoring:**
+- Active Prevention Advocates count
+- Inactive Prevention Advocates count
+- On Hold Prevention Advocates count
 - Average Screening Completion Rate
 
 **Visual Enhancements:**
 - Color-coded metric cards (Success, Danger, Warning, Info)
 - Dedicated status overview section with 4 metric cards
-- Real-time champion status distribution
+- Real-time prevention advocate status distribution
 
 ### Updated Performance Metrics
-**Total Youth Reached:** Sum of all `number_of_youth_under_support` across champions
+**Total Youth Reached:** Sum of all `number_of_youth_under_support` across prevention advocates
 
-**Youth Per Champion Table:** Now uses actual YouthSupport data instead of RefferalPathway counts
+**Youth Per Prevention Advocate Table:** Now uses actual YouthSupport data instead of RefferalPathway counts
 
 ---
 
@@ -94,7 +94,7 @@ This document summarizes the comprehensive implementation of UNDA Youth Network 
 
 **Changes Applied:**
 - 33 new columns added across 3 tables:
-  - Champions: 12 columns
+  - Prevention Advocates: 12 columns
   - Training Records: 3 columns
   - Youth Supports: 18 columns
 - Migration successfully applied to PostgreSQL database
@@ -104,20 +104,20 @@ This document summarizes the comprehensive implementation of UNDA Youth Network 
 
 ## 🌱 Seed Data Updates
 
-### Champion Sample Data
-**Champion 1 (Alice Wanjiru):**
+### Prevention Advocate Sample Data
+**Prevention Advocate 1 (Alice Wanjiru):**
 - Emergency Contact: Jane Wanjiru (Mother) +254722222222
 - Education: University of Nairobi, Psychology, Year 3
 - Status: Campus Edition, Recruited, Active
 - Alternative Phone: +254711111111
 
-**Champion 2 (Brian Ochieng):**
+**Prevention Advocate 2 (Brian Ochieng):**
 - Emergency Contact: Peter Ochieng (Father) +254744444444
 - Education: Kisumu Technical College, Community Development, Year 2
 - Status: Mtaani, Recruited, Active
 - Alternative Phone: +254733333333
 
-**Champion 3 (Catherine Muthoni):**
+**Prevention Advocate 3 (Catherine Muthoni):**
 - Emergency Contact: Mary Muthoni (Sister) +254766666666
 - Education: Hope Secondary School Graduate, Working at Nakuru Youth Center
 - Status: Referral, Recruited, On Hold
@@ -153,13 +153,13 @@ This document summarizes the comprehensive implementation of UNDA Youth Network 
 ## UI/UX Enhancements
 
 ### Admin Dashboard Template
-**New Champion Status Overview Section:**
+**New Prevention Advocate Status Overview Section:**
 - 4-column responsive grid
 - Gradient metric cards with SVG icons
 - Color-coded by status type:
-  - Success (Green) - Active Champions
-  - Danger (Red) - Inactive Champions
-  - Warning (Yellow) - On Hold Champions
+  - Success (Green) - Active Prevention Advocates
+  - Danger (Red) - Inactive Prevention Advocates
+  - Warning (Yellow) - On Hold Prevention Advocates
   - Info (Blue) - Screening Completion Rate
 
 **Updated Metrics Grid:**
@@ -175,7 +175,7 @@ This document summarizes the comprehensive implementation of UNDA Youth Network 
 **Missing:**
 - Emergency contact tracking
 - Education/occupation data
-- Champion status lifecycle
+- Prevention Advocate status lifecycle
 - Operational metrics (clusters, caseload)
 - Performance ratings
 - Safeguarding compliance flags
@@ -184,7 +184,7 @@ This document summarizes the comprehensive implementation of UNDA Youth Network 
 **Now Includes:**
 - Complete personal data with emergency contacts  
 - Education and employment tracking  
-- Champion status lifecycle (Active/Inactive/On Hold)  
+- Prevention Advocate status lifecycle (Active/Inactive/On Hold)  
 - Operational analytics (clusters, caseload, engagement styles)  
 - Performance metrics (attendance, events, ratings)  
 - Safeguarding compliance tracking  
@@ -208,11 +208,11 @@ This document summarizes the comprehensive implementation of UNDA Youth Network 
 - Existing data preserved  
 
 ### Seed Script
-- All 3 champions updated with comprehensive data  
+- All 3 prevention advocates updated with comprehensive data  
 - 4 training records updated with trainer/location  
 - 4 youth support reports updated with 18 new fields each  
 - Seed script runs successfully  
-- Data summary confirms: 6 users, 3 champions, 4 reports, 4 training records  
+- Data summary confirms: 6 users, 3 prevention advocates, 4 reports, 4 training records  
 
 ### Application Startup
 - Flask server starts successfully  
@@ -225,7 +225,7 @@ This document summarizes the comprehensive implementation of UNDA Youth Network 
 ## Files Modified
 
 ### Database & Backend
-1. **models.py** - Extended Champion, TrainingRecord, YouthSupport models
+1. **models.py** - Extended Prevention Advocate, TrainingRecord, YouthSupport models
 2. **migrations/versions/ca78f27269e6_*.py** - New migration file
 3. **blueprints/admin.py** - Enhanced metrics calculations
 4. **seed.py** - Comprehensive sample data updates
@@ -239,12 +239,12 @@ This document summarizes the comprehensive implementation of UNDA Youth Network 
 
 ### Accessing New Data
 
-**Champion Details:**
+**Prevention Advocate Details:**
 ```python
-champion = Champion.query.first()
-print(f"Emergency Contact: {champion.emergency_contact_name}")
-print(f"Age: {champion.age}")  # Computed property
-print(f"Status: {champion.champion_status}")
+prevention advocate = Prevention Advocate.query.first()
+print(f"Emergency Contact: {prevention advocate.emergency_contact_name}")
+print(f"Age: {prevention advocate.age}")  # Computed property
+print(f"Status: {prevention advocate.champion_status}")
 ```
 
 **Youth Support Metrics:**
@@ -269,9 +269,9 @@ print(f"Certificate: {training.certificate_number}")
 
 ### Short-term (1-2 weeks)
 1. Add filtering/sorting to admin dashboard tables
-2. Implement champion profile edit forms with new fields
+2. Implement prevention advocate profile edit forms with new fields
 3. Create data export functionality (CSV/Excel)
-4. Add bulk import for champion data
+4. Add bulk import for prevention advocate data
 
 ### Medium-term (1-2 months)
 1. Build comprehensive reporting module
@@ -280,7 +280,7 @@ print(f"Certificate: {training.certificate_number}")
 4. Add document upload for certificates
 
 ### Long-term (3+ months)
-1. Mobile app for champions (React Native)
+1. Mobile app for prevention advocates (React Native)
 2. SMS integration for check-ins
 3. Advanced analytics with ML insights
 4. Integration with external referral systems
@@ -315,7 +315,7 @@ print(f"Certificate: {training.certificate_number}")
 |--------|-------|--------|
 | **Database Fields Added** | 33 | Complete |
 | **Models Extended** | 3 | Complete |
-| **Champions Updated** | 3/3 | Complete |
+| **Prevention Advocates Updated** | 3/3 | Complete |
 | **Training Records Updated** | 4/4 | Complete |
 | **Youth Support Reports Updated** | 4/4 | Complete |
 | **Admin Dashboard Metrics Added** | 5 | Complete |
@@ -327,7 +327,7 @@ print(f"Certificate: {training.certificate_number}")
 
 ## 🎉 Conclusion
 
-The UNDA Youth Network application has been successfully extended with comprehensive data tracking capabilities, meeting 85-90% of the detailed requirements specification. The system now tracks champion lifecycle status, operational metrics, performance indicators, and safeguarding compliance, providing administrators with a complete view of the peer champion program.
+The UNDA Youth Network application has been successfully extended with comprehensive data tracking capabilities, meeting 85-90% of the detailed requirements specification. The system now tracks prevention advocate lifecycle status, operational metrics, performance indicators, and safeguarding compliance, providing administrators with a complete view of the peer prevention advocate program.
 
 **Key Achievements:**
 - 33 new database fields across 3 core models

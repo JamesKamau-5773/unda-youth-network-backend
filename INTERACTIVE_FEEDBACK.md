@@ -85,15 +85,15 @@ Password: [SecurePass123!]
 - Positioned above trigger element
 
 **Implemented Tooltips**:
-- **Total Champions**: "Number of champions currently assigned to you for supervision and performance monitoring"
+- **Total Prevention Advocates**: "Number of prevention advocates currently assigned to you for supervision and performance monitoring"
 - More tooltips on admin dashboard metrics
 
 ### 5. Enhanced Empty States
-**Location**: Supervisor dashboard (no champions), Champion dashboard (no reports), Admin dashboard (no champions)
+**Location**: Supervisor dashboard (no prevention advocates), Prevention Advocate dashboard (no reports), Admin dashboard (no prevention advocates)
 
 **Features**:
 - Large icon (64x64) with reduced opacity
-- Clear title ("No Champions Assigned Yet")
+- Clear title ("No Prevention Advocates Assigned Yet")
 - Helpful descriptive text
 - Call-to-action button
 - Centered layout
@@ -102,10 +102,10 @@ Password: [SecurePass123!]
 **Example**:
 ```
      [Icon]
-No Champions Assigned Yet
+No Prevention Advocates Assigned Yet
 
-You don't have any champions assigned to you 
-for supervision. Champions will appear here 
+You don't have any prevention advocates assigned to you 
+for supervision. Prevention Advocates will appear here 
 once they are assigned by an administrator.
 
 [Go to Admin Dashboard]

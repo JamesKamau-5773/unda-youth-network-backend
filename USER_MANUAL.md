@@ -10,7 +10,7 @@
 2. [Getting Started](#getting-started)
 3. [User Roles Explained](#user-roles-explained)
 4. [Login & Account Security](#login--account-security)
-5. [Champion Guide](#champion-guide)
+5. [Prevention Advocate Guide](#prevention advocate-guide)
 6. [Supervisor Guide](#supervisor-guide)
 7. [Admin Guide](#admin-guide)
 8. [Mental Health Features](#mental-health-features)
@@ -25,10 +25,10 @@
 
 ## 🎯 What is UNDA Youth Network?
 
-**UNDA Youth Network** is a digital platform designed to support youth mental health initiatives through a peer champion network. It's a comprehensive system that helps:
+**UNDA Youth Network** is a digital platform designed to support youth mental health initiatives through a peer prevention advocate network. It's a comprehensive system that helps:
 
-- **Young people (Champions)** access mental health support, participate in events, apply for funding, and track their personal development
-- **Supervisors** manage and support their assigned champions, monitor wellbeing, and submit performance reports
+- **Young people (Prevention Advocates)** access mental health support, participate in events, apply for funding, and track their personal development
+- **Supervisors** manage and support their assigned prevention advocates, monitor wellbeing, and submit performance reports
 - **Administrators** oversee the entire program, manage users, track compliance, and generate analytics
 
 ### Why UNDA?
@@ -52,7 +52,7 @@ Open your web browser and navigate to the UNDA website URL provided by your orga
 
 ### Step 2: First-Time Login
 
-**For Champions & Public Users:**
+**For Prevention Advocates & Public Users:**
 1. Click **"Register"** on the login page
 2. Fill in your details:
    - Full name
@@ -79,7 +79,7 @@ After your first login, complete your profile with:
 
 UNDA has three main user roles, each with specific permissions and features:
 
-### 🎓 Champion (Young Person)
+### 🎓 Prevention Advocate (Young Person)
 **Who:** Youth participants in the UNDA network  
 **What they can do:**
 - Complete mental health assessments
@@ -91,22 +91,22 @@ UNDA has three main user roles, each with specific permissions and features:
 - Submit feedback and ratings
 
 ### 👔 Supervisor
-**Who:** Youth workers managing champions  
+**Who:** Youth workers managing prevention advocates  
 **What they can do:**
-- Everything a Champion can do, PLUS:
-- View and manage assigned champions
-- Monitor champion wellbeing and performance
-- Submit weekly reports on champion activities
+- Everything a Prevention Advocate can do, PLUS:
+- View and manage assigned prevention advocates
+- Monitor prevention advocate wellbeing and performance
+- Submit weekly reports on prevention advocate activities
 - Document safeguarding concerns
 - Make referrals to professional services
-- Rate champion performance
+- Rate prevention advocate performance
 
 ### 🔑 Administrator
 **Who:** Program managers and system administrators  
 **What they can do:**
-- Everything Supervisors and Champions can do, PLUS:
+- Everything Supervisors and Prevention Advocates can do, PLUS:
 - Create and manage user accounts
-- Assign supervisors to champions
+- Assign supervisors to prevention advocates
 - Review and approve registrations
 - Manage events, blog posts, and podcasts
 - Review seed funding applications
@@ -167,11 +167,11 @@ If locked out:
 
 ---
 
-## 🎓 Champion Guide
+## 🎓 Prevention Advocate Guide
 
-As a Champion, your dashboard is your personal hub for mental health support, personal development, and community engagement.
+As a Prevention Advocate, your dashboard is your personal hub for mental health support, personal development, and community engagement.
 
-### Your Champion Dashboard
+### Your Prevention Advocate Dashboard
 
 When you log in, you'll see:
 
@@ -251,7 +251,7 @@ Quarterly pillar events covering mental health topics, skills training, and comm
 3. **Attend the Event:**
    - Show up at the scheduled time
    - Participate actively
-   - Network with other champions
+   - Network with other prevention advocates
 
 4. **Post-Event:**
    - Submit your feedback (1-5 star rating)
@@ -318,7 +318,7 @@ Students and young people with project ideas related to:
 
 **What's available?**
 - Mental health articles
-- Success stories from other champions
+- Success stories from other prevention advocates
 - Tips and strategies for wellbeing
 - Program updates and announcements
 
@@ -333,7 +333,7 @@ Students and young people with project ideas related to:
 **What are they?**  
 Audio content featuring:
 - Mental health experts
-- Champion success stories
+- Prevention Advocate success stories
 - Coping strategies
 - Motivational content
 
@@ -376,19 +376,19 @@ Physical items you earn through participation:
 
 ## 👔 Supervisor Guide
 
-As a Supervisor, you're responsible for supporting and monitoring your assigned champions while ensuring their safety and wellbeing.
+As a Supervisor, you're responsible for supporting and monitoring your assigned prevention advocates while ensuring their safety and wellbeing.
 
 ### Your Supervisor Dashboard
 
-#### 📋 Champion Management
+#### 📋 Prevention Advocate Management
 
-**View Your Champions:**
-1. Dashboard shows all assigned champions
-2. See champion codes, cohorts, and status
-3. Access individual champion profiles
+**View Your Prevention Advocates:**
+1. Dashboard shows all assigned prevention advocates
+2. See prevention advocate codes, cohorts, and status
+3. Access individual prevention advocate profiles
 4. Review performance metrics
 
-**Champion Information Includes:**
+**Prevention Advocate Information Includes:**
 - Personal details and contact info
 - Educational background
 - Health information and dietary needs
@@ -400,7 +400,7 @@ As a Supervisor, you're responsible for supporting and monitoring your assigned 
 #### 📊 Weekly Reporting
 
 **What to report:**
-Submit weekly performance data for each champion:
+Submit weekly performance data for each prevention advocate:
 
 1. **Engagement Metrics:**
    - Check-in rate (percentage of planned check-ins completed)
@@ -414,14 +414,14 @@ Submit weekly performance data for each champion:
    - Response to interventions
 
 3. **Wellbeing Notes:**
-   - Observations about champion wellbeing
+   - Observations about prevention advocate wellbeing
    - Concerns or red flags
    - Positive developments
    - Support provided
 
 **How to submit:**
 1. Go to "Submit Report" section
-2. Select the champion
+2. Select the prevention advocate
 3. Enter all required metrics
 4. Add qualitative notes
 5. Submit report
@@ -442,7 +442,7 @@ Submit weekly performance data for each champion:
    - Follow up on actions taken
 
 2. **Risk Assessment:**
-   - Monitor champion risk levels (Low/Medium/High)
+   - Monitor prevention advocate risk levels (Low/Medium/High)
    - Update risk assessments regularly
    - Escalate high-risk cases
    - Document protective factors
@@ -453,9 +453,9 @@ Submit weekly performance data for each champion:
    - Follow up on outcomes
    - Maintain confidentiality
 
-#### 📞 Champion Support
+#### 📞 Prevention Advocate Support
 
-**How to support your champions:**
+**How to support your prevention advocates:**
 
 1. **Regular Check-ins:**
    - Schedule consistent contact
@@ -466,17 +466,17 @@ Submit weekly performance data for each champion:
 2. **Assessment Review:**
    - Monitor assessment results
    - Identify trends (improving/declining)
-   - Reach out to champions with concerning scores
+   - Reach out to prevention advocates with concerning scores
    - Provide appropriate interventions
 
 3. **Event Encouragement:**
    - Promote upcoming events
-   - Help champions register
+   - Help prevention advocates register
    - Verify attendance
    - Collect feedback
 
 4. **Performance Ratings:**
-   - Rate champion performance fairly
+   - Rate prevention advocate performance fairly
    - Provide constructive feedback
    - Acknowledge achievements
    - Support improvement areas
@@ -492,7 +492,7 @@ Submit weekly performance data for each champion:
 - Safeguarding training status
 
 **Generate Reports:**
-- Individual champion reports
+- Individual prevention advocate reports
 - Group performance summaries
 - Trend analysis
 - Compliance tracking
@@ -509,15 +509,15 @@ Your dashboard provides comprehensive system analytics:
 
 #### 📊 System-Wide Metrics
 
-**Champion Overview:**
-- Total champions (Active/Inactive/On Hold)
+**Prevention Advocate Overview:**
+- Total prevention advocates (Active/Inactive/On Hold)
 - Screening completion rates
 - Average performance scores
 - Youth reach statistics
 - Recruitment source breakdown
 
 **Performance Analytics:**
-- Check-in rates across all champions
+- Check-in rates across all prevention advocates
 - Referral conversion rates
 - Compliance scores
 - Satisfaction ratings
@@ -533,9 +533,9 @@ Your dashboard provides comprehensive system analytics:
 
 #### Creating User Accounts
 
-**Create a Champion:**
+**Create a Prevention Advocate:**
 1. Go to "Admin" → "Create User"
-2. Select role: "Champion"
+2. Select role: "Prevention Advocate"
 3. Enter required information:
    - Full name
    - Email
@@ -546,15 +546,15 @@ Your dashboard provides comprehensive system analytics:
    - Education level
    - Institution
 4. Assign to a supervisor
-5. Set champion code and cohort
+5. Set prevention advocate code and cohort
 6. Add emergency contact
 7. Create account
 
 **Create a Supervisor:**
-1. Same process as Champion
+1. Same process as Prevention Advocate
 2. Select role: "Supervisor"
 3. No need to assign a supervisor
-4. They can be assigned champions later
+4. They can be assigned prevention advocates later
 
 **Create an Admin:**
 1. Same process
@@ -576,20 +576,20 @@ Your dashboard provides comprehensive system analytics:
 5. Reset password
 6. Save changes
 
-**Assign Champions to Supervisors:**
+**Assign Prevention Advocates to Supervisors:**
 1. Go to "Admin" → "Manage Assignments"
 2. Select supervisor
-3. Choose champions to assign
+3. Choose prevention advocates to assign
 4. Save assignments
 
-#### Champion Applications
+#### Prevention Advocate Applications
 
 **Review Public Registrations:**
-1. Go to "Admin" → "Champion Applications"
+1. Go to "Admin" → "Prevention Advocate Applications"
 2. View pending applications
 3. Review applicant information
 4. Approve or reject applications
-5. Approved applications create champion accounts automatically
+5. Approved applications create prevention advocate accounts automatically
 
 ### Event Management
 
@@ -688,7 +688,7 @@ Your dashboard provides comprehensive system analytics:
 1. Go to "Admin" → "Assessments"
 2. View all completed assessments
 3. Filter by:
-   - Champion
+   - Prevention Advocate
    - Assessment type
    - Date range
    - Severity level
@@ -713,7 +713,7 @@ Your dashboard provides comprehensive system analytics:
 5. Monitor stock levels
 
 **Distribute Items:**
-1. Select champion
+1. Select prevention advocate
 2. Choose item to distribute
 3. Record distribution date
 4. Add notes if needed
@@ -989,7 +989,7 @@ UNDA supports youth-led projects through seed funding grants.
 ### Eligibility
 
 **Who can apply:**
-- Current UNDA champions
+- Current UNDA prevention advocates
 - Students in educational institutions
 - Young people with community project ideas
 - Teams (not just individuals)
@@ -1134,7 +1134,7 @@ UNDA supports youth-led projects through seed funding grants.
 
 5. **Share Your Story:**
    - May be featured on UNDA blog
-   - Inspire other champions
+   - Inspire other prevention advocates
    - Showcase project success
 
 ### Tips for Success
@@ -1177,7 +1177,7 @@ UNDA's blog provides valuable mental health resources and community stories.
 - Grounding techniques
 
 **Success Stories:**
-- Champion journeys
+- Prevention Advocate journeys
 - Recovery stories
 - Project successes
 - Community impact
@@ -1276,7 +1276,7 @@ UNDA's podcast library offers audio content on mental health, personal developme
 
 - Mental health awareness
 - Expert interviews
-- Champion stories
+- Prevention Advocate stories
 - Coping strategies
 - Motivation and inspiration
 - Life skills
@@ -1391,7 +1391,7 @@ A: UNDA is optimized for mobile, but ensure:
 
 **Q: How do I contact support?**  
 A:
-- Champions: Contact your supervisor
+- Prevention Advocates: Contact your supervisor
 - Supervisors: Contact admin
 - Email: [Your support email]
 - Phone: [Your support phone]
@@ -1413,7 +1413,7 @@ A: We welcome feedback! Submit via:
 
 ## 🎉 Getting the Most Out of UNDA
 
-### Tips for Champions
+### Tips for Prevention Advocates
 
 1. **Complete your profile** - Better support comes from accurate information
 2. **Take assessments honestly** - They're tools to help you, not tests to pass
@@ -1427,8 +1427,8 @@ A: We welcome feedback! Submit via:
 1. **Check in regularly** - Consistency builds trust
 2. **Review assessment trends** - Early intervention is most effective
 3. **Document thoroughly** - Good notes protect everyone
-4. **Encourage participation** - Invite champions to events
-5. **Celebrate wins** - Recognize champion achievements
+4. **Encourage participation** - Invite prevention advocates to events
+5. **Celebrate wins** - Recognize prevention advocate achievements
 6. **Ask for help** - Use admin and peers for support
 
 ### Tips for Admins
@@ -1452,7 +1452,7 @@ A: We welcome feedback! Submit via:
 - Hours: Monday-Friday, 8AM-5PM EAT
 
 **Program Inquiries:**
-- Your supervisor (Champions)
+- Your supervisor (Prevention Advocates)
 - Program coordinator (Supervisors)
 - Admin team (All users)
 
@@ -1473,7 +1473,7 @@ If you're in crisis, contact:
 
 ## 🌟 Welcome to the UNDA Community!
 
-You're now part of a network dedicated to youth mental health and empowerment. Whether you're a champion seeking support, a supervisor providing care, or an admin managing the program, you play a vital role.
+You're now part of a network dedicated to youth mental health and empowerment. Whether you're a prevention advocate seeking support, a supervisor providing care, or an admin managing the program, you play a vital role.
 
 **Remember:**
 - 💙 Your mental health matters
