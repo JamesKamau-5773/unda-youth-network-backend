@@ -219,6 +219,16 @@ def impact_stats_summary():
     }), 200
 
 
+@api_bp.route('/campus-initiatives', methods=['GET', 'OPTIONS'])
+def campus_initiatives():
+    """Return public list of Campus Edition events."""
+    try:
+        events = Event.query.filter(Event.event_type == 'campus').order_by(Event.event_date.asc()).all()
+        return jsonify({'success': True, 'events': [e.to_dict() for e in events]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @api_bp.route('/members/me', methods=['GET', 'OPTIONS'])
 def get_current_member():
     """Return current authenticated member info for SPA dashboards."""
