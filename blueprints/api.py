@@ -217,3 +217,23 @@ def impact_stats_summary():
             'generated_at': datetime.utcnow().isoformat()
         }
     }), 200
+
+
+@api_bp.route('/members/me', methods=['GET', 'OPTIONS'])
+def get_current_member():
+    """Return current authenticated member info for SPA dashboards."""
+    from flask_login import current_user
+
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    return jsonify({
+        'success': True,
+        'user': {
+            'user_id': current_user.user_id,
+            'username': current_user.username,
+            'email': current_user.email,
+            'role': current_user.role,
+            'champion_id': current_user.champion_id
+        }
+    }), 200
