@@ -95,6 +95,48 @@ def register_member():
         return jsonify({'error': str(e)}), 500
 
 
+@public_auth_bp.route('/api/auth/login', methods=['POST'])
+def api_login():
+    """API endpoint for member/admin login using JSON. Returns JSON and sets session cookie."""
+    try:
+        data = request.get_json() or {}
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return jsonify({'error': 'Missing username or password'}), 400
+
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            return jsonify({'error': 'Invalid credentials'}), 401
+
+        # Account lockout handling
+        if user.is_locked():
+            return jsonify({'error': 'Account locked. Try again later.'}), 403
+
+        if not user.check_password(password):
+            user.record_failed_login()
+            return jsonify({'error': 'Invalid credentials'}), 401
+
+        # Successful login
+        from flask_login import login_user
+        user.reset_failed_logins()
+        login_user(user, remember=True)
+
+        return jsonify({
+            'message': 'Logged in successfully',
+            'user': {
+                'user_id': user.user_id,
+                'username': user.username,
+                'role': user.role
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
 @public_auth_bp.route('/api/champion/apply', methods=['POST'])
 @login_required
 def apply_champion():
