@@ -130,8 +130,11 @@ def create_app(test_config=None):
             return True
         return origin in allowed
     
+    # Enable CORS for API and auth endpoints (and other public routes).
+    # Use a broad resource pattern so preflight requests for `/auth/*`
+    # and other non-`/api/*` endpoints also receive CORS headers.
     CORS(app, resources={
-        r"/api/*": {
+        r"/*": {
             "origins": is_valid_origin if cors_origins != '*' else '*',
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
