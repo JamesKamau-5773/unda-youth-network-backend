@@ -1,8 +1,13 @@
 import base64
 from datetime import datetime
 import requests
+from utils.http import get_session, request_with_timeout
+from utils.circuit import CircuitBreaker, circuit
+from utils.endpoint_guard import endpoint_guard
+from utils.idempotency import reserve_key, get_key, update_key, make_key_from_args
 from flask import Blueprint, request, jsonify
 from flask_login import login_required
+from flask_login import current_user
 from models import db, Champion, User
 from decorators import supervisor_required
 import os
@@ -16,30 +21,40 @@ SHORTCODE = os.environ.get('MPESA_SHORTCODE')
 PASSKEY = os.environ.get('MPESA_PASSKEY')
 ENVIRONMENT = os.environ.get('MPESA_ENVIRONMENT', 'sandbox')  # 'sandbox' or 'production'
 
+# Allow local test runs to short-circuit external M-Pesa calls
+MPESA_MOCK = os.environ.get('MPESA_MOCK', 'False') == 'True'
+
 # Base URLs based on environment
 BASE_URL = {
     'sandbox': 'https://sandbox.safaricom.co.ke',
     'production': 'https://api.safaricom.co.ke'
 }
 
+# Shared session with retries
+_session = get_session()
+
+# Circuit breaker for external M-Pesa calls
+_mpesa_cb = CircuitBreaker(fail_max=4, reset_timeout=30)
+
 
 def get_access_token():
     """Get OAuth access token from M-Pesa API."""
+    if MPESA_MOCK:
+        return 'fake-access-token'
     if not CONSUMER_KEY or not CONSUMER_SECRET:
         raise ValueError("M-Pesa credentials not configured. Set MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET.")
-    
     api_url = f"{BASE_URL[ENVIRONMENT]}/oauth/v1/generate?grant_type=client_credentials"
-    
     try:
-        response = requests.get(api_url, auth=(CONSUMER_KEY, CONSUMER_SECRET), timeout=30)
-        response.raise_for_status()
-        return response.json().get('access_token')
-    except requests.exceptions.RequestException as e:
+        resp = request_with_timeout(_session, 'GET', api_url, timeout=10, auth=(CONSUMER_KEY, CONSUMER_SECRET))
+        resp.raise_for_status()
+        return resp.json().get('access_token')
+    except Exception as e:
         raise Exception(f"Failed to get M-Pesa access token: {str(e)}")
 
 
 @mpesa_bp.route('/checkout', methods=['POST'])
 @login_required
+@endpoint_guard(cb=_mpesa_cb, timeout=12)
 def initiate_stk_push():
     """Initiate M-Pesa STK Push for payment."""
     data = request.json
@@ -85,6 +100,30 @@ def initiate_stk_push():
             'message': 'M-Pesa integration not configured on server'
         }), 500
     
+    # Idempotency handling: prefer client-provided Idempotency-Key header
+    idem_key = request.headers.get('Idempotency-Key') or data.get('idempotencyKey')
+    if not idem_key:
+        # Fallback deterministic key so repeated clicks produce same key
+        user_id = getattr(current_user, 'id', 'anon')
+        account_ref = data.get('accountReference', 'UNDA Youth Network')
+        idem_key = make_key_from_args(user_id, phone_number, amount, account_ref)
+
+    # If a record already exists and succeeded, return the stored response
+    existing = get_key(idem_key)
+    if existing:
+        status = existing.get('status')
+        if status == 'success':
+            return jsonify({'success': True, 'message': 'STK Push already processed', 'data': existing.get('response')}), 200
+        if status == 'pending':
+            return jsonify({'success': False, 'message': 'Payment is already being processed'}), 202
+        # if failed, fall through and allow retry which will attempt to reserve again
+
+    # Try to reserve the idempotency key — only one process will win
+    reserved = reserve_key(idem_key, meta={'phone': phone_number, 'amount': amount})
+    if not reserved:
+        # Another worker/process reserved it; return pending
+        return jsonify({'success': False, 'message': 'Payment is already being processed'}), 202
+
     try:
         # Get access token
         access_token = get_access_token()
@@ -115,26 +154,38 @@ def initiate_stk_push():
             "TransactionDesc": data.get('transactionDesc', 'Merchandise/Membership Payment')
         }
         
-        # Make STK Push request
-        api_url = f"{BASE_URL[ENVIRONMENT]}/mpesa/stkpush/v1/processrequest"
-        response = requests.post(api_url, json=payload, headers=headers, timeout=30)
-        response.raise_for_status()
-        
-        response_data = response.json()
-        
-        # Check if request was successful
+        # Make STK Push request with circuit breaker protection
+        @circuit(_mpesa_cb)
+        def do_request():
+            # If MPESA_MOCK is enabled, return a fake successful response
+            if MPESA_MOCK:
+                return {
+                    'ResponseCode': '0',
+                    'CheckoutRequestID': 'MOCK_CHECKOUT_123',
+                    'ResponseDescription': 'Mock STK Push accepted'
+                }
+            api_url = f"{BASE_URL[ENVIRONMENT]}/mpesa/stkpush/v1/processrequest"
+            resp = request_with_timeout(_session, 'POST', api_url, timeout=10, json=payload, headers=headers)
+            resp.raise_for_status()
+            return resp.json()
+
+        try:
+            response_data = do_request()
+        except RuntimeError:
+            # Mark pending -> failed temporarily so clients can retry later
+            update_key(idem_key, status='failed', response={'error': 'service_unavailable'})
+            return jsonify({'success': False, 'message': 'M-Pesa service temporarily unavailable.'}), 503
+        except Exception as e:
+            update_key(idem_key, status='failed', response={'error': str(e)})
+            return jsonify({'success': False, 'message': f'M-Pesa API request failed: {str(e)}'}), 500
+
+        # Persist success response into idempotency store so replays are safe
         if response_data.get('ResponseCode') == '0':
-            return jsonify({
-                'success': True,
-                'message': 'STK Push sent successfully',
-                'data': response_data
-            }), 200
-        else:
-            return jsonify({
-                'success': False,
-                'message': response_data.get('ResponseDescription', 'STK Push failed'),
-                'data': response_data
-            }), 400
+            update_key(idem_key, status='success', response=response_data, meta={'checkout_request_id': response_data.get('CheckoutRequestID')})
+            return jsonify({'success': True, 'message': 'STK Push sent successfully', 'data': response_data}), 200
+
+        update_key(idem_key, status='failed', response=response_data)
+        return jsonify({'success': False, 'message': response_data.get('ResponseDescription', 'STK Push failed'), 'data': response_data}), 400
             
     except requests.exceptions.RequestException as e:
         return jsonify({
