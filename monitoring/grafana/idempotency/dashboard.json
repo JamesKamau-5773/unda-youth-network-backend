@@ -1,0 +1,10 @@
+{
+  "annotations": {"list": []},
+  "panels": [
+    {"type": "stat","title": "Idempotency Duplicates Total","gridPos": {"h": 5, "w": 6, "x": 0, "y": 0},"targets": [{"expr": "idempotency_duplicate_total", "format": "time_series"}]},
+    {"type": "timeseries","title": "Idempotency Duplicate Rate (5m)","gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},"targets": [{"expr": "rate(idempotency_duplicate_total[5m])", "format": "time_series"}]},
+    {"type": "timeseries","title": "Idempotency Success / Failures","gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},"targets": [{"expr": "rate(idempotency_success_total[5m])", "legendFormat": "success", "format": "time_series"},{"expr": "rate(idempotency_failed_total[5m])", "legendFormat": "failed", "format": "time_series"}]}
+  ],
+  "title": "Idempotency Overview",
+  "schemaVersion": 36
+}
