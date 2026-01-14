@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'unda-app'
+    static_configs:
+      # Try multiple host addresses so Prometheus inside Docker can reach the local app.
+      # 'host.docker.internal' works on modern Docker; fallback to localhost and docker bridge IP.
+      - targets: ['host.docker.internal:5000', '172.17.0.1:5002']
+
+rule_files:
+  - 'rules/idempotency_alerts.yml'
