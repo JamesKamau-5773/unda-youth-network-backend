@@ -63,15 +63,19 @@ def create_app(test_config=None):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Database connection pool settings
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_size': 10,
-        'pool_recycle': 3600,
-        'pool_pre_ping': True,  # Verify connections before using
-        'connect_args': {
-            'connect_timeout': 10,  # 10 second connection timeout
-            'options': '-c statement_timeout=30000'  # 30 second query timeout
+    # Configure SQLAlchemy engine options. Skip pool sizing for SQLite (used in tests).
+    if not database_url.startswith('sqlite'):
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'pool_size': 10,
+            'pool_recycle': 3600,
+            'pool_pre_ping': True,  # Verify connections before using
+            'connect_args': {
+                'connect_timeout': 10,  # 10 second connection timeout
+                'options': '-c statement_timeout=30000'  # 30 second query timeout
+            }
         }
-    }
+    else:
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {}
     
     # Rate limiting storage
     app.config.setdefault('RATELIMIT_STORAGE_URL', os.environ.get(
