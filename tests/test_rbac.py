@@ -75,3 +75,19 @@ def test_supervisor_cannot_access_admin_settings(client, app):
     rv = client.get('/admin/settings', follow_redirects=False)
     # Should get 403 forbidden or redirect
     assert rv.status_code in [302, 403]
+
+
+def test_champion_redirects_to_member_portal_when_flag_enabled(client, app, monkeypatch):
+    # Enable the feature flag and set a member portal URL
+    monkeypatch.setenv('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'True')
+    monkeypatch.setenv('MEMBER_PORTAL_URL', 'http://member.local/')
+
+    with app.app_context():
+        create_user(username="champ_mp", password="secret", role="Champion")
+
+    # Login without following redirects
+    client.post('/auth/login', data={"username": "champ_mp", "password": "secret"}, follow_redirects=False)
+    rv = client.get('/auth/register', follow_redirects=False)
+    # Should be redirected to the configured member portal URL
+    assert rv.status_code == 302
+    assert rv.headers.get('Location', '').startswith('http://member.local/')

@@ -15,22 +15,14 @@ from prometheus_flask_exporter import PrometheusMetrics
 
 load_dotenv()
 
-# Initialize Sentry for error tracking (production only)
-sentry_dsn = os.environ.get('SENTRY_DSN')
-if sentry_dsn:
-    sentry_sdk.init(
-        dsn=sentry_dsn,
-        integrations=[FlaskIntegration()],
-        traces_sample_rate=1.0,  # Capture 100% of transactions for performance monitoring
-        profiles_sample_rate=1.0,  # Capture 100% of profiles
-        environment=os.environ.get('FLASK_ENV', 'production'),
-    )
-
 # Import models to ensure they are registered with SQLAlchemy
 
 
 def create_app(test_config=None):
     app = Flask(__name__)
+    # Allow tests to override config early so database settings can be provided via test_config
+    if test_config:
+        app.config.update(test_config)
     
     # Initialize Prometheus metrics
     metrics = PrometheusMetrics(app)
@@ -44,16 +36,20 @@ def create_app(test_config=None):
         pass
 
     # --- Configuration ---
-    # SECRET_KEY is required - no fallback for production
-    secret_key = os.environ.get('SECRET_KEY')
+    # SECRET_KEY is required for production; allow fallback when testing
+    secret_key = app.config.get('SECRET_KEY') or os.environ.get('SECRET_KEY')
     if not secret_key:
-        raise ValueError("SECRET_KEY environment variable must be set")
+        if app.config.get('TESTING'):
+            # Provide a predictable key for test runs
+            secret_key = 'test-secret-key'
+        else:
+            raise ValueError("SECRET_KEY environment variable must be set")
     app.config['SECRET_KEY'] = secret_key
     
-    # Database URI from environment
-    database_url = os.environ.get('DATABASE_URL')
+    # Database URI from config or environment
+    database_url = app.config.get('SQLALCHEMY_DATABASE_URI') or os.environ.get('DATABASE_URL')
     if not database_url:
-        raise ValueError("DATABASE_URL environment variable must be set")
+        raise ValueError("DATABASE_URL environment variable must be set or provide 'SQLALCHEMY_DATABASE_URI' in test_config")
     
     # Fix for Render/Heroku: they use postgres:// but SQLAlchemy 1.4+ requires postgresql://
     if database_url.startswith('postgres://'):
@@ -76,6 +72,22 @@ def create_app(test_config=None):
         }
     else:
         app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {}
+
+    # Initialize Sentry for error tracking (production only).
+    # Do not initialize Sentry when running tests to avoid network calls/delays.
+    sentry_dsn = os.environ.get('SENTRY_DSN')
+    if sentry_dsn and not app.config.get('TESTING'):
+        try:
+            sentry_sdk.init(
+                dsn=sentry_dsn,
+                integrations=[FlaskIntegration()],
+                traces_sample_rate=1.0,
+                profiles_sample_rate=1.0,
+                environment=os.environ.get('FLASK_ENV', 'production'),
+            )
+        except Exception:
+            # Ensure Sentry failures don't prevent app startup
+            app.logger.exception('Sentry initialization failed; continuing without Sentry')
     
     # Rate limiting storage
     app.config.setdefault('RATELIMIT_STORAGE_URL', os.environ.get(
@@ -469,6 +481,6 @@ def create_app(test_config=None):
 if __name__ == '__main__':
     app, limiter = create_app()
     app.run(debug=True)
-else:
-    # For Flask CLI commands (flask db init, etc.)
-    app, _ = create_app()
+# Note: Do not call create_app() at import time to avoid initializing
+# networked integrations (Sentry, external services) during test collection.
+# Flask CLI can use the factory via `FLASK_APP="app:create_app"`.
