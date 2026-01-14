@@ -36,6 +36,9 @@ def upgrade():
             ) THEN
                 EXECUTE 'UPDATE champions SET user_id = NULL WHERE user_id IS NOT NULL AND user_id NOT IN (SELECT user_id FROM users)';
             END IF;
+        EXCEPTION WHEN OTHERS THEN
+            -- swallow errors here to avoid aborting the outer migration transaction
+            RAISE NOTICE 'Ignored error while cleaning champions.user_id: %', SQLERRM;
         END
         $$;
         """)
@@ -73,6 +76,9 @@ def upgrade():
             ) THEN
                 EXECUTE 'UPDATE users SET champion_id = NULL WHERE champion_id IS NOT NULL AND champion_id NOT IN (SELECT champion_id FROM champions)';
             END IF;
+        EXCEPTION WHEN OTHERS THEN
+            -- swallow errors here to avoid aborting the outer migration transaction
+            RAISE NOTICE 'Ignored error while cleaning users.champion_id: %', SQLERRM;
         END
         $$;
         """)
