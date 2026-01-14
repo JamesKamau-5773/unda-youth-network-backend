@@ -12,7 +12,10 @@ Flask-Mail==0.10.0            # Email sending
 python-dotenv==1.0.0
 requests==2.31.0              # HTTP library for M-Pesa API calls
 gunicorn==20.1.0
-celery==5.4.7
+# Allow any compatible Celery 5.x release; some specific micro versions may be yanked
+# or unavailable in certain installers. Using a permissive range improves deploy
+# reliability while staying on Celery 5.
+celery>=5.4,<6.0
 redis==4.5.5
 flask-caching==2.0.2
 opentelemetry-api==1.17.0
