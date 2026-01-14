@@ -1,0 +1,26 @@
+groups:
+  - name: idempotency.rules
+    rules:
+      - alert: HighIdempotencyDuplicateRate
+        expr: rate(idempotency_duplicate_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of idempotency duplicate attempts"
+          description: |
+            The rate of duplicate idempotency attempts (idempotency_duplicate_total)
+            is above 0.1/sec (6/min) over the last 5 minutes for one or more jobs.
+            This indicates excessive client retries or potential automation causing
+            duplicate payment attempts.
+          runbook: "https://your-org.runbook/idempotency-duplicates"
+
+      - alert: IdempotencyDuplicatesSpike
+        expr: increase(idempotency_duplicate_total[1m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Spike in idempotency duplicate attempts"
+          description: "More than 5 duplicate idempotency attempts observed in the last minute."
+          runbook: "https://your-org.runbook/idempotency-duplicates"

@@ -318,3 +318,76 @@ def view_logs():
         'message': 'Log viewing not yet implemented',
         'suggestion': 'Check your hosting platform logs or implement custom logging'
     })
+
+
+@dev.route('/simulate_mpesa', methods=['GET', 'POST'])
+@require_dev_key
+def simulate_mpesa():
+    """Simulate M-Pesa idempotency events server-side.
+
+    This endpoint is intentionally developer-only (requires DEV_SECRET_KEY).
+    It will call the idempotency helpers (reserve/update) to generate
+    Prometheus metrics for: requests, reserved, duplicate, success, failed.
+
+    Query params:
+      - count: number of unique reservation attempts to execute (default 100)
+      - duplicates: number of duplicate/replay attempts to fire (default 20)
+      - sleep_ms: optional per-reservation sleep in ms to simulate processing
+    """
+    try:
+        count = int(request.args.get('count', 100))
+    except Exception:
+        count = 100
+    try:
+        duplicates = int(request.args.get('duplicates', 20))
+    except Exception:
+        duplicates = 20
+    try:
+        sleep_ms = int(request.args.get('sleep_ms', 5))
+    except Exception:
+        sleep_ms = 5
+
+    # Import idempotency helpers lazily to avoid import-time side effects
+    try:
+        from utils.idempotency import reserve_key, update_key
+    except Exception as e:
+        return jsonify({'error': 'Failed to import idempotency utilities', 'detail': str(e)}), 500
+
+    import uuid, random, time
+
+    reserved_keys = []
+    results = {'attempted': 0, 'reserved': 0, 'duplicates_detected': 0, 'marked_success': 0}
+
+    for i in range(count):
+        # deterministic-ish phone and amount for realism
+        phone = f"2547{random.randint(10000000,99999999)}"
+        amount = random.randint(10, 1000)
+        key = str(uuid.uuid4())
+        results['attempted'] += 1
+        ok = reserve_key(key, meta={'phone': phone, 'amount': amount})
+        if ok:
+            reserved_keys.append(key)
+            results['reserved'] += 1
+            # simulate immediate success for most reservations
+            update_key(key, status='success', response={'CheckoutRequestID': f'MOCK-{key[:8]}'})
+            results['marked_success'] += 1
+        else:
+            results['duplicates_detected'] += 1
+
+        # small sleep to spread events so Prometheus scrapes can observe changes
+        if sleep_ms:
+            time.sleep(sleep_ms / 1000.0)
+
+    # Fire some duplicate attempts by attempting to reserve existing keys
+    dup_hits = 0
+    for i in range(duplicates):
+        if reserved_keys:
+            target = random.choice(reserved_keys)
+            dup = reserve_key(target)
+            if not dup:
+                dup_hits += 1
+
+    results['duplicate_attempts_sent'] = duplicates
+    results['duplicate_hits'] = dup_hits
+
+    return jsonify(results)

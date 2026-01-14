@@ -350,6 +350,19 @@ def create_app(test_config=None):
     csrf.exempt(api_status_bp)
     csrf.exempt(dev)
 
+    # Optional: initialize Flask-Caching if available (Redis backend)
+    try:
+        from flask_caching import Cache
+        cache = Cache(config={
+            'CACHE_TYPE': 'RedisCache',
+            'CACHE_REDIS_URL': os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+        })
+        cache.init_app(app)
+        app.extensions['cache'] = cache
+    except Exception:
+        # Caching is optional; continue if not installed/configured
+        pass
+
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
     from flask_login import  current_user,login_required
@@ -482,9 +495,21 @@ def create_app(test_config=None):
     return app, limiter
 
 
+# Provide a Flask CLI-compatible factory that returns only the Flask `app` instance.
+# Many tests/scripts expect `create_app()` to return `(app, limiter)`, but the
+# Flask CLI expects a callable that returns a `Flask` instance (or an instance
+# directly). We expose `app` as a factory that calls `create_app()` and returns
+# just the Flask application to remain backward-compatible.
+def flask_app_factory():
+    app, _ = create_app()
+    return app
+
+# Expose `app` as the Flask CLI entrypoint (it is a factory callable).
+app = flask_app_factory
+
 if __name__ == '__main__':
-    app, limiter = create_app()
-    app.run(debug=True)
+    _app, limiter = create_app()
+    _app.run(debug=True)
 # Note: Do not call create_app() at import time to avoid initializing
 # networked integrations (Sentry, external services) during test collection.
 # Flask CLI can use the factory via `FLASK_APP="app:create_app"`.
