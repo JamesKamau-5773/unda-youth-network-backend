@@ -19,8 +19,6 @@ celery>=5.4,<6.0
 redis==4.5.5
 flask-caching==2.0.2
 # Align OpenTelemetry API/SDK with the instrumentation 0.41b0 series
-opentelemetry-api==1.41.0
-opentelemetry-sdk==1.41.0
 opentelemetry-instrumentation-flask==0.41b0
 aiohttp==3.8.4
 sentry-sdk==2.48.0
