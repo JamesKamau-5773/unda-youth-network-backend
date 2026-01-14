@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
+import os
 from flask_login import login_required, current_user
 from models import db, Champion, YouthSupport, EventParticipation, Event
 from decorators import champion_required
@@ -13,6 +14,26 @@ champion_bp = Blueprint('champion', __name__, url_prefix='/champion', template_f
 @login_required
 @champion_required  # Champions, Supervisors, Admins can view; Supervisors/Admins may act on behalf
 def dashboard():
+	# If configured, route Prevention Advocates (legacy Champions) to the external member portal
+	role_lower = (current_user.role or '').lower()
+	if role_lower in ['prevention advocate', 'champion']:
+		# Prefer explicit environment override (keeps backward compatibility
+		# with tests that monkeypatch env). Otherwise use app config when set.
+		use_portal = os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES')
+		portal_url = os.environ.get('MEMBER_PORTAL_URL')
+		if use_portal is None:
+			try:
+				use_portal = current_app.config.get('USE_MEMBER_PORTAL_FOR_ADVOCATES')
+			except RuntimeError:
+				use_portal = 'False'
+		if portal_url is None:
+			try:
+				portal_url = current_app.config.get('MEMBER_PORTAL_URL')
+			except RuntimeError:
+				portal_url = '/member-portal'
+		if str(use_portal) == 'True':
+			return redirect(portal_url)
+
 	champion_profile = Champion.query.filter_by(champion_id=current_user.champion_id).first()
 
 	if not champion_profile:
@@ -64,6 +85,24 @@ def dashboard():
 @login_required
 @champion_required
 def submit_report():
+	# If advocates have been migrated to the member portal, stop in-place submissions
+	role_lower = (current_user.role or '').lower()
+	if role_lower in ['prevention advocate', 'champion']:
+		use_portal = None
+		portal_url = None
+		try:
+			use_portal = current_app.config.get('USE_MEMBER_PORTAL_FOR_ADVOCATES')
+			portal_url = current_app.config.get('MEMBER_PORTAL_URL')
+		except RuntimeError:
+			pass
+		if use_portal is None:
+			use_portal = os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False')
+		if portal_url is None:
+			portal_url = os.environ.get('MEMBER_PORTAL_URL', '/member-portal')
+		if str(use_portal) == 'True':
+			flash('This dashboard has moved to the member portal. Please access your reports there.', 'info')
+			return redirect(portal_url)
+
 	if not current_user.champion_id:
 		flash("Error: Your user account is not linked to a Champion profile.", 'danger')
 		return redirect(url_for('champion.dashboard'))

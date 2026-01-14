@@ -2,9 +2,19 @@
 """
 Test email configuration and sending
 """
-from app import app
-from email_utils import send_password_email
+import os
 import sys
+import pytest
+from app import create_app
+
+# Create an app instance for this test module with TESTING enabled so
+# initialization of networked services (Sentry) is skipped.
+app, _ = create_app(test_config={
+    'TESTING': True,
+    'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
+    'WTF_CSRF_ENABLED': False
+})
+from email_utils import send_password_email
 
 def test_email_config():
     """Test email configuration and attempt to send a test email"""
@@ -30,20 +40,21 @@ def test_email_config():
             missing.append('MAIL_USERNAME')
         if not app.config.get('MAIL_PASSWORD'):
             missing.append('MAIL_PASSWORD')
-        
+
         if missing:
-            print(f"\n❌ Missing configuration: {', '.join(missing)}")
-            return False
-        
+            pytest.skip(f"Missing email configuration: {', '.join(missing)}")
+
         print("\n✅ All email config variables are set")
-        
+
+        # If running under pytest / CI, skip interactive prompt
+        if os.environ.get('PYTEST_CURRENT_TEST') or os.environ.get('CI') == 'true' or app.config.get('TESTING'):
+            pytest.skip("Test email sending skipped in non-interactive test environment")
         # Ask for test email
         print("\n" + "=" * 60)
         test_email = input("Enter email address to send test to (or 'skip' to cancel): ").strip()
         
         if test_email.lower() == 'skip' or not test_email:
-            print("Test email sending skipped")
-            return True
+            pytest.skip("Test email sending skipped by user")
         
         print(f"\n📤 Sending test email to {test_email}...")
         
@@ -57,18 +68,25 @@ def test_email_config():
             if result:
                 print(f"\n✅ Email sent successfully to {test_email}")
                 print("📬 Check your inbox (and spam folder)")
-                return True
+                assert result is True
             else:
                 print(f"\n❌ Email sending failed - check logs above for details")
-                return False
+                assert False, "Email sending reported failure"
                 
         except Exception as e:
             print(f"\n❌ Email sending error: {str(e)}")
             import traceback
             traceback.print_exc()
-            return False
+            assert False, f"Email sending raised exception: {str(e)}"
 
 if __name__ == '__main__':
-    success = test_email_config()
-    print("=" * 60)
-    sys.exit(0 if success else 1)
+    try:
+        test_email_config()
+        print("=" * 60)
+        sys.exit(0)
+    except SystemExit:
+        raise
+    except Exception:
+        # If any assertion fails or skip is raised, exit non-zero
+        print("Test failed or skipped when run as script")
+        sys.exit(1)
