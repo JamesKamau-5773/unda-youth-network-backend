@@ -1,6 +1,6 @@
 import functools
 import concurrent.futures
-from flask import jsonify
+from flask import jsonify, copy_current_request_context
 
 
 def endpoint_guard(cb=None, timeout=10):
@@ -16,8 +16,12 @@ def endpoint_guard(cb=None, timeout=10):
                 return jsonify({'success': False, 'message': 'Service temporarily unavailable.'}), 503
 
             # Run handler in a short-lived thread to enforce a hard timeout
+            # Preserve the Flask request context for the worker thread so
+            # handlers that access `request` or other context locals work
+            # correctly during tests and normal execution.
             executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-            future = executor.submit(fn, *args, **kwargs)
+            worker_fn = copy_current_request_context(fn)
+            future = executor.submit(worker_fn, *args, **kwargs)
             try:
                 result = future.result(timeout=timeout)
                 return result
