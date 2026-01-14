@@ -350,6 +350,19 @@ def create_app(test_config=None):
     csrf.exempt(api_status_bp)
     csrf.exempt(dev)
 
+    # Optional: initialize Flask-Caching if available (Redis backend)
+    try:
+        from flask_caching import Cache
+        cache = Cache(config={
+            'CACHE_TYPE': 'RedisCache',
+            'CACHE_REDIS_URL': os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+        })
+        cache.init_app(app)
+        app.extensions['cache'] = cache
+    except Exception:
+        # Caching is optional; continue if not installed/configured
+        pass
+
     #Main Blueprint (For simple index/redirects)
     from flask import Blueprint, render_template
     from flask_login import  current_user,login_required
