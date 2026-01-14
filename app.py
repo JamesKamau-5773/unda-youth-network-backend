@@ -187,6 +187,9 @@ def create_app(test_config=None):
             elif role_lower == 'supervisor':
                 return redirect(url_for('supervisor.dashboard'))
             elif role_lower in ['champion', 'prevention advocate']:
+                # If advocates have been migrated, send them to the frontend member portal
+                if os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False') == 'True':
+                    return redirect(os.environ.get('MEMBER_PORTAL_URL', '/member-portal'))
                 return redirect(url_for('champion.dashboard'))
         return redirect(url_for('auth.login'))
     
@@ -338,6 +341,8 @@ def create_app(test_config=None):
             elif role_lower == 'supervisor':
                 return redirect(url_for('supervisor.dashboard'))
             elif role_lower in ['champion', 'prevention advocate']:
+                if os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False') == 'True':
+                    return redirect(os.environ.get('MEMBER_PORTAL_URL', '/member-portal'))
                 return redirect(url_for('champion.dashboard'))
             else:
                 # Unknown role - logout and redirect to login

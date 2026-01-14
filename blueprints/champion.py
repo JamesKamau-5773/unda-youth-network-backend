@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+import os
 from flask_login import login_required, current_user
 from models import db, Champion, YouthSupport, EventParticipation, Event
 from decorators import champion_required
@@ -13,6 +14,12 @@ champion_bp = Blueprint('champion', __name__, url_prefix='/champion', template_f
 @login_required
 @champion_required  # Champions, Supervisors, Admins can view; Supervisors/Admins may act on behalf
 def dashboard():
+	# If configured, route Prevention Advocates (legacy Champions) to the external member portal
+	role_lower = (current_user.role or '').lower()
+	if role_lower in ['prevention advocate', 'champion'] and os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False') == 'True':
+		member_url = os.environ.get('MEMBER_PORTAL_URL', '/member-portal')
+		return redirect(member_url)
+
 	champion_profile = Champion.query.filter_by(champion_id=current_user.champion_id).first()
 
 	if not champion_profile:
@@ -64,6 +71,13 @@ def dashboard():
 @login_required
 @champion_required
 def submit_report():
+	# If advocates have been migrated to the member portal, stop in-place submissions
+	role_lower = (current_user.role or '').lower()
+	if role_lower in ['prevention advocate', 'champion'] and os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False') == 'True':
+		member_url = os.environ.get('MEMBER_PORTAL_URL', '/member-portal')
+		flash('This dashboard has moved to the member portal. Please access your reports there.', 'info')
+		return redirect(member_url)
+
 	if not current_user.champion_id:
 		flash("Error: Your user account is not linked to a Champion profile.", 'danger')
 		return redirect(url_for('champion.dashboard'))
