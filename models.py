@@ -34,7 +34,15 @@ class User(db.Model, UserMixin):
   role = db.Column(db.String(50), nullable=False, default='Prevention Advocate')
   email = db.Column(db.String(100), unique=True, nullable=True)  # Email for password recovery and notifications
 
-  champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='SET NULL'))
+  champion_id = db.Column(
+    db.Integer,
+    db.ForeignKey(
+      'champions.champion_id',
+      ondelete='SET NULL',
+      use_alter=True,
+      name='fk_users_champion_id'
+    )
+  )
 
   supervised_champion_ids = db.Column(db.JSON)
   
@@ -128,7 +136,15 @@ class Champion(db.Model):
   __tablename__ = 'champions'
   champion_id = db.Column(db.Integer, primary_key=True)
   # Link to user account (one-to-one)
-  user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  user_id = db.Column(
+    db.Integer,
+    db.ForeignKey(
+      'users.user_id',
+      ondelete='SET NULL',
+      use_alter=True,
+      name='fk_champions_user_id'
+    )
+  )
   
   #Link back to user account (explicit foreign_keys to avoid ambiguity)
   user = db.relationship('User', backref='champion_profile', uselist=False, foreign_keys=[user_id])

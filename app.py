@@ -15,40 +15,41 @@ from prometheus_flask_exporter import PrometheusMetrics
 
 load_dotenv()
 
-# Initialize Sentry for error tracking (production only)
-sentry_dsn = os.environ.get('SENTRY_DSN')
-if sentry_dsn:
-    sentry_sdk.init(
-        dsn=sentry_dsn,
-        integrations=[FlaskIntegration()],
-        traces_sample_rate=1.0,  # Capture 100% of transactions for performance monitoring
-        profiles_sample_rate=1.0,  # Capture 100% of profiles
-        environment=os.environ.get('FLASK_ENV', 'production'),
-    )
-
 # Import models to ensure they are registered with SQLAlchemy
 
 
 def create_app(test_config=None):
     app = Flask(__name__)
+    # Allow tests to override config early so database settings can be provided via test_config
+    if test_config:
+        app.config.update(test_config)
     
     # Initialize Prometheus metrics
     metrics = PrometheusMetrics(app)
     
     # Track additional custom metrics
-    metrics.info('app_info', 'UNDA Youth Network Application', version='1.0.0')
+    try:
+        metrics.info('app_info', 'UNDA Youth Network Application', version='1.0.0')
+    except ValueError:
+        # Tests may initialize Prometheus multiple times in the same process;
+        # ignore duplicate registration errors during test runs.
+        pass
 
     # --- Configuration ---
-    # SECRET_KEY is required - no fallback for production
-    secret_key = os.environ.get('SECRET_KEY')
+    # SECRET_KEY is required for production; allow fallback when testing
+    secret_key = app.config.get('SECRET_KEY') or os.environ.get('SECRET_KEY')
     if not secret_key:
-        raise ValueError("SECRET_KEY environment variable must be set")
+        if app.config.get('TESTING'):
+            # Provide a predictable key for test runs
+            secret_key = 'test-secret-key'
+        else:
+            raise ValueError("SECRET_KEY environment variable must be set")
     app.config['SECRET_KEY'] = secret_key
     
-    # Database URI from environment
-    database_url = os.environ.get('DATABASE_URL')
+    # Database URI from config or environment
+    database_url = app.config.get('SQLALCHEMY_DATABASE_URI') or os.environ.get('DATABASE_URL')
     if not database_url:
-        raise ValueError("DATABASE_URL environment variable must be set")
+        raise ValueError("DATABASE_URL environment variable must be set or provide 'SQLALCHEMY_DATABASE_URI' in test_config")
     
     # Fix for Render/Heroku: they use postgres:// but SQLAlchemy 1.4+ requires postgresql://
     if database_url.startswith('postgres://'):
@@ -58,15 +59,35 @@ def create_app(test_config=None):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Database connection pool settings
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_size': 10,
-        'pool_recycle': 3600,
-        'pool_pre_ping': True,  # Verify connections before using
-        'connect_args': {
-            'connect_timeout': 10,  # 10 second connection timeout
-            'options': '-c statement_timeout=30000'  # 30 second query timeout
+    # Configure SQLAlchemy engine options. Skip pool sizing for SQLite (used in tests).
+    if not database_url.startswith('sqlite'):
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'pool_size': 10,
+            'pool_recycle': 3600,
+            'pool_pre_ping': True,  # Verify connections before using
+            'connect_args': {
+                'connect_timeout': 10,  # 10 second connection timeout
+                'options': '-c statement_timeout=30000'  # 30 second query timeout
+            }
         }
-    }
+    else:
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {}
+
+    # Initialize Sentry for error tracking (production only).
+    # Do not initialize Sentry when running tests to avoid network calls/delays.
+    sentry_dsn = os.environ.get('SENTRY_DSN')
+    if sentry_dsn and not app.config.get('TESTING'):
+        try:
+            sentry_sdk.init(
+                dsn=sentry_dsn,
+                integrations=[FlaskIntegration()],
+                traces_sample_rate=1.0,
+                profiles_sample_rate=1.0,
+                environment=os.environ.get('FLASK_ENV', 'production'),
+            )
+        except Exception:
+            # Ensure Sentry failures don't prevent app startup
+            app.logger.exception('Sentry initialization failed; continuing without Sentry')
     
     # Rate limiting storage
     app.config.setdefault('RATELIMIT_STORAGE_URL', os.environ.get(
@@ -91,6 +112,10 @@ def create_app(test_config=None):
     app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@unda.org')
     app.config['APP_URL'] = os.environ.get('APP_URL', 'http://127.0.0.1:5000')
+
+    # Feature flags (can be overridden via environment or test_config)
+    app.config['USE_MEMBER_PORTAL_FOR_ADVOCATES'] = os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False')
+    app.config['MEMBER_PORTAL_URL'] = os.environ.get('MEMBER_PORTAL_URL', '/member-portal')
     
     # Validate email configuration on startup
     email_config_warnings = []
@@ -187,6 +212,9 @@ def create_app(test_config=None):
             elif role_lower == 'supervisor':
                 return redirect(url_for('supervisor.dashboard'))
             elif role_lower in ['champion', 'prevention advocate']:
+                # If advocates have been migrated, send them to the frontend member portal
+                if os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False') == 'True':
+                    return redirect(os.environ.get('MEMBER_PORTAL_URL', '/member-portal'))
                 return redirect(url_for('champion.dashboard'))
         return redirect(url_for('auth.login'))
     
@@ -338,6 +366,8 @@ def create_app(test_config=None):
             elif role_lower == 'supervisor':
                 return redirect(url_for('supervisor.dashboard'))
             elif role_lower in ['champion', 'prevention advocate']:
+                if os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False') == 'True':
+                    return redirect(os.environ.get('MEMBER_PORTAL_URL', '/member-portal'))
                 return redirect(url_for('champion.dashboard'))
             else:
                 # Unknown role - logout and redirect to login
@@ -455,6 +485,6 @@ def create_app(test_config=None):
 if __name__ == '__main__':
     app, limiter = create_app()
     app.run(debug=True)
-else:
-    # For Flask CLI commands (flask db init, etc.)
-    app, _ = create_app()
+# Note: Do not call create_app() at import time to avoid initializing
+# networked integrations (Sentry, external services) during test collection.
+# Flask CLI can use the factory via `FLASK_APP="app:create_app"`.
