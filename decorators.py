@@ -19,8 +19,8 @@ def roles_required(*roles):
       # Handle legacy 'Champion' role mapping
       if user_role.lower() == 'champion':
         user_role = 'Prevention Advocate'
-      
-        if user_role.lower() not in [r.lower() for r in allowed]:
+
+      if user_role.lower() not in [r.lower() for r in allowed]:
         flash('Access denied. You do not have the required permissions.', 'danger')
         # Redirect to user's appropriate dashboard instead of main.index
         if user_role.lower() == 'admin':

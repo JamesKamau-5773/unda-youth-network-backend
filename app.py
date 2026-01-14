@@ -36,7 +36,12 @@ def create_app(test_config=None):
     metrics = PrometheusMetrics(app)
     
     # Track additional custom metrics
-    metrics.info('app_info', 'UNDA Youth Network Application', version='1.0.0')
+    try:
+        metrics.info('app_info', 'UNDA Youth Network Application', version='1.0.0')
+    except ValueError:
+        # Tests may initialize Prometheus multiple times in the same process;
+        # ignore duplicate registration errors during test runs.
+        pass
 
     # --- Configuration ---
     # SECRET_KEY is required - no fallback for production
