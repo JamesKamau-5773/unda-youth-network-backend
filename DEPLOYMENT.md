@@ -126,6 +126,37 @@ gunicorn -w 4 -b 0.0.0.0:5000 --timeout 120 app:app
 
 ---
 
+### Render / Gunicorn (Notes)
+
+- For production HTTP servers prefer loading the WSGI `app` exposed by `wsgi:app`.
+- Example **Start Command** (Render / Gunicorn):
+
+```bash
+# Bind to the port Render provides via `$PORT`
+gunicorn -w 4 -b 0.0.0.0:$PORT --timeout 120 wsgi:app
+```
+
+- If you need to run Flask CLI commands (migrations) during build or deploy,
+   set the Flask app factory wrapper as the `FLASK_APP` value. This repository
+   exposes a factory callable named `app` in `app.py` which returns the
+   `Flask` instance when invoked. Example:
+
+```bash
+export FLASK_APP=app:app
+flask db upgrade
+```
+
+- Alternatively, prefer running migrations from a one-off runner using the
+   same WSGI app context to avoid CLI factory confusion:
+
+```bash
+# Run migrations inside a one-off process
+python -c "from wsgi import app; from flask_migrate import upgrade; upgrade()"
+```
+
+
+---
+
 ### Heroku
 
 1. **Install Heroku CLI**
