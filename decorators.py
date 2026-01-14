@@ -1,5 +1,6 @@
 from functools import wraps
 from flask import abort, redirect, url_for,flash
+import os
 from flask_login import current_user
 
 def roles_required(*roles):
@@ -19,7 +20,7 @@ def roles_required(*roles):
       if user_role.lower() == 'champion':
         user_role = 'Prevention Advocate'
       
-      if user_role.lower() not in [r.lower() for r in allowed]:
+        if user_role.lower() not in [r.lower() for r in allowed]:
         flash('Access denied. You do not have the required permissions.', 'danger')
         # Redirect to user's appropriate dashboard instead of main.index
         if user_role.lower() == 'admin':
@@ -27,6 +28,9 @@ def roles_required(*roles):
         elif user_role.lower() == 'supervisor':
           return redirect(url_for('supervisor.dashboard'))
         elif user_role.lower() in ['prevention advocate', 'champion']:
+          # If advocates are routed to the member portal, send them there instead of the old dashboard
+          if os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False') == 'True':
+            return redirect(os.environ.get('MEMBER_PORTAL_URL', '/member-portal'))
           return redirect(url_for('champion.dashboard'))  # Keep existing route for now
         else:
           return redirect(url_for('auth.login'))
