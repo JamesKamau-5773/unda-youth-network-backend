@@ -20,7 +20,6 @@ redis==4.5.5
 flask-caching==2.0.2
 # Align OpenTelemetry API/SDK with the instrumentation 0.41b0 series
 opentelemetry-instrumentation-flask==0.41b0
-aiohttp==3.8.4
 sentry-sdk==2.48.0
 prometheus-client==0.23.1
 prometheus_flask_exporter==0.23.2
