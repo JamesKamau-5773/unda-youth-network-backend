@@ -112,6 +112,10 @@ def create_app(test_config=None):
     app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@unda.org')
     app.config['APP_URL'] = os.environ.get('APP_URL', 'http://127.0.0.1:5000')
+
+    # Feature flags (can be overridden via environment or test_config)
+    app.config['USE_MEMBER_PORTAL_FOR_ADVOCATES'] = os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False')
+    app.config['MEMBER_PORTAL_URL'] = os.environ.get('MEMBER_PORTAL_URL', '/member-portal')
     
     # Validate email configuration on startup
     email_config_warnings = []
