@@ -52,6 +52,7 @@ jobs:
           DATABASE_URL: postgresql://gha_user:gha_pass@localhost:5432/unda_test
           FLASK_APP: app.py
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          DISABLE_EMAIL_IN_BUILD: 'True'
         run: |
           set -euo pipefail
           # ensure DB exists (postgres service should create it), then run the migration runner
