@@ -20,6 +20,12 @@
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
+            {% if invite_sent %}
+                <h2 style="margin: 1rem 0 0.5rem 0; color: #333;">Invite Sent</h2>
+                <p style="margin: 0; color: #666; font-size: 0.95rem;">
+                    An invite link has been recorded for this account. Since emailing is disabled, share the invite URL below with the user.
+                </p>
+            {% else %}
             <h2 style="margin: 1rem 0 0.5rem 0; color: #333;">{% if is_reset %}New Temporary Password{% else %}Temporary Password Generated{% endif %}</h2>
             <p style="margin: 0; color: #666; font-size: 0.95rem;">
                 {% if is_reset %}
@@ -37,6 +43,7 @@
                     Please copy this password and share it securely with <strong>{{ username }}</strong>
                 {% endif %}
             </p>
+            {% endif %}
         </div>
         
         {% if email and email_sent %}
@@ -75,6 +82,7 @@
         </div>
         {% endif %}
 
+        {% if temp_password %}
         <div class="password-display-section">
             <div class="password-box">
                 <div class="password-label">Temporary Password:</div>
@@ -89,7 +97,15 @@
                 <span id="copyText">Copy to Clipboard</span>
             </button>
         </div>
+        {% endif %}
 
+        {% if invite_url %}
+        <div class="invite-url-section" style="background:#f8f9fa;border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
+            <h3 style="margin-top:0;color:#333;">Invite URL (copy & share)</h3>
+            <div style="background:white;padding:0.75rem;border-radius:6px;border:1px solid #e9ecef;word-break:break-all;">{{ invite_url }}</div>
+            <p style="font-size:0.9rem;color:#666;margin-top:0.5rem;">This link can be shared using your preferred secure channel. It expires per system policy.</p>
+        </div>
+        {% endif %}
         <div class="warning-box">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#856404" stroke-width="2">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>

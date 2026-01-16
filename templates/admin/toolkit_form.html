@@ -1,0 +1,13 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+<h1>{{ item and 'Edit' or 'Create' }} Toolkit Item</h1>
+<form method="post">
+  <label>Title</label>
+  <input name="title" value="{{ item.title if item else '' }}" />
+  <label>Content</label>
+  <textarea name="content">{{ item.content if item else '' }}</textarea>
+  <label>Attachments (JSON array)</label>
+  <textarea name="attachments">{{ item.attachments|tojson if item and item.attachments else '[]' }}</textarea>
+  <button type="submit" class="btn btn-primary">Save</button>
+</form>
+{% endblock %}

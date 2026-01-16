@@ -26,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-    {% if current_app.config.get('ENABLE_NEW_THEME', False) %}
+    {% if current_app is defined and current_app.config['ENABLE_NEW_THEME']|default(false) %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_variables.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
     {% endif %}
@@ -389,12 +389,12 @@
         opacity: 1;
     }
     </style>
-    {% if current_app.config.get('ENABLE_NEW_THEME', False) %}
+    {% if current_app is defined and current_app.config['ENABLE_NEW_THEME']|default(false) %}
     <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
     {% endif %}
 </head>
 <body class="selection:bg-pink-500 selection:text-white">
-    {% if current_app.config.get('ENABLE_NEW_THEME', False) %}
+    {% if current_app is defined and current_app.config['ENABLE_NEW_THEME']|default(false) %}
     <div class="theme-toggle" aria-hidden="true">
         <button type="button" onclick="undaToggleTheme()" title="Toggle theme">Theme</button>
     </div>

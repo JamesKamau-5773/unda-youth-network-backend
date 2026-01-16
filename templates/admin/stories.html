@@ -1,0 +1,36 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+<div class="hero-card">
+  <div class="hero-card__inner">
+    <div>
+      <h1 class="hero-card__title">Success Stories</h1>
+      <p class="hero-card__subtitle">Manage published stories and community highlights.</p>
+    </div>
+    <div class="hero-card__actions">
+      <a href="{{ url_for('admin.create_story') }}" class="btn btn--primary">Create Story</a>
+    </div>
+  </div>
+</div>
+
+<div class="table-container">
+  <div class="table-header">
+    <h2 class="section-title">Stories</h2>
+  </div>
+  <div class="card">
+    <ul>
+    {% for s in stories %}
+      <li style="padding:0.5rem 0; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color);">
+        <div>{{ s.title }}</div>
+        <div style="display:flex; gap:0.5rem;">
+          <a href="{{ url_for('admin.edit_story', post_id=s.post_id) }}" class="btn btn--secondary">Edit</a>
+          <form action="{{ url_for('admin.delete_story', post_id=s.post_id) }}" method="post" style="display:inline">
+            <button class="btn btn--secondary">Delete</button>
+          </form>
+        </div>
+      </li>
+    {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% endblock %}

@@ -398,6 +398,21 @@ textarea:focus-visible {
 
 .metrics-grid {
     display: grid;
+
+}
+
+/* Compact table style for affirmations list */
+.affirmations-table thead th {
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    font-weight: 600;
+}
+.affirmations-table tbody tr:nth-child(even) {
+    background: rgba(15,23,42,0.02);
+}
+.affirmations-table td {
+    border-bottom: 1px solid rgba(226,232,240,0.6);
+}
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-2xl);
