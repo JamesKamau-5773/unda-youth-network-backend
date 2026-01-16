@@ -7,6 +7,12 @@ Create Date: 2025-12-18 14:51:42.428951
 """
 from alembic import op
 import sqlalchemy as sa
+import logging
+
+from migrations.helpers import (
+    constraint_exists,
+    add_fk_not_valid_and_validate,
+)
 
 
 # revision identifiers, used by Alembic.
@@ -58,13 +64,44 @@ def upgrade():
     sa.UniqueConstraint('phone_number')
     )
     
-    # Add foreign key constraints after both tables exist
-    with op.batch_alter_table('champions', schema=None) as batch_op:
-        batch_op.create_foreign_key('fk_champions_supervisor', 'users', ['supervisor_id'], ['user_id'], ondelete='SET NULL')
-        batch_op.create_foreign_key('fk_champions_user', 'users', ['user_id'], ['user_id'], ondelete='SET NULL')
-    
-    with op.batch_alter_table('users', schema=None) as batch_op:
-        batch_op.create_foreign_key('fk_users_champion', 'champions', ['champion_id'], ['champion_id'], ondelete='SET NULL')
+    # Add foreign key constraints after both tables exist (idempotent, NOT VALID + VALIDATE)
+    conn = op.get_bind()
+    try:
+        # Drop legacy names if present (best-effort)
+        try:
+            with op.batch_alter_table('champions', schema=None) as batch_op:
+                for legacy in ('fk_champions_supervisor', 'fk_champions_user'):
+                    try:
+                        batch_op.drop_constraint(legacy, type_='foreignkey')
+                    except Exception:
+                        pass
+        except Exception:
+            logging.exception('Failed to drop legacy champion constraints during initial migration')
+
+        try:
+            # supervisor -> users
+            if not constraint_exists(conn, 'fk_champions_supervisor'):
+                add_fk_not_valid_and_validate(conn, 'champions', 'fk_champions_supervisor', 'supervisor_id', 'users', 'user_id')
+            else:
+                logging.info('fk_champions_supervisor exists; skipping')
+
+            # champions.user_id -> users.user_id
+            if not constraint_exists(conn, 'fk_champions_user'):
+                add_fk_not_valid_and_validate(conn, 'champions', 'fk_champions_user', 'user_id', 'users', 'user_id')
+            else:
+                logging.info('fk_champions_user exists; skipping')
+        except Exception:
+            logging.exception('Failed to create champion FKs in initial migration')
+
+        try:
+            if not constraint_exists(conn, 'fk_users_champion'):
+                add_fk_not_valid_and_validate(conn, 'users', 'fk_users_champion', 'champion_id', 'champions', 'champion_id')
+            else:
+                logging.info('fk_users_champion exists; skipping')
+        except Exception:
+            logging.exception('Failed to create users->champions FK in initial migration')
+    except Exception:
+        logging.exception('Unexpected error while creating FKs in initial migration')
     op.create_table('access_audit_logs',
     sa.Column('log_id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
