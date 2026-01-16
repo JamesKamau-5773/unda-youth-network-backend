@@ -11,20 +11,27 @@
             <p class="hero-card__subtitle">Here's what's happening with your network today</p>
         </div>
         <div class="hero-card__actions">
+            {% set ns = namespace(i=0) %}
+            {% if ns.i < 3 %}{% set ns.i = ns.i + 1 %}
             <a href="{{ url_for('admin.create_champion') }}" class="btn btn--cta btn--nowrap btn--block">
+            {% endif %}
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
                 New Prevention Advocate
             </a>
+            {% if ns.i < 3 %}{% set ns.i = ns.i + 1 %}
             <a href="{{ url_for('admin.podcasts') }}" class="btn btn--secondary btn--nowrap btn--block">
+            {% endif %}
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M9 18V5l12-2v13M9 18l-7 2V7l7-2m0 13c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zm12-2c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z"/>
                 </svg>
                 Manage Podcasts
             </a>
+            {% if ns.i < 3 %}{% set ns.i = ns.i + 1 %}
             <a href="{{ url_for('admin.workstreams') }}" class="btn btn--secondary btn--nowrap btn--block">
+            {% endif %}
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <rect x="3" y="4" width="7" height="7"></rect>
                     <rect x="14" y="4" width="7" height="7"></rect>
@@ -33,19 +40,25 @@
                 </svg>
                 Workstreams
             </a>
+            {% if ns.i < 3 %}{% set ns.i = ns.i + 1 %}
             <a href="{{ url_for('admin.affirmations') }}" class="btn btn--secondary btn--nowrap btn--block">
+            {% endif %}
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
                 Daily Affirmations
             </a>
+            {% if ns.i < 3 %}{% set ns.i = ns.i + 1 %}
             <a href="{{ url_for('admin.symbolic_items') }}" class="btn btn--secondary btn--nowrap btn--block">
+            {% endif %}
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
                 </svg>
                 Symbolic Items
             </a>
+            {% if ns.i < 3 %}{% set ns.i = ns.i + 1 %}
             <a href="{{ url_for('admin.manage_users') }}" class="btn btn--secondary btn--nowrap btn--block">
+            {% endif %}
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
@@ -168,6 +181,35 @@
 <div class="section-header section-header--spacious">
     <h2 class="section-title">Prevention Advocate Overview</h2>
 </div>
+
+<!-- Workstreams Quick Access Cards -->
+{# Frequent pages personalization: show up to 3 frequently visited admin pages for the current user #}
+{% set frequent_pages = (current_user.frequent_pages or []) if current_user.is_authenticated else [] %}
+
+{% if frequent_pages %}
+<div class="section-header section-header--spacious">
+    <h2 class="section-title">Quick Access</h2>
+    <p class="section-subtitle">Your frequently visited pages</p>
+</div>
+<div class="grid grid--3-col" style="margin-bottom: 1.5rem; gap: 1rem;">
+    {% for p in frequent_pages[:3] %}
+    <div class="tile" style="padding: 1rem; display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+            <div style="font-size: 0.875rem; color: #374151; font-weight:700;">{{ p.name }}</div>
+            <div style="color: #6b7280; margin-top:0.5rem;">Last visited: {{ p.last_seen.split('T')[0] if p.last_seen else '' }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
+            <div style="font-size:1.25rem; font-weight:700; color:#111827;">{{ p.count }}</div>
+            <div>
+                {% if p.endpoint %}
+                <a href="{{ url_for(p.endpoint) }}" class="btn btn--secondary">Open</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <!-- Workstreams Quick Access Cards -->
 {% if workstreams_preview %}
