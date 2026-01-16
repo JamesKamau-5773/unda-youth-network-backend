@@ -421,21 +421,19 @@ def unlock_user_account(user_id):
 def change_user_role(user_id):
     """Change a user's role"""
     user = User.query.get_or_404(user_id)
-    new_role = request.form.get('role', '')
-    # Normalize to canonical capitalization
-    new_role = (new_role or '').strip().capitalize()
-
-    if new_role not in ['Admin', 'Supervisor', 'Champion']:
+    new_role_raw = request.form.get('role', '')
+    # Try to set role using model helper which handles legacy mappings
+    old_role = user.role
+    try:
+        user.set_role(new_role_raw)
+    except ValueError:
         flash('Invalid role selected', 'danger')
         return redirect(url_for('admin.manage_users'))
-
-    old_role = user.role
-    user.role = new_role
 
     try:
         db.session.commit()
         flash(
-            f'Role changed for "{user.username}" from {old_role} to {new_role}', 'success')
+            f'Role changed for "{user.username}" from {old_role} to {user.role}', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error changing role: {str(e)}', 'danger')
