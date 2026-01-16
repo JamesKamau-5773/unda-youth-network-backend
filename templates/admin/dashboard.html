@@ -24,6 +24,15 @@
                 </svg>
                 Manage Podcasts
             </a>
+            <a href="{{ url_for('admin.workstreams') }}" class="btn btn--secondary btn--nowrap btn--block">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="4" width="7" height="7"></rect>
+                    <rect x="14" y="4" width="7" height="7"></rect>
+                    <rect x="3" y="13" width="7" height="7"></rect>
+                    <rect x="14" y="13" width="7" height="7"></rect>
+                </svg>
+                Workstreams
+            </a>
             <a href="{{ url_for('admin.affirmations') }}" class="btn btn--secondary btn--nowrap btn--block">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
@@ -159,6 +168,33 @@
 <div class="section-header section-header--spacious">
     <h2 class="section-title">Prevention Advocate Overview</h2>
 </div>
+
+<!-- Workstreams Quick Access Cards -->
+{% if workstreams_preview %}
+<div class="section-header section-header--spacious">
+    <h2 class="section-title">Workstreams</h2>
+    <p class="section-subtitle">Quick access to key content areas</p>
+</div>
+<div class="grid grid--3-col" style="margin-bottom: 1.5rem; gap: 1rem;">
+    {% for ws in workstreams_preview %}
+    <div class="tile" style="padding: 1rem; display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+            <div style="font-size: 0.875rem; color: #374151; font-weight:700;">{{ ws.name }}</div>
+            <div style="color: #6b7280; margin-top:0.5rem;">{{ ws.description if ws.description is defined else '' }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
+            <div style="font-size:1.25rem; font-weight:700; color:#111827;">{{ ws.count }}</div>
+            <div>
+                <a href="{{ url_for(ws.route) }}" class="btn btn--secondary">View</a>
+                {% if ws.create_route %}
+                <a href="{{ url_for(ws.create_route) }}" class="btn btn--cta">Add New</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <div class="grid-auto" style="margin-bottom: 2.5rem;">
     <!-- Active Advocates - Modern Card -->

@@ -1,0 +1,10 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+<h1>UMV Global Entries</h1>
+<a href="{{ url_for('admin.create_umv_entry') }}" class="btn btn-primary">Create Entry</a>
+<ul>
+{% for e in entries %}
+  <li>{{ e.key }} - <a href="{{ url_for('admin.edit_umv_entry', entry_id=e.entry_id) }}">Edit</a> | <form action="{{ url_for('admin.delete_umv_entry', entry_id=e.entry_id) }}" method="post" style="display:inline"><button class="btn btn-link">Delete</button></form></li>
+{% endfor %}
+</ul>
+{% endblock %}

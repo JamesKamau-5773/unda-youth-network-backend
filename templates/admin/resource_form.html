@@ -1,0 +1,15 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+<h1>{{ resource and 'Edit' or 'Create' }} Resource</h1>
+<form method="post">
+  <label>Title</label>
+  <input name="title" value="{{ resource.title if resource else '' }}" />
+  <label>URL</label>
+  <input name="url" value="{{ resource.url if resource else '' }}" />
+  <label>Description</label>
+  <textarea name="description">{{ resource.description if resource else '' }}</textarea>
+  <label>Tags (JSON array)</label>
+  <textarea name="tags">{{ resource.tags|tojson if resource and resource.tags else '[]' }}</textarea>
+  <button type="submit" class="btn btn-primary">Save</button>
+</form>
+{% endblock %}

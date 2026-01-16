@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Symbolic Items - Admin{% endblock %}
+
+{% block content %}
+<h1>Symbolic Items</h1>
+<p><a class="btn btn--primary" href="{{ url_for('admin.create_symbolic_item') }}">Create Item</a></p>
+<table class="table">
+  <thead>
+    <tr><th>ID</th><th>Name</th><th>Type</th><th>Available</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+  {% for i in items %}
+    <tr>
+      <td>{{ i.item_id }}</td>
+      <td>{{ i.item_name }}</td>
+      <td>{{ i.item_type or '-' }}</td>
+      <td>{{ (i.total_quantity - i.distributed_quantity) }}</td>
+      <td>
+        <a href="{{ url_for('admin.edit_symbolic_item', item_id=i.item_id) }}">Edit</a> |
+        <form action="{{ url_for('admin.delete_symbolic_item', item_id=i.item_id) }}" method="post" style="display:inline">
+          <button type="submit" class="link-like">Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5">No items found.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

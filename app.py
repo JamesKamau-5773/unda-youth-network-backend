@@ -116,6 +116,8 @@ def create_app(test_config=None):
     # Feature flags (can be overridden via environment or test_config)
     app.config['USE_MEMBER_PORTAL_FOR_ADVOCATES'] = os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False')
     app.config['MEMBER_PORTAL_URL'] = os.environ.get('MEMBER_PORTAL_URL', '/member-portal')
+    # New theme is opt-out by default now (set ENABLE_NEW_THEME=false to disable)
+    app.config['ENABLE_NEW_THEME'] = os.environ.get('ENABLE_NEW_THEME', 'True') == 'True'
     
     # Validate email configuration on startup
     email_config_warnings = []

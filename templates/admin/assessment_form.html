@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Record Assessment - Admin{% endblock %}
+
+{% block content %}
+<h1>Record Assessment</h1>
+<form method="post">
+  <div>
+    <label>Champion Code *</label>
+    <input name="champion_code" required />
+  </div>
+  <div>
+    <label>Assessment Type *</label>
+    <select name="assessment_type" required>
+      <option value="PHQ-9">PHQ-9</option>
+      <option value="GAD-7">GAD-7</option>
+    </select>
+  </div>
+  <div>
+    <label>Risk Category *</label>
+    <select name="risk_category" required>
+      <option value="Green">Green</option>
+      <option value="Blue">Blue</option>
+      <option value="Purple">Purple</option>
+      <option value="Orange">Orange</option>
+      <option value="Red">Red</option>
+    </select>
+  </div>
+  <div>
+    <label>Notes</label>
+    <textarea name="notes"></textarea>
+  </div>
+  <div>
+    <button class="btn btn--primary" type="submit">Save</button>
+    <a class="btn btn--secondary" href="{{ url_for('admin.list_assessments_admin') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
