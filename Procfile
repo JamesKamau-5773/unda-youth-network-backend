@@ -1,1 +1,1 @@
-web: gunicorn -k gevent -w 4 "app:create_app()"
+web: bash run.sh
