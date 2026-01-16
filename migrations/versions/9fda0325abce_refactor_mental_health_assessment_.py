@@ -7,6 +7,12 @@ Create Date: 2026-01-06 13:56:23.227570
 """
 from alembic import op
 import sqlalchemy as sa
+import logging
+
+from migrations.helpers import (
+    constraint_exists,
+    add_fk_not_valid_and_validate,
+)
 
 
 # revision identifiers, used by Alembic.
@@ -68,11 +74,15 @@ def downgrade():
     op.add_column('mental_health_assessments',
         sa.Column('total_score', sa.Integer(), nullable=True))
     
-    # Re-create foreign key
-    op.create_foreign_key('mental_health_assessments_champion_id_fkey',
-                         'mental_health_assessments', 'champions',
-                         ['champion_id'], ['champion_id'],
-                         ondelete='CASCADE')
+    # Re-create foreign key (idempotent, NOT VALID + VALIDATE)
+    try:
+        conn = op.get_bind()
+        if not constraint_exists(conn, 'mental_health_assessments_champion_id_fkey'):
+            add_fk_not_valid_and_validate(conn, 'mental_health_assessments', 'mental_health_assessments_champion_id_fkey', 'champion_id', 'champions', 'champion_id')
+        else:
+            logging.info('mental_health_assessments_champion_id_fkey exists; skipping')
+    except Exception:
+        logging.exception('Failed to create/validate mental_health_assessments_champion_id_fkey')
     
     # Drop new privacy-first columns
     op.drop_index('ix_mental_health_assessments_champion_code')
