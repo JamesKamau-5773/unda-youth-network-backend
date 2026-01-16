@@ -51,7 +51,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://gha_user:gha_pass@localhost:5432/unda_test
           FLASK_APP: app.py
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           set -euo pipefail
           # ensure DB exists (postgres service should create it), then run the migration runner
-          scripts/run_migrations.sh
+          scripts/run_migrations.sh || (echo "Migration runner failed; showing last 200 lines:" && tail -n 200 /tmp/migration.log && exit 1)
