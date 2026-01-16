@@ -140,7 +140,11 @@ def create_app(test_config=None):
     db.init_app(app)
     
     # Initialize Flask-Mail
-    init_mail(app)
+    # Allow disabling email initialization during build or CI to avoid outbound SMTP calls
+    if os.environ.get('DISABLE_EMAIL_IN_BUILD', 'False') == 'True' or os.environ.get('DISABLE_EMAIL', 'False') == 'True':
+        app.logger.info('Email initialization skipped (DISABLE_EMAIL_IN_BUILD or DISABLE_EMAIL set)')
+    else:
+        init_mail(app)
     
     # CORS Configuration - Allow API access from different origins
     cors_origins = os.environ.get('CORS_ORIGINS', '*')  # Allow all origins for now
