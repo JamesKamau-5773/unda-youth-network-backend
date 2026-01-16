@@ -1,10 +1,15 @@
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Champion, MemberRegistration, ChampionApplication
+from models import db, User, Champion, MemberRegistration, ChampionApplication, MediaGallery, InstitutionalToolkitItem, UMVGlobalEntry, ResourceItem, BlogPost
 from decorators import admin_required
 from password_validator import validate_password_strength
 from datetime import datetime, date
 import re
+import sqlalchemy as sa
+try:
+    import phonenumbers
+except Exception:
+    phonenumbers = None
 
 public_auth_bp = Blueprint('public_auth', __name__)
 
@@ -15,13 +20,78 @@ def validate_email(email):
     return re.match(pattern, email) is not None
 
 
-def validate_phone(phone):
-    """Validate Kenya phone number format"""
-    # Remove spaces and special characters
-    phone = re.sub(r'[\s\-\(\)]', '', phone)
-    # Check if it matches Kenya phone format (254XXXXXXXXX or 07XXXXXXXX or 01XXXXXXXX)
-    pattern = r'^(254[17]\d{8}|0[17]\d{8})$'
-    return re.match(pattern, phone) is not None
+def normalize_phone(phone, default_region='KE'):
+    """Normalize and validate an international phone number.
+
+    Returns the E.164 formatted phone string on success, or `None` on failure.
+    If `phonenumbers` is unavailable, falls back to a permissive regex that
+    accepts digits and common separators and returns the digits-only string.
+    """
+    if not phone:
+        return None
+
+    # Remove surrounding whitespace
+    raw = phone.strip()
+
+    if phonenumbers:
+        try:
+            # Parse with a sensible default region (Kenya) so local numbers work
+            parsed = phonenumbers.parse(raw, default_region)
+            if not phonenumbers.is_possible_number(parsed):
+                return None
+            if not phonenumbers.is_valid_number(parsed):
+                return None
+            # Return E.164 formatted string (e.g. +254712345678)
+            return phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
+        except phonenumbers.NumberParseException:
+            return None
+
+    # Fallback: accept a sequence of 7-15 digits after removing separators
+    digits = re.sub(r"[\s\-\(\)\+]+", "", raw)
+    if re.match(r'^\d{7,15}$', digits):
+        # Prefer returning digits prefixed with + if original had +, else digits
+        return ('+' + digits) if raw.strip().startswith('+') else digits
+    return None
+
+
+@public_auth_bp.route('/api/auth/complete-invite', methods=['POST'])
+def complete_invite():
+    """Complete an invite/set-password flow using a token sent to the user's email.
+
+    Expects JSON: {"token": "...", "password": "..."}
+    """
+    try:
+        data = request.get_json() or {}
+        token = data.get('token')
+        password = data.get('password')
+
+        if not token or not password:
+            return jsonify({'error': 'Missing token or password'}), 400
+
+        # Find user by invite token
+        user = User.query.filter_by(invite_token=token).first()
+        if not user:
+            return jsonify({'error': 'Invalid or expired invite token'}), 400
+
+        # Check expiry if set
+        from datetime import datetime
+        if user.invite_token_expires and datetime.utcnow() > user.invite_token_expires:
+            return jsonify({'error': 'Invite token has expired'}), 400
+
+        # Validate password strength
+        is_valid, error_message = validate_password_strength(password)
+        if not is_valid:
+            return jsonify({'error': error_message}), 400
+
+        # Set new password and clear invite
+        user.set_password(password)
+        user.clear_invite()
+        db.session.commit()
+
+        return jsonify({'message': 'Password set successfully. You can now log in.'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 
 @public_auth_bp.route('/api/auth/register', methods=['POST'])
@@ -30,19 +100,19 @@ def register_member():
     try:
         data = request.get_json()
         
-        # Validate required fields
-        required_fields = ['full_name', 'email', 'phone_number', 'username', 'password']
+        # Validate required fields (email is optional)
+        required_fields = ['full_name', 'phone_number', 'username', 'password']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({'error': f'Missing required field: {field}'}), 400
-        
-        # Validate email format
-        if not validate_email(data['email']):
+        # Validate email format if provided
+        if data.get('email') and not validate_email(data['email']):
             return jsonify({'error': 'Invalid email format'}), 400
         
-        # Validate phone number
-        if not validate_phone(data['phone_number']):
-            return jsonify({'error': 'Invalid phone number format. Use 254XXXXXXXXX or 07XXXXXXXX'}), 400
+        # Validate and normalize phone number (store E.164 when possible)
+        normalized_phone = normalize_phone(data['phone_number'], default_region='KE')
+        if not normalized_phone:
+            return jsonify({'error': 'Invalid phone number format. Provide an international phone (e.g. +254712345678).'}), 400
         
         # Validate password strength
         is_valid, error_message = validate_password_strength(data['password'])
@@ -57,9 +127,10 @@ def register_member():
         if MemberRegistration.query.filter_by(username=data['username']).first():
             return jsonify({'error': 'Registration with this username already pending'}), 400
         
-        # Check for existing email
-        if Champion.query.filter_by(email=data['email']).first():
-            return jsonify({'error': 'Email already registered'}), 400
+        # Check for existing email only if provided
+        if data.get('email'):
+            if Champion.query.filter_by(email=data['email']).first():
+                return jsonify({'error': 'Email already registered'}), 400
         
         # Parse date of birth if provided
         date_of_birth = None
@@ -72,8 +143,8 @@ def register_member():
         # Create registration record
         registration = MemberRegistration(
             full_name=data['full_name'],
-            email=data['email'],
-            phone_number=data['phone_number'],
+            email=data.get('email'),
+            phone_number=normalized_phone,
             username=data['username'],
             date_of_birth=date_of_birth,
             gender=data.get('gender'),
@@ -156,19 +227,19 @@ def apply_champion():
         
         data = request.get_json()
         
-        # Validate required fields
-        required_fields = ['full_name', 'email', 'phone_number', 'gender', 'date_of_birth']
+        # Validate required fields (email is optional)
+        required_fields = ['full_name', 'phone_number', 'gender', 'date_of_birth']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({'error': f'Missing required field: {field}'}), 400
-        
-        # Validate email
-        if not validate_email(data['email']):
+        # Validate email if provided
+        if data.get('email') and not validate_email(data['email']):
             return jsonify({'error': 'Invalid email format'}), 400
         
-        # Validate phone
-        if not validate_phone(data['phone_number']):
-            return jsonify({'error': 'Invalid phone number format'}), 400
+        # Validate and normalize phone number
+        normalized_phone = normalize_phone(data['phone_number'], default_region='KE')
+        if not normalized_phone:
+            return jsonify({'error': 'Invalid phone number format. Provide an international phone (e.g. +254712345678).'}), 400
         
         # Parse date of birth
         try:
@@ -186,7 +257,7 @@ def apply_champion():
         application = ChampionApplication(
             user_id=current_user.user_id,
             full_name=data['full_name'],
-            email=data['email'],
+            email=data.get('email'),
             phone_number=data['phone_number'],
             alternative_phone_number=data.get('alternative_phone_number'),
             gender=data['gender'],
@@ -444,6 +515,88 @@ def reject_champion_application(application_id):
         
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@public_auth_bp.route('/api/affirmations', methods=['GET'])
+def api_list_affirmations():
+    try:
+        affirmations = DailyAffirmation.query.filter_by(active=True).order_by(DailyAffirmation.scheduled_date.asc().nullsfirst()).all()
+        return jsonify({'affirmations': [a.to_dict() for a in affirmations]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@public_auth_bp.route('/api/symbolic-items', methods=['GET'])
+def api_list_symbolic_items():
+    try:
+        items = SymbolicItem.query.order_by(SymbolicItem.item_name.asc()).all()
+        return jsonify({'items': [i.to_dict() for i in items]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@public_auth_bp.route('/api/assessments', methods=['GET'])
+def api_list_assessments():
+    try:
+        # Return recent assessments (privacy: no raw scores)
+        q = MentalHealthAssessment.query.order_by(MentalHealthAssessment.assessment_date.desc()).limit(50).all()
+        def serialize(a):
+            return {
+                'assessment_id': a.assessment_id,
+                'champion_code': a.champion_code,
+                'assessment_type': a.assessment_type,
+                'assessment_date': a.assessment_date.isoformat() if a.assessment_date else None,
+                'risk_category': a.risk_category,
+                'notes': a.notes,
+            }
+        return jsonify({'assessments': [serialize(x) for x in q]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@public_auth_bp.route('/api/media-galleries', methods=['GET'])
+def api_list_media_galleries():
+    try:
+        galleries = MediaGallery.query.filter_by(published=True).order_by(MediaGallery.published_at.desc()).all()
+        return jsonify({'galleries': [g.to_dict() for g in galleries]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@public_auth_bp.route('/api/toolkit', methods=['GET'])
+def api_list_toolkit():
+    try:
+        items = InstitutionalToolkitItem.query.filter_by(published=True).order_by(InstitutionalToolkitItem.created_at.desc()).all()
+        return jsonify({'toolkit': [i.to_dict() for i in items]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@public_auth_bp.route('/api/umv-global', methods=['GET'])
+def api_list_umv_global():
+    try:
+        entries = UMVGlobalEntry.query.order_by(UMVGlobalEntry.key.asc()).all()
+        return jsonify({'entries': [e.to_dict() for e in entries]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@public_auth_bp.route('/api/resources', methods=['GET'])
+def api_list_resources():
+    try:
+        resources = ResourceItem.query.filter_by(published=True).order_by(ResourceItem.published_at.desc()).all()
+        return jsonify({'resources': [r.to_dict() for r in resources]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@public_auth_bp.route('/api/stories', methods=['GET'])
+def api_list_stories():
+    try:
+        stories = BlogPost.query.filter_by(category='Success Stories', published=True).order_by(BlogPost.published_at.desc()).all()
+        return jsonify({'stories': [s.to_dict() for s in stories]}), 200
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 

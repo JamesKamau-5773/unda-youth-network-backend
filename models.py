@@ -50,6 +50,9 @@ class User(db.Model, UserMixin):
   failed_login_attempts = db.Column(db.Integer, default=0)
   account_locked = db.Column(db.Boolean, default=False)
   locked_until = db.Column(db.DateTime)
+  # Invite token for admin-created accounts (one-time set-password link)
+  invite_token = db.Column(db.String(255), unique=True, nullable=True)
+  invite_token_expires = db.Column(db.DateTime, nullable=True)
 
   #Implement UserMixin required methord
   def get_id(self):
@@ -131,6 +134,18 @@ class User(db.Model, UserMixin):
     self.account_locked = False
     self.locked_until = None
     db.session.commit()
+
+  def set_invite(self, token, expires_at):
+    """Set invite token and expiry for this user."""
+    self.invite_token = token
+    self.invite_token_expires = expires_at
+    db.session.commit()
+
+  def clear_invite(self):
+    """Clear invite token after it's used or expired."""
+    self.invite_token = None
+    self.invite_token_expires = None
+    db.session.commit()
   
 class Champion(db.Model):
   __tablename__ = 'champions'
@@ -158,7 +173,7 @@ class Champion(db.Model):
   date_of_birth = db.Column(db.Date)
   phone_number = db.Column(db.String(20), unique=True, nullable=False)
   alternative_phone_number = db.Column(db.String(20))
-  email = db.Column(db.String(100), unique=True, nullable=False)
+  email = db.Column(db.String(100), unique=True, nullable=True)
   county_sub_county = db.Column(db.String(100))
   assigned_champion_code = db.Column(db.String(20), unique=True, nullable=False)
   
@@ -772,6 +787,132 @@ class SymbolicItem(db.Model):
     }
 
 
+class MediaGallery(db.Model):
+  """Media gallery for images/videos used in blog posts and campaigns."""
+  __tablename__ = 'media_gallery'
+
+  gallery_id = db.Column(db.Integer, primary_key=True)
+  title = db.Column(db.String(255), nullable=False)
+  description = db.Column(db.Text)
+  media_items = db.Column(db.JSON)  # list of {url, type, caption, metadata}
+  featured_media = db.Column(db.String(500))
+  published = db.Column(db.Boolean, default=False)
+  published_at = db.Column(db.DateTime)
+  created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+  def to_dict(self):
+    return {
+      'gallery_id': self.gallery_id,
+      'title': self.title,
+      'description': self.description,
+      'media_items': self.media_items or [],
+      'featured_media': self.featured_media,
+      'published': self.published,
+      'published_at': self.published_at.isoformat() if self.published_at else None,
+      'created_by': self.created_by,
+      'created_at': self.created_at.isoformat() if self.created_at else None,
+      'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+      'id': self.gallery_id,
+      'featuredMedia': self.featured_media,
+      'publishedAt': self.published_at.isoformat() if self.published_at else None,
+      'createdAt': self.created_at.isoformat() if self.created_at else None,
+      'updatedAt': self.updated_at.isoformat() if self.updated_at else None
+    }
+
+
+class InstitutionalToolkitItem(db.Model):
+  """Items for the institutional toolkit: guides, templates, checklists."""
+  __tablename__ = 'institutional_toolkit'
+
+  item_id = db.Column(db.Integer, primary_key=True)
+  title = db.Column(db.String(255), nullable=False)
+  summary = db.Column(db.Text)
+  content = db.Column(db.Text)
+  attachments = db.Column(db.JSON)  # list of {url, label, mime}
+  category = db.Column(db.String(100))
+  published = db.Column(db.Boolean, default=False)
+  created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+  def to_dict(self):
+    return {
+      'item_id': self.item_id,
+      'title': self.title,
+      'summary': self.summary,
+      'content': self.content,
+      'attachments': self.attachments or [],
+      'category': self.category,
+      'published': self.published,
+      'created_by': self.created_by,
+      'created_at': self.created_at.isoformat() if self.created_at else None,
+      'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+      'id': self.item_id,
+      'createdAt': self.created_at.isoformat() if self.created_at else None,
+      'updatedAt': self.updated_at.isoformat() if self.updated_at else None
+    }
+
+
+class UMVGlobalEntry(db.Model):
+  """Small key/value entries for UMV global config-like content (announcements, short items)."""
+  __tablename__ = 'umv_global'
+
+  entry_id = db.Column(db.Integer, primary_key=True)
+  key = db.Column(db.String(255), nullable=False, unique=True)
+  value = db.Column(db.Text)
+  meta = db.Column('metadata', db.JSON)
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+  def to_dict(self):
+    return {
+      'entry_id': self.entry_id,
+      'key': self.key,
+      'value': self.value,
+      'metadata': self.meta or {},
+      'created_at': self.created_at.isoformat() if self.created_at else None,
+      'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+      'id': self.entry_id
+    }
+
+
+class ResourceItem(db.Model):
+  """External/internal resources (links, PDFs, learning resources)."""
+  __tablename__ = 'resources'
+
+  resource_id = db.Column(db.Integer, primary_key=True)
+  title = db.Column(db.String(255), nullable=False)
+  url = db.Column(db.String(1000))
+  description = db.Column(db.Text)
+  resource_type = db.Column(db.String(100))  # Guide, External Link, Dataset, Video
+  tags = db.Column(db.JSON)
+  published = db.Column(db.Boolean, default=False)
+  published_at = db.Column(db.DateTime)
+  created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+  def to_dict(self):
+    return {
+      'resource_id': self.resource_id,
+      'title': self.title,
+      'url': self.url,
+      'description': self.description,
+      'resource_type': self.resource_type,
+      'tags': self.tags or [],
+      'published': self.published,
+      'published_at': self.published_at.isoformat() if self.published_at else None,
+      'created_by': self.created_by,
+      'created_at': self.created_at.isoformat() if self.created_at else None,
+      'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+      'id': self.resource_id,
+      'resourceType': self.resource_type,
+      'publishedAt': self.published_at.isoformat() if self.published_at else None
+    }
+
+
 class ItemDistribution(db.Model):
   """Tracks distribution of symbolic items to champions."""
   __tablename__ = 'item_distributions'
@@ -802,7 +943,7 @@ class MemberRegistration(db.Model):
   
   registration_id = db.Column(db.Integer, primary_key=True)
   full_name = db.Column(db.String(255), nullable=False)
-  email = db.Column(db.String(100), nullable=False)
+  email = db.Column(db.String(100), nullable=True)
   phone_number = db.Column(db.String(20), nullable=False)
   username = db.Column(db.String(100), unique=True, nullable=False)
   password_hash = db.Column(db.String(255), nullable=False)
@@ -835,7 +976,7 @@ class ChampionApplication(db.Model):
   
   # Application details
   full_name = db.Column(db.String(255), nullable=False)
-  email = db.Column(db.String(100), nullable=False)
+  email = db.Column(db.String(100), nullable=True)
   phone_number = db.Column(db.String(20), nullable=False)
   alternative_phone_number = db.Column(db.String(20))
   
@@ -883,7 +1024,7 @@ class SeedFundingApplication(db.Model):
   
   # Applicant Information (can be member or champion)
   applicant_name = db.Column(db.String(255), nullable=False)
-  email = db.Column(db.String(100), nullable=False)
+  email = db.Column(db.String(100), nullable=True)
   phone_number = db.Column(db.String(20), nullable=False)
   institution_name = db.Column(db.String(255))  # University, College, etc.
   student_id_number = db.Column(db.String(100))

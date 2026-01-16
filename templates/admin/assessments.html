@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Assessments - Admin{% endblock %}
+
+{% block content %}
+<h1>Mental Health Assessments</h1>
+<p><a class="btn btn--primary" href="{{ url_for('admin.create_assessment') }}">Record Assessment</a></p>
+<table class="table">
+  <thead>
+    <tr><th>ID</th><th>Champion Code</th><th>Type</th><th>Date</th><th>Risk</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+  {% for a in assessments %}
+    <tr>
+      <td>{{ a.assessment_id }}</td>
+      <td>{{ a.champion_code }}</td>
+      <td>{{ a.assessment_type }}</td>
+      <td>{{ a.assessment_date.strftime('%Y-%m-%d') if a.assessment_date else '-' }}</td>
+      <td>{{ a.risk_category }}</td>
+      <td>
+        <form action="{{ url_for('admin.delete_assessment', assessment_id=a.assessment_id) }}" method="post" style="display:inline">
+          <button type="submit" class="link-like">Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6">No assessments recorded.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

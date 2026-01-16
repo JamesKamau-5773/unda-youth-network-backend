@@ -77,6 +77,11 @@ UNDA Youth Network Team
 </html>
 """
 
+    # Respect global disable flag to avoid sending emails
+    if current_app.config.get('DISABLE_EMAILS') or current_app.config.get('DISABLE_EMAIL_IN_BUILD'):
+        current_app.logger.info(f"Email disabled by configuration; not sending password email to {recipient_email}")
+        return False
+
     # Try to enqueue via Celery if available, otherwise send synchronously
     try:
         # Import inside function to avoid import-time circular dependencies
@@ -108,3 +113,58 @@ def send_email(to, subject, body, html=None):
     except Exception as e:
         current_app.logger.error(f"Failed to send email to {to}: {str(e)}")
         return False
+
+
+def send_invite_email(recipient_email, username, invite_token, expires_at=None):
+    """Send a one-time invite/set-password link to an admin-created user.
+
+    Args:
+        recipient_email: recipient address
+        username: username for the account
+        invite_token: opaque token to include in URL
+        expires_at: optional datetime object for expiry (used for message)
+
+    Returns:
+        True if email enqueued/sent, False otherwise
+    """
+    app_url = current_app.config.get('APP_URL', 'https://your-app-url.com')
+    invite_url = f"{app_url}/auth/complete-invite?token={invite_token}"
+
+    subject = 'UNDA: Account invite — set your password'
+    expiry_text = ''
+    if expires_at:
+        try:
+            expiry_text = f" This link expires on {expires_at.isoformat()} UTC."
+        except Exception:
+            expiry_text = ''
+
+    body = f"Hello,\n\nAn administrator created an account for you on the UNDA Youth Network platform.\n\nUsername: {username}\n\nTo set your password and activate your account, please open the following secure link:{expiry_text}\n\n{invite_url}\n\nIf you did not expect this email, please contact your administrator immediately.\n\nBest regards,\nUNDA Youth Network Team\n"
+
+    html = f"""
+<html><body style='font-family: Arial, sans-serif;'>
+  <div style='max-width:600px;margin:0 auto;padding:20px;background:#f9f9f9;'>
+    <div style='background:#fff;padding:24px;border-radius:8px;'>
+      <h2 style='color:#2c5aa0'>You're invited to UNDA</h2>
+      <p>An administrator created an account for you. Click the button below to set your password and sign in.</p>
+      <p style='text-align:center;margin:24px 0;'>
+        <a href='{invite_url}' style='display:inline-block;padding:12px 20px;background:#2c5aa0;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;'>Set your password</a>
+      </p>
+      <p style='color:#666;font-size:0.9rem;'>If the button doesn't work, copy and paste this link into your browser:<br/>{invite_url}</p>
+      <p style='color:#666;font-size:0.85rem;margin-top:20px;'>If you did not expect this, contact your administrator.</p>
+    </div>
+  </div>
+</body></html>
+"""
+
+    # Respect global disable flag to avoid sending emails
+    if current_app.config.get('DISABLE_EMAILS') or current_app.config.get('DISABLE_EMAIL_IN_BUILD'):
+        current_app.logger.info(f"Email disabled by configuration; not sending invite email to {recipient_email}")
+        return False
+
+    # Try async enqueue first
+    try:
+        from tasks.email_tasks import send_email_async
+        send_email_async.delay(recipient_email, subject, body)
+        return True
+    except Exception:
+        return send_email(recipient_email, subject, body, html)
