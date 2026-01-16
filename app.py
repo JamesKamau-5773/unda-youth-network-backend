@@ -505,7 +505,16 @@ def flask_app_factory():
     return app
 
 # Expose `app` as the Flask CLI entrypoint (it is a factory callable).
-app = flask_app_factory
+# For production WSGI servers that import `app:app`, expose the actual
+# Flask application instance (not the factory) so the server receives a
+# WSGI callable. This calls the factory at import time which is acceptable
+# in production; tests can continue to call `create_app()` directly.
+try:
+    app = flask_app_factory()
+except Exception:
+    # Fall back to exposing the factory callable if initialization fails
+    # (keeps behavior stable for test environments or incomplete config).
+    app = flask_app_factory
 
 if __name__ == '__main__':
     _app, limiter = create_app()
