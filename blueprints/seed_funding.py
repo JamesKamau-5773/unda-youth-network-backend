@@ -18,9 +18,9 @@ def submit_application():
     try:
         data = request.get_json()
         
-        # Validate required fields
-        required_fields = ['applicant_name', 'email', 'phone_number', 'project_title', 
-                          'project_description', 'total_budget_requested']
+        # Validate required fields (email is optional)
+        required_fields = ['applicant_name', 'phone_number', 'project_title', 
+                  'project_description', 'total_budget_requested']
         missing_fields = [field for field in required_fields if not data.get(field)]
         
         if missing_fields:
@@ -44,11 +44,18 @@ def submit_application():
             except ValueError:
                 return jsonify({'error': 'Invalid project end date format. Use YYYY-MM-DD'}), 400
         
+        # Validate email format if provided
+        if data.get('email'):
+            import re
+            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(pattern, data['email']):
+                return jsonify({'error': 'Invalid email format'}), 400
+
         # Create new application
         application = SeedFundingApplication(
             user_id=current_user.user_id,
             applicant_name=data['applicant_name'],
-            email=data['email'],
+            email=data.get('email'),
             phone_number=data['phone_number'],
             institution_name=data.get('institution_name'),
             student_id_number=data.get('student_id_number'),

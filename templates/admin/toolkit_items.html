@@ -1,0 +1,36 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+<div class="hero-card">
+  <div class="hero-card__inner">
+    <div>
+      <h1 class="hero-card__title">Institutional Toolkit</h1>
+      <p class="hero-card__subtitle">Add and manage toolkit items for partners and staff.</p>
+    </div>
+    <div class="hero-card__actions">
+      <a href="{{ url_for('admin.create_toolkit_item') }}" class="btn btn--primary">Create Item</a>
+    </div>
+  </div>
+</div>
+
+<div class="table-container">
+  <div class="table-header">
+    <h2 class="section-title">Toolkit Items</h2>
+  </div>
+  <div class="card">
+    <ul>
+    {% for it in items %}
+      <li style="padding:0.5rem 0; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color);">
+        <div>{{ it.title }}</div>
+        <div style="display:flex; gap:0.5rem;">
+          <a href="{{ url_for('admin.edit_toolkit_item', item_id=it.item_id) }}" class="btn btn--secondary">Edit</a>
+          <form action="{{ url_for('admin.delete_toolkit_item', item_id=it.item_id) }}" method="post" style="display:inline">
+            <button class="btn btn--secondary">Delete</button>
+          </form>
+        </div>
+      </li>
+    {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% endblock %}

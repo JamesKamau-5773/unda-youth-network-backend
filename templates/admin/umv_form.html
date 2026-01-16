@@ -1,0 +1,11 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+<h1>{{ entry and 'Edit' or 'Create' }} UMV Entry</h1>
+<form method="post">
+  <label>Key</label>
+  <input name="key" value="{{ entry.key if entry else '' }}" />
+  <label>Value</label>
+  <textarea name="value">{{ entry.value if entry else '' }}</textarea>
+  <button type="submit" class="btn btn-primary">Save</button>
+</form>
+{% endblock %}

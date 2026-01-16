@@ -50,14 +50,13 @@ def upgrade():
         """)
 
         conn = op.get_bind()
-        # Drop legacy names if present
+        # Drop legacy names if present using IF EXISTS to avoid aborting the transaction
         try:
-            with op.batch_alter_table('champions', schema=None) as batch_op:
-                for legacy in ('fk_champions_user', 'fk_champions_user_id'):
-                    try:
-                        batch_op.drop_constraint(legacy, type_='foreignkey')
-                    except Exception:
-                        pass
+            for legacy in ('fk_champions_user', 'fk_champions_user_id'):
+                try:
+                    op.execute(f"ALTER TABLE champions DROP CONSTRAINT IF EXISTS {legacy};")
+                except Exception:
+                    logging.exception(f'Failed to drop legacy champion constraint {legacy} (continued)')
         except Exception:
             # non-fatal
             logging.exception('Failed to drop legacy champion constraints')
@@ -97,12 +96,11 @@ def upgrade():
 
         conn = op.get_bind()
         try:
-            with op.batch_alter_table('users', schema=None) as batch_op:
-                for legacy in ('fk_users_champion', 'fk_users_champion_id'):
-                    try:
-                        batch_op.drop_constraint(legacy, type_='foreignkey')
-                    except Exception:
-                        pass
+            for legacy in ('fk_users_champion', 'fk_users_champion_id'):
+                try:
+                    op.execute(f"ALTER TABLE users DROP CONSTRAINT IF EXISTS {legacy};")
+                except Exception:
+                    logging.exception(f'Failed to drop legacy user constraint {legacy} (continued)')
         except Exception:
             logging.exception('Failed to drop legacy user constraints')
 
