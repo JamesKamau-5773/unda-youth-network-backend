@@ -22,11 +22,11 @@ elif [ "${CLEAN_BREAK_MODE}" = "cleanup_then_upgrade" ]; then
     else
         echo "Warning: cleanup script not found or not executable: scripts/cleanup_orphans.sh"
     fi
-    echo "Running database migrations..."
-    flask db upgrade
+    echo "Running database migrations... (via scripts/run_migrations.sh)"
+    scripts/run_migrations.sh
 else
-    echo "Running database migrations..."
-    flask db upgrade
+    echo "Running database migrations... (via scripts/run_migrations.sh)"
+    scripts/run_migrations.sh
 fi
 
 # Start the application
