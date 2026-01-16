@@ -7,6 +7,12 @@ Create Date: 2026-01-14 12:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
+import logging
+
+from migrations.helpers import (
+    constraint_exists,
+    add_fk_not_valid_and_validate,
+)
 
 
 # revision identifiers, used by Alembic.
@@ -42,25 +48,31 @@ def upgrade():
         END
         $$;
         """)
-        
-        with op.batch_alter_table('champions', schema=None) as batch_op:
-            # drop any legacy constraint names that may exist
-            for legacy in ('fk_champions_user', 'fk_champions_user_id'):
-                try:
-                    batch_op.drop_constraint(legacy, type_='foreignkey')
-                except Exception:
-                    pass
-            batch_op.create_foreign_key(
-                'fk_champions_user_id',
-                'users',
-                ['user_id'],
-                ['user_id'],
-                ondelete='SET NULL'
-            )
+
+        conn = op.get_bind()
+        # Drop legacy names if present
+        try:
+            with op.batch_alter_table('champions', schema=None) as batch_op:
+                for legacy in ('fk_champions_user', 'fk_champions_user_id'):
+                    try:
+                        batch_op.drop_constraint(legacy, type_='foreignkey')
+                    except Exception:
+                        pass
+        except Exception:
+            # non-fatal
+            logging.exception('Failed to drop legacy champion constraints')
+
+        # Create the named FK using NOT VALID + VALIDATE in its own transaction
+        try:
+            if not constraint_exists(conn, 'fk_champions_user_id'):
+                add_fk_not_valid_and_validate(conn, 'champions', 'fk_champions_user_id', 'user_id', 'users', 'user_id')
+            else:
+                logging.info('fk_champions_user_id already exists; skipping')
+        except Exception:
+            logging.exception('Failed to create/validate fk_champions_user_id')
     except Exception:
-        # Best-effort; errors may occur on some DB backends or if constraint
-        # already exists; ignore to avoid blocking deployments.
-        pass
+        # Best-effort; ignore to avoid blocking deployments.
+        logging.exception('Unexpected error in champions FK migration')
 
     # users.champion_id -> champions.champion_id
     try:
@@ -82,22 +94,27 @@ def upgrade():
         END
         $$;
         """)
-        
-        with op.batch_alter_table('users', schema=None) as batch_op:
-            for legacy in ('fk_users_champion', 'fk_users_champion_id'):
-                try:
-                    batch_op.drop_constraint(legacy, type_='foreignkey')
-                except Exception:
-                    pass
-            batch_op.create_foreign_key(
-                'fk_users_champion_id',
-                'champions',
-                ['champion_id'],
-                ['champion_id'],
-                ondelete='SET NULL'
-            )
+
+        conn = op.get_bind()
+        try:
+            with op.batch_alter_table('users', schema=None) as batch_op:
+                for legacy in ('fk_users_champion', 'fk_users_champion_id'):
+                    try:
+                        batch_op.drop_constraint(legacy, type_='foreignkey')
+                    except Exception:
+                        pass
+        except Exception:
+            logging.exception('Failed to drop legacy user constraints')
+
+        try:
+            if not constraint_exists(conn, 'fk_users_champion_id'):
+                add_fk_not_valid_and_validate(conn, 'users', 'fk_users_champion_id', 'champion_id', 'champions', 'champion_id')
+            else:
+                logging.info('fk_users_champion_id already exists; skipping')
+        except Exception:
+            logging.exception('Failed to create/validate fk_users_champion_id')
     except Exception:
-        pass
+        logging.exception('Unexpected error in users FK migration')
 
 
 def downgrade():
@@ -117,7 +134,7 @@ def downgrade():
                 ondelete='SET NULL'
             )
     except Exception:
-        pass
+        logging.exception('Failed during downgrade users FK')
 
     try:
         with op.batch_alter_table('champions', schema=None) as batch_op:
@@ -133,4 +150,4 @@ def downgrade():
                 ondelete='SET NULL'
             )
     except Exception:
-        pass
+        logging.exception('Failed during downgrade champions FK')

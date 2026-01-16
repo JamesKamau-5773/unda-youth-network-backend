@@ -486,7 +486,7 @@ def register_champion():
         
         # Validate required fields
         required_fields = [
-            'full_name', 'gender', 'date_of_birth', 'phone_number', 'email',
+            'full_name', 'gender', 'date_of_birth', 'phone_number',
             'county_sub_county', 'consent_obtained'
         ]
         for field in required_fields:
@@ -503,12 +503,13 @@ def register_champion():
                 'error': 'Consent must be obtained before registration'
             }), 400
         
-        # Validate email format
-        if not validate_email(data['email']):
-            return jsonify({
-                'success': False,
-                'error': 'Invalid email format'
-            }), 400
+        # Validate email format if provided (email is optional)
+        if data.get('email'):
+            if not validate_email(data['email']):
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid email format'
+                }), 400
         
         # Validate phone number
         if not validate_phone(data['phone_number']):
@@ -517,12 +518,12 @@ def register_champion():
                 'error': 'Invalid phone number format. Use 254XXXXXXXXX or 07XXXXXXXX'
             }), 400
         
-        # Check for duplicate email or phone
-        existing = Champion.query.filter(
-            (Champion.email == data['email']) | 
-            (Champion.phone_number == data['phone_number'])
-        ).first()
-        
+        # Check for duplicate phone (always) and email (only if provided)
+        filters = [Champion.phone_number == data['phone_number']]
+        if data.get('email'):
+            filters.append(Champion.email == data['email'])
+
+        existing = Champion.query.filter(sa.or_(*filters)).first()
         if existing:
             return jsonify({
                 'success': False,
@@ -549,7 +550,7 @@ def register_champion():
             date_of_birth=dob,
             phone_number=data['phone_number'],
             alternative_phone_number=data.get('alternative_phone_number'),
-            email=data['email'],
+            email=data.get('email'),
             county_sub_county=data['county_sub_county'],
             assigned_champion_code=champion_code,
             
