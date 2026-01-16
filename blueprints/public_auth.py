@@ -14,6 +14,47 @@ except Exception:
 public_auth_bp = Blueprint('public_auth', __name__)
 
 
+def _camel_to_snake(name: str) -> str:
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
+def normalize_input(payload: dict) -> dict:
+    """Normalize incoming JSON payload keys to snake_case and trim string values.
+
+    - Converts camelCase keys to snake_case
+    - Trims strings
+    - Coerces boolean-like strings to bool
+    """
+    if not payload or not isinstance(payload, dict):
+        return {}
+    out = {}
+    for k, v in payload.items():
+        nk = _camel_to_snake(k) if any(c.isupper() for c in k) else k
+        # Trim strings
+        if isinstance(v, str):
+            v2 = v.strip()
+            # Coerce booleans
+            if v2.lower() in ('true', 'false'):
+                out[nk] = v2.lower() == 'true'
+                continue
+            out[nk] = v2
+        else:
+            out[nk] = v
+    return out
+
+
+def _error_response(message, field=None, status=400):
+    return jsonify({'success': False, 'error': {'field': field, 'message': message}}), status
+
+
+def _success_response(message, data=None, status=200):
+    payload = {'success': True, 'message': message}
+    if data is not None:
+        payload['data'] = data
+    return jsonify(payload), status
+
+
 def validate_email(email):
     """Validate email format"""
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -24,34 +65,31 @@ def normalize_phone(phone, default_region='KE'):
     """Normalize and validate an international phone number.
 
     Returns the E.164 formatted phone string on success, or `None` on failure.
-    If `phonenumbers` is unavailable, falls back to a permissive regex that
-    accepts digits and common separators and returns the digits-only string.
+    If the `phonenumbers` library is available it will be used for strict
+    validation; otherwise a permissive digits-only fallback is used.
     """
     if not phone:
         return None
 
-    # Remove surrounding whitespace
-    raw = phone.strip()
-
-    if phonenumbers:
-        try:
-            # Parse with a sensible default region (Kenya) so local numbers work
-            parsed = phonenumbers.parse(raw, default_region)
-            if not phonenumbers.is_possible_number(parsed):
-                return None
+    try:
+        if phonenumbers:
+            parsed = phonenumbers.parse(phone, default_region)
             if not phonenumbers.is_valid_number(parsed):
                 return None
-            # Return E.164 formatted string (e.g. +254712345678)
             return phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
-        except phonenumbers.NumberParseException:
+        # Fallback: keep digits only and try to infer a country code for KE
+        digits = re.sub(r"\D", "", phone)
+        if not digits or len(digits) < 7:
             return None
-
-    # Fallback: accept a sequence of 7-15 digits after removing separators
-    digits = re.sub(r"[\s\-\(\)\+]+", "", raw)
-    if re.match(r'^\d{7,15}$', digits):
-        # Prefer returning digits prefixed with + if original had +, else digits
-        return ('+' + digits) if raw.strip().startswith('+') else digits
-    return None
+        # If local Kenyan number starting with 0, convert to +254...
+        if digits.startswith('0') and default_region == 'KE':
+            digits = '254' + digits.lstrip('0')
+        # Ensure leading +
+        if not digits.startswith('+'):
+            digits = '+' + digits
+        return digits
+    except Exception:
+        return None
 
 
 @public_auth_bp.route('/api/auth/complete-invite', methods=['POST'])
@@ -98,48 +136,50 @@ def complete_invite():
 def register_member():
     """Public endpoint for member registration"""
     try:
-        data = request.get_json()
-        
+        raw = request.get_json() or {}
+        data = normalize_input(raw)
+
         # Validate required fields (email is optional)
         required_fields = ['full_name', 'phone_number', 'username', 'password']
         for field in required_fields:
             if not data.get(field):
-                return jsonify({'error': f'Missing required field: {field}'}), 400
+                return _error_response(f'Missing required field: {field}', field=field, status=422)
+
         # Validate email format if provided
         if data.get('email') and not validate_email(data['email']):
-            return jsonify({'error': 'Invalid email format'}), 400
-        
+            return _error_response('Invalid email format', field='email', status=422)
+
         # Validate and normalize phone number (store E.164 when possible)
         normalized_phone = normalize_phone(data['phone_number'], default_region='KE')
         if not normalized_phone:
-            return jsonify({'error': 'Invalid phone number format. Provide an international phone (e.g. +254712345678).'}), 400
-        
+            return _error_response('Invalid phone number format. Provide an international phone (e.g. +254712345678).', field='phone_number', status=422)
+
         # Validate password strength
         is_valid, error_message = validate_password_strength(data['password'])
         if not is_valid:
-            return jsonify({'error': error_message}), 400
-        
+            return _error_response(error_message, field='password', status=422)
+
         # Check for existing username
         if User.query.filter_by(username=data['username']).first():
-            return jsonify({'error': 'Username already exists'}), 400
-        
+            return _error_response('Username already exists', field='username', status=409)
+
         # Check for existing registration with same username
         if MemberRegistration.query.filter_by(username=data['username']).first():
-            return jsonify({'error': 'Registration with this username already pending'}), 400
-        
+            return _error_response('Registration with this username already pending', field='username', status=409)
+
         # Check for existing email only if provided
         if data.get('email'):
             if Champion.query.filter_by(email=data['email']).first():
-                return jsonify({'error': 'Email already registered'}), 400
-        
+                return _error_response('Email already registered', field='email', status=409)
+
         # Parse date of birth if provided
         date_of_birth = None
         if data.get('date_of_birth'):
             try:
                 date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
             except ValueError:
-                return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
-        
+                return _error_response('Invalid date format. Use YYYY-MM-DD', field='date_of_birth', status=422)
+
         # Create registration record
         registration = MemberRegistration(
             full_name=data['full_name'],
@@ -151,18 +191,38 @@ def register_member():
             county_sub_county=data.get('county_sub_county')
         )
         registration.set_password(data['password'])
-        
+
         db.session.add(registration)
         db.session.commit()
-        
-        return jsonify({
-            'message': 'Registration submitted successfully. Your account will be reviewed by an administrator.',
-            'registration_id': registration.registration_id,
-            'status': 'Pending'
-        }), 201
-        
+
+        return _success_response('Registration submitted successfully. Your account will be reviewed by an administrator.', data={'registration_id': registration.registration_id, 'status': 'Pending'}), 201
+
     except Exception as e:
         db.session.rollback()
+        from flask import current_app
+        current_app.logger.exception('Member registration failed')
+        return jsonify({'success': False, 'error': {'message': 'Internal server error'}}), 500
+
+
+@public_auth_bp.route('/api/auth/registration/<int:registration_id>', methods=['GET'])
+def get_registration_status(registration_id):
+    """Public polling endpoint to check the status of a member registration.
+
+    Returns: registration_id, status, submitted_at, reviewed_at (if any), rejection_reason (if any)
+    """
+    try:
+        reg = MemberRegistration.query.get_or_404(registration_id)
+
+        return jsonify({
+            'registration_id': reg.registration_id,
+            'username': reg.username,
+            'full_name': reg.full_name,
+            'status': reg.status,
+            'submitted_at': reg.submitted_at.isoformat() if reg.submitted_at else None,
+            'reviewed_at': reg.reviewed_at.isoformat() if reg.reviewed_at else None,
+            'rejection_reason': reg.rejection_reason
+        }), 200
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
