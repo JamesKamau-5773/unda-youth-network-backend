@@ -6,7 +6,7 @@ Only accessible with the correct secret key.
 from flask import Blueprint, jsonify, request, abort, render_template_string
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from models import db, User, Champion, Event, BlogPost, MentalHealthAssessment, EventParticipation
 import sqlalchemy
 
@@ -59,16 +59,17 @@ def build_info():
     except:
         installed_packages = {'error': 'Unable to retrieve packages'}
     
-    # Get database tables
+    # Get database tables using a short-lived connection to avoid leaks
     db_tables = []
     try:
-        inspector = sqlalchemy.inspect(db.engine)
-        db_tables = inspector.get_table_names()
+        with db.engine.connect() as conn:
+            inspector = sqlalchemy.inspect(conn)
+            db_tables = inspector.get_table_names()
     except Exception as e:
         db_tables = [f'Error: {str(e)}']
     
     info = {
-        'timestamp': datetime.utcnow().isoformat(),
+        'timestamp': datetime.now(timezone.utc).isoformat(),
         'system': {
             'python_version': sys.version,
             'platform': sys.platform,
@@ -246,7 +247,7 @@ def dashboard():
         db_stats=db_stats_data,
         env_vars=env_vars,
         system=system_info,
-        timestamp=datetime.utcnow().isoformat()
+        timestamp=datetime.now(timezone.utc).isoformat()
     )
 
 

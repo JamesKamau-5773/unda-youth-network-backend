@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from models import db, User, Champion, MemberRegistration, ChampionApplication, MediaGallery, InstitutionalToolkitItem, UMVGlobalEntry, ResourceItem, BlogPost
 from decorators import admin_required
 from password_validator import validate_password_strength
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 import re
 import sqlalchemy as sa
 try:
@@ -113,7 +113,7 @@ def complete_invite():
 
         # Check expiry if set
         from datetime import datetime
-        if user.invite_token_expires and datetime.utcnow() > user.invite_token_expires:
+        if user.invite_token_expires and datetime.now(timezone.utc) > user.invite_token_expires:
             return jsonify({'error': 'Invite token has expired'}), 400
 
         # Validate password strength
@@ -139,8 +139,10 @@ def register_member():
         raw = request.get_json() or {}
         data = normalize_input(raw)
 
-        # Validate required fields (email is optional)
-        required_fields = ['full_name', 'phone_number', 'username', 'password']
+        # Validate required fields (email is optional). `username` may be omitted
+        # by clients; when missing we will auto-generate a unique username from
+        # the provided `full_name`.
+        required_fields = ['full_name', 'phone_number', 'password']
         for field in required_fields:
             if not data.get(field):
                 return _error_response(f'Missing required field: {field}', field=field, status=422)
@@ -159,11 +161,21 @@ def register_member():
         if not is_valid:
             return _error_response(error_message, field='password', status=422)
 
-        # Check for existing username
+        # If no username provided, auto-generate one from the first name and
+        # ensure uniqueness across users and pending registrations.
+        if not data.get('username'):
+            base = ''.join(ch for ch in (data.get('full_name').split()[0] if data.get('full_name') else 'user').lower() if ch.isalnum()) or 'user'
+            username_candidate = base
+            idx = 1
+            while User.query.filter_by(username=username_candidate).first() or MemberRegistration.query.filter_by(username=username_candidate).first():
+                idx += 1
+                username_candidate = f"{base}{idx}"
+            data['username'] = username_candidate
+
+        # Check for existing username (explicit or generated) and pending registration
         if User.query.filter_by(username=data['username']).first():
             return _error_response('Username already exists', field='username', status=409)
 
-        # Check for existing registration with same username
         if MemberRegistration.query.filter_by(username=data['username']).first():
             return _error_response('Registration with this username already pending', field='username', status=409)
 
@@ -195,7 +207,12 @@ def register_member():
         db.session.add(registration)
         db.session.commit()
 
-        return _success_response('Registration submitted successfully. Your account will be reviewed by an administrator.', data={'registration_id': registration.registration_id, 'status': 'Pending'}), 201
+        # return a proper (response, status) tuple from helper
+        return _success_response(
+            'Registration submitted successfully. Your account will be reviewed by an administrator.',
+            data={'registration_id': registration.registration_id, 'status': 'Pending'},
+            status=201
+        )
 
     except Exception as e:
         db.session.rollback()
@@ -211,7 +228,9 @@ def get_registration_status(registration_id):
     Returns: registration_id, status, submitted_at, reviewed_at (if any), rejection_reason (if any)
     """
     try:
-        reg = MemberRegistration.query.get_or_404(registration_id)
+        reg = db.session.get(MemberRegistration, registration_id)
+        if not reg:
+            return jsonify({'error': 'Registration not found'}), 404
 
         return jsonify({
             'registration_id': reg.registration_id,
@@ -383,8 +402,10 @@ def get_registrations():
 def approve_registration(registration_id):
     """Admin: Approve a member registration"""
     try:
-        registration = MemberRegistration.query.get_or_404(registration_id)
-        
+        registration = db.session.get(MemberRegistration, registration_id)
+        if not registration:
+            return jsonify({'error': 'Registration not found'}), 404
+
         if registration.status != 'Pending':
             return jsonify({'error': 'Registration already processed'}), 400
         
@@ -398,7 +419,7 @@ def approve_registration(registration_id):
         
         # Update registration
         registration.status = 'Approved'
-        registration.reviewed_at = datetime.utcnow()
+        registration.reviewed_at = datetime.now(timezone.utc)
         registration.reviewed_by = current_user.user_id
         registration.created_user_id = user.user_id
         
@@ -420,21 +441,23 @@ def approve_registration(registration_id):
 def reject_registration(registration_id):
     """Admin: Reject a member registration"""
     try:
-        registration = MemberRegistration.query.get_or_404(registration_id)
-        
+        registration = db.session.get(MemberRegistration, registration_id)
+        if not registration:
+            return jsonify({'error': 'Registration not found'}), 404
+
         if registration.status != 'Pending':
             return jsonify({'error': 'Registration already processed'}), 400
-        
+
         data = request.get_json()
         reason = data.get('reason', 'No reason provided')
-        
+
         registration.status = 'Rejected'
-        registration.reviewed_at = datetime.utcnow()
+        registration.reviewed_at = datetime.now(timezone.utc)
         registration.reviewed_by = current_user.user_id
         registration.rejection_reason = reason
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Registration rejected',
             'reason': reason
@@ -483,8 +506,10 @@ def get_champion_applications():
 def approve_champion_application(application_id):
     """Admin: Approve a champion application"""
     try:
-        application = ChampionApplication.query.get_or_404(application_id)
-        
+        application = db.session.get(ChampionApplication, application_id)
+        if not application:
+            return jsonify({'error': 'Application not found'}), 404
+
         if application.status != 'Pending':
             return jsonify({'error': 'Application already processed'}), 400
         
@@ -517,7 +542,7 @@ def approve_champion_application(application_id):
             course_field_of_study=application.course_field_of_study,
             year_of_study=application.year_of_study,
             workplace_organization=application.workplace_organization,
-            date_of_application=datetime.utcnow().date(),
+            date_of_application=datetime.now(timezone.utc).date(),
             application_status='Recruited',
             champion_status='Active'
         )
@@ -526,12 +551,12 @@ def approve_champion_application(application_id):
         db.session.flush()  # Get champion_id
         
         # Update user to link champion profile
-        user = User.query.get(application.user_id)
+        user = db.session.get(User, application.user_id)
         user.champion_id = champion.champion_id
         
         # Update application
         application.status = 'Approved'
-        application.reviewed_at = datetime.utcnow()
+        application.reviewed_at = datetime.now(timezone.utc)
         application.reviewed_by = current_user.user_id
         application.created_champion_id = champion.champion_id
         
@@ -553,7 +578,9 @@ def approve_champion_application(application_id):
 def reject_champion_application(application_id):
     """Admin: Reject a champion application"""
     try:
-        application = ChampionApplication.query.get_or_404(application_id)
+        application = db.session.get(ChampionApplication, application_id)
+        if not application:
+            return jsonify({'error': 'Application not found'}), 404
         
         if application.status != 'Pending':
             return jsonify({'error': 'Application already processed'}), 400
@@ -562,7 +589,7 @@ def reject_champion_application(application_id):
         reason = data.get('reason', 'No reason provided')
         
         application.status = 'Rejected'
-        application.reviewed_at = datetime.utcnow()
+        application.reviewed_at = datetime.now(timezone.utc)
         application.reviewed_by = current_user.user_id
         application.rejection_reason = reason
         

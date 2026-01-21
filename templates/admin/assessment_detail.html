@@ -113,9 +113,9 @@
             </div>
             <div style="font-size: 0.875rem; color: {% if assessment.risk_flagged %}#991b1b{% else %}#6b7280{% endif %};">
                 {% if assessment.risk_flagged %}
-                ⚠️ This champion has been flagged as at-risk and may require additional support.
+                WARNING: This champion has been flagged as at-risk and may require additional support.
                 {% else %}
-                ✓ No risk flags for this assessment.
+                No risk flags for this assessment.
                 {% endif %}
             </div>
         </div>
@@ -129,11 +129,11 @@
             </div>
             <div style="font-size: 0.875rem; color: {% if assessment.referral_made %}#10b981{% elif assessment.referral_recommended %}#d97706{% else %}#6b7280{% endif %};">
                 {% if assessment.referral_made %}
-                ✓ Referral has been made to appropriate services.
+                Referral has been made to appropriate services.
                 {% elif assessment.referral_recommended %}
-                ⚠️ Referral recommended but not yet completed.
+                Referral recommended but not yet completed.
                 {% else %}
-                ✓ No referral needed at this time.
+                No referral needed at this time.
                 {% endif %}
             </div>
         </div>

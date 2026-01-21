@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from models import db, Champion, YouthSupport, RefferalPathway, AccessAuditLog
@@ -60,7 +60,9 @@ def dashboard():
 @supervisor_required
 def review_champion(champion_id):
   # Verify authorization for this specific champion
-  champion = Champion.query.get_or_404(champion_id)
+  champion = db.session.get(Champion, champion_id)
+  if not champion:
+    abort(404, 'Champion not found')
   
   # Check if this champion is assigned to the current supervisor
   if champion.supervisor_id != current_user.user_id:
@@ -101,7 +103,7 @@ def review_champion(champion_id):
 
     if action == 'update_notes':
       report_id = request.form.get('report_id')
-      report = YouthSupport.query.get(report_id)
+      report = db.session.get(YouthSupport, report_id)
       if report and report.champion_id == champion_id:
         report.supervisor_notes = request.form.get('notes')
         db.session.commit()
@@ -112,7 +114,7 @@ def review_champion(champion_id):
 
     elif action == 'update_safeguarding':
       report_id = request.form.get('report_id')
-      report = YouthSupport.query.get(report_id)
+      report = db.session.get(YouthSupport, report_id)
       if report and report.champion_id == champion_id:
         report.safeguarding_notes = request.form.get('safeguarding_notes')
         db.session.commit()
@@ -123,7 +125,7 @@ def review_champion(champion_id):
 
     elif action == 'update_quality':
       report_id = request.form.get('report_id')
-      report = YouthSupport.query.get(report_id)
+      report = db.session.get(YouthSupport, report_id)
       if report and report.champion_id == champion_id:
         report.documentation_quality_score = request.form.get('doc_quality')
         db.session.commit()
@@ -152,7 +154,7 @@ def review_champion(champion_id):
       )
 
       if latest_flag and latest_flag.flag_timestamp:
-        delta = datetime.utcnow().date() - latest_flag.flag_timestamp.date()
+        delta = datetime.now(timezone.utc).date() - latest_flag.flag_timestamp.date()
         new_referral.flag_to_referral_days = delta.days
       db.session.add(new_referral)
       db.session.commit()
@@ -171,7 +173,7 @@ def review_champion(champion_id):
       # Update risk assessment
       champion.risk_level = request.form.get('risk_level')
       champion.risk_notes = request.form.get('risk_notes')
-      champion.risk_assessment_date = datetime.utcnow()
+      champion.risk_assessment_date = datetime.now(timezone.utc)
       
       # Update contact and review dates
       last_contact = request.form.get('last_contact_date')

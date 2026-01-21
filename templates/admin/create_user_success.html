@@ -376,7 +376,7 @@ function copyPassword() {
     navigator.clipboard.writeText(password).then(() => {
         // Visual feedback
         copyBtn.classList.add('copied');
-        copyText.textContent = '✓ Copied to Clipboard!';
+        copyText.textContent = 'Copied to Clipboard!';
         passwordCopied = true;
         
         // Reset button after 3 seconds

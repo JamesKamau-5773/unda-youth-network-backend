@@ -26,9 +26,9 @@
                     <td>{{ config.MAIL_SERVER or 'Not Set' }}</td>
                     <td>
                         {% if config.MAIL_SERVER %}
-                            <span style="color: #28a745;">✓</span>
+                            <span style="color: #28a745;">OK</span>
                         {% else %}
-                            <span style="color: #dc3545;">✗</span>
+                            <span style="color: #dc3545;">MISSING</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -37,25 +37,25 @@
                     <td>{{ config.MAIL_PORT or 'Not Set' }}</td>
                     <td>
                         {% if config.MAIL_PORT %}
-                            <span style="color: #28a745;">✓</span>
+                            <span style="color: #28a745;">OK</span>
                         {% else %}
-                            <span style="color: #dc3545;">✗</span>
+                            <span style="color: #dc3545;">MISSING</span>
                         {% endif %}
                     </td>
                 </tr>
                 <tr>
                     <td><strong>MAIL_USE_TLS</strong></td>
                     <td>{{ config.MAIL_USE_TLS }}</td>
-                    <td><span style="color: #28a745;">✓</span></td>
+                    <td><span style="color: #28a745;">OK</span></td>
                 </tr>
                 <tr>
                     <td><strong>MAIL_USERNAME</strong></td>
                     <td>{{ config.MAIL_USERNAME or 'Not Set' }}</td>
                     <td>
                         {% if config.MAIL_USERNAME %}
-                            <span style="color: #28a745;">✓</span>
+                            <span style="color: #28a745;">OK</span>
                         {% else %}
-                            <span style="color: #dc3545;">✗ REQUIRED</span>
+                            <span style="color: #dc3545;">REQUIRED</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -63,10 +63,10 @@
                     <td><strong>MAIL_PASSWORD</strong></td>
                     <td>{{ config.MAIL_PASSWORD }}</td>
                     <td>
-                        {% if config.MAIL_PASSWORD == '✓ Set' %}
-                            <span style="color: #28a745;">✓</span>
+                        {% if config.MAIL_PASSWORD == 'Set' %}
+                            <span style="color: #28a745;">OK</span>
                         {% else %}
-                            <span style="color: #dc3545;">✗ REQUIRED</span>
+                            <span style="color: #dc3545;">REQUIRED</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -75,16 +75,16 @@
                     <td>{{ config.MAIL_DEFAULT_SENDER or 'Not Set' }}</td>
                     <td>
                         {% if config.MAIL_DEFAULT_SENDER %}
-                            <span style="color: #28a745;">✓</span>
+                            <span style="color: #28a745;">OK</span>
                         {% else %}
-                            <span style="color: #ffc107;">⚠ Using fallback</span>
+                            <span style="color: #ffc107;">WARNING: Using fallback</span>
                         {% endif %}
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        {% if not config.MAIL_USERNAME or config.MAIL_PASSWORD == '✗ Missing' %}
+        {% if not config.MAIL_USERNAME or config.MAIL_PASSWORD != 'Set' %}
         <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
             <p style="margin: 0; color: #721c24;">
                 <strong>Email Configuration Incomplete</strong><br>
@@ -94,7 +94,7 @@
         {% else %}
         <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
             <p style="margin: 0; color: #155724;">
-                <strong>✓ Email Configuration Complete</strong><br>
+                <strong>Email Configuration Complete</strong><br>
                 All required settings are configured. Send a test email below to verify.
             </p>
         </div>
@@ -122,7 +122,7 @@
             </div>
 
             <button type="submit" class="btn btn--primary" style="margin-top: 1rem;">
-                📤 Send Test Email
+                Send Test Email
             </button>
         </form>
 
