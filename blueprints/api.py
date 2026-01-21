@@ -1,7 +1,49 @@
 from flask import Blueprint, jsonify
 from models import db, Champion, YouthSupport, User, RefferalPathway, TrainingRecord, Event, BlogPost
 from sqlalchemy import func
-from datetime import datetime, date
+from datetime import datetime, date, timezone
+from flask import request
+from flask_login import login_required, current_user
+import json
+
+# reuse phone normalization/email validation from public_auth when available
+try:
+    from blueprints.public_auth import normalize_phone, validate_email
+except Exception:
+    normalize_phone = None
+    def validate_email(e):
+        return True
+
+import os
+from functools import wraps
+
+
+def _check_api_token():
+    """Return True if request provides a valid API token via Authorization header."""
+    api_token = os.environ.get('API_SMOKE_TOKEN')
+    if not api_token:
+        return False
+    auth = request.headers.get('Authorization', '')
+    if not auth.startswith('Bearer '):
+        return False
+    token = auth.split(' ', 1)[1]
+    return token == api_token
+
+
+def api_auth_optional(f):
+    """Decorator allowing either a logged-in user or a bearer token (for automation).
+
+    When a bearer token is used the endpoint must accept `user_id` or `champion_id`
+    in the JSON payload to indicate which record to act on.
+    """
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if current_user and current_user.is_authenticated:
+            return f(*args, **kwargs)
+        if _check_api_token():
+            return f(*args, **kwargs)
+        return jsonify({'error': 'Unauthorized'}), 401
+    return wrapper
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -139,7 +181,7 @@ def impact_stats():
     
     # Compile comprehensive stats
     stats = {
-        'generated_at': datetime.utcnow().isoformat(),
+        'generated_at': datetime.now(timezone.utc).isoformat(),
         'overview': {
             'total_champions': total_champions,
             'active_champions': active_champions,
@@ -214,7 +256,7 @@ def impact_stats_summary():
             'youth_reached': int(total_youth_reached),
             'trainings_completed': total_trainings,
             'referrals_made': total_referrals,
-            'generated_at': datetime.utcnow().isoformat()
+            'generated_at': datetime.now(timezone.utc).isoformat()
         }
     }), 200
 
@@ -247,3 +289,152 @@ def get_current_member():
             'champion_id': current_user.champion_id
         }
     }), 200
+
+
+@api_bp.route('/members/me', methods=['PUT', 'OPTIONS'])
+@api_auth_optional
+def update_current_member():
+    """Update current authenticated member profile."""
+    data = request.get_json() or {}
+    # Determine acting user: prefer session user, otherwise require `user_id` in payload when using API token
+    if current_user and current_user.is_authenticated:
+        user = current_user
+    else:
+        if not _check_api_token():
+            return jsonify({'error': 'Unauthorized'}), 401
+        uid = data.get('user_id')
+        if not uid:
+            return jsonify({'error': 'Missing user_id for token-authenticated request'}), 400
+        user = db.session.get(User, int(uid))
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+    # Allow updating a small set of profile fields
+    allowed = ['email', 'username', 'full_name', 'date_of_birth', 'phone_number', 'county_sub_county']
+
+    try:
+        if 'email' in data and data['email']:
+            if not validate_email(data['email']):
+                return jsonify({'error': 'Invalid email format'}), 400
+            user.email = data['email']
+
+        if 'username' in data and data['username']:
+            # ensure uniqueness
+            existing = User.query.filter(User.username == data['username'], User.user_id != user.user_id).first()
+            if existing:
+                return jsonify({'error': 'Username already taken'}), 409
+            user.username = data['username']
+
+        # Update champion profile fields when user is a Prevention Advocate and linked to champion
+        champion = None
+        if user.champion_id:
+                champion = db.session.get(Champion, user.champion_id)
+
+        if champion:
+            if 'full_name' in data and data['full_name']:
+                champion.full_name = data['full_name']
+            if 'date_of_birth' in data and data['date_of_birth']:
+                try:
+                    champion.date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+                except Exception:
+                    return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+            if 'phone_number' in data and data['phone_number']:
+                if normalize_phone:
+                    normalized = normalize_phone(data['phone_number'])
+                    if not normalized:
+                        return jsonify({'error': 'Invalid phone number'}), 400
+                    champion.phone_number = normalized
+                else:
+                    champion.phone_number = data['phone_number']
+            if 'county_sub_county' in data and data['county_sub_county']:
+                champion.county_sub_county = data['county_sub_county']
+
+        db.session.add(user)
+        if champion:
+            db.session.add(champion)
+        db.session.commit()
+
+        return jsonify({'success': True, 'user': {
+            'user_id': user.user_id,
+            'username': user.username,
+            'email': user.email,
+            'role': user.role,
+            'champion_id': user.champion_id
+        }}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@api_bp.route('/checkin', methods=['POST'])
+@api_auth_optional
+def submit_checkin():
+    """Submit or update a weekly check-in report for a champion.
+
+    Expected JSON: { 'reporting_period': 'YYYY-MM-DD', 'number_of_youth_under_support': int,
+    'weekly_check_in_completion_rate': float, 'monthly_mini_screenings_delivered': int,
+    'referrals_initiated': int, 'flags_and_concerns_logged': str }
+    """
+    data = request.get_json() or {}
+
+    # Determine champion: prefer current user's champion profile
+    champion = None
+    if current_user and current_user.is_authenticated and current_user.champion_id:
+        champion = db.session.get(Champion, current_user.champion_id)
+    else:
+        # When using API token, require `champion_id` in payload
+        if not _check_api_token():
+            return jsonify({'error': 'Unauthorized'}), 401
+        cid = data.get('champion_id')
+        if not cid:
+            return jsonify({'error': 'Missing champion_id for token-authenticated request'}), 400
+        champion = db.session.get(Champion, int(cid))
+
+    if not champion:
+        return jsonify({'error': 'Champion profile not found for current user'}), 404
+
+    # Parse reporting_period
+    rp = data.get('reporting_period')
+    if not rp:
+        reporting_period = date.today()
+    else:
+        try:
+            reporting_period = datetime.strptime(rp, '%Y-%m-%d').date()
+        except Exception:
+            return jsonify({'error': 'Invalid reporting_period format. Use YYYY-MM-DD'}), 400
+
+    try:
+        # Find existing or create new record
+        report = YouthSupport.query.filter_by(champion_id=champion.champion_id, reporting_period=reporting_period).first()
+        if not report:
+            report = YouthSupport(champion_id=champion.champion_id, reporting_period=reporting_period)
+
+        # Update fields
+        if 'number_of_youth_under_support' in data:
+            report.number_of_youth_under_support = int(data.get('number_of_youth_under_support') or 0)
+        if 'weekly_check_in_completion_rate' in data:
+            report.weekly_check_in_completion_rate = float(data.get('weekly_check_in_completion_rate') or 0)
+        if 'monthly_mini_screenings_delivered' in data:
+            report.monthly_mini_screenings_delivered = int(data.get('monthly_mini_screenings_delivered') or 0)
+        if 'referrals_initiated' in data:
+            report.referrals_initiated = int(data.get('referrals_initiated') or 0)
+        if 'flags_and_concerns_logged' in data:
+            report.flags_and_concerns_logged = data.get('flags_and_concerns_logged')
+
+        # Simple red-flag logic: set flag if completion rate below 50% or concerns logged
+        try:
+            if report.weekly_check_in_completion_rate is not None and float(report.weekly_check_in_completion_rate) < 50:
+                report.flag_timestamp = datetime.now(timezone.utc)
+            if report.flags_and_concerns_logged:
+                report.flag_timestamp = datetime.now(timezone.utc)
+        except Exception:
+            pass
+
+        db.session.add(report)
+        db.session.commit()
+
+        return jsonify({'success': True, 'report_id': report.support_id, 'flagged': bool(report.flag_timestamp)}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500

@@ -2,10 +2,10 @@
 
 ## Overview
 The admin dashboard provides full CRUD (Create, Read, Update, Delete) capabilities for all 4 workstreams:
-- 🎙️ **Podcasts**
-- 🎤 **Debators Circle** 
-- 🎓 **Campus Edition**
-- 🏘️ **UMV Mtaani**
+- **Podcasts**
+- **Debators Circle**
+- **Campus Edition**
+- **UMV Mtaani**
 
 ---
 
@@ -21,7 +21,7 @@ The admin dashboard provides full CRUD (Create, Read, Update, Delete) capabiliti
 
 ---
 
-## 1️⃣ PODCASTS Management
+## PODCASTS Management
 
 ### **View All Podcasts**
 - **URL:** `/admin/podcasts`
@@ -63,7 +63,7 @@ The admin dashboard provides full CRUD (Create, Read, Update, Delete) capabiliti
 
 ---
 
-## 2️⃣ DEBATORS CIRCLE Management
+## DEBATORS CIRCLE Management
 
 ### **View All Debate Events**
 - **URL:** `/admin/debates`
@@ -109,7 +109,7 @@ The admin dashboard provides full CRUD (Create, Read, Update, Delete) capabiliti
 
 ---
 
-## 3️⃣ CAMPUS EDITION Management
+## CAMPUS EDITION Management
 
 ### **View All Campus Events**
 - **URL:** `/admin/campus-edition`
@@ -151,7 +151,7 @@ The admin dashboard provides full CRUD (Create, Read, Update, Delete) capabiliti
 
 ---
 
-## 4️⃣ UMV MTAANI Management
+## UMV MTAANI Management
 
 ### **View All Mtaani Events**
 - **URL:** `/admin/umv-mtaani`

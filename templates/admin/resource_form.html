@@ -1,15 +1,32 @@
 {% extends 'admin/base.html' %}
+{% import 'admin/_admin_macros.html' as macros %}
 {% block content %}
-<h1>{{ resource and 'Edit' or 'Create' }} Resource</h1>
+{{ macros.hero_header(resource and 'Edit Resource' or 'Create Resource', 'Manage external/internal resources') }}
+
+{{ macros.form_card_start() }}
 <form method="post">
-  <label>Title</label>
-  <input name="title" value="{{ resource.title if resource else '' }}" />
-  <label>URL</label>
-  <input name="url" value="{{ resource.url if resource else '' }}" />
-  <label>Description</label>
-  <textarea name="description">{{ resource.description if resource else '' }}</textarea>
-  <label>Tags (JSON array)</label>
-  <textarea name="tags">{{ resource.tags|tojson if resource and resource.tags else '[]' }}</textarea>
-  <button type="submit" class="btn btn-primary">Save</button>
+  <div class="form-group">
+    <label class="form-label">Title</label>
+    <input name="title" class="form-input" value="{{ resource.title if resource else '' }}" />
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">URL</label>
+    <input name="url" class="form-input" value="{{ resource.url if resource else '' }}" />
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Description</label>
+    <textarea name="description" class="form-input">{{ resource.description if resource else '' }}</textarea>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Tags (JSON array)</label>
+    <textarea name="tags" class="form-input">{{ resource.tags|tojson if resource and resource.tags else '[]' }}</textarea>
+  </div>
+
+  {{ macros.action_buttons('Save', url_for('admin.list_resources')) }}
 </form>
+{{ macros.form_card_end() }}
+
 {% endblock %}

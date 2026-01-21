@@ -46,7 +46,8 @@ def test_admin_access_register(client, app):
     login_client(client, "admin", "secret")
     rv = client.get('/auth/register', follow_redirects=True)
     assert rv.status_code == 200
-    assert b'Registration form' in rv.data
+    # Template now renders the full registration page
+    assert b'Register New User' in rv.data
 
 
 def test_champion_cannot_access_register(client, app):

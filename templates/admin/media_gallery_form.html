@@ -1,13 +1,28 @@
 {% extends 'admin/base.html' %}
+{% import 'admin/_admin_macros.html' as macros %}
+
 {% block content %}
-<h1>{{ gallery and 'Edit' or 'Create' }} Media Gallery</h1>
+{{ macros.hero_header(gallery and 'Edit Media Gallery' or 'Create Media Gallery', 'Collections of images and videos used across pages') }}
+
+{{ macros.form_card_start() }}
 <form method="post">
-  <label>Title</label>
-  <input name="title" value="{{ gallery.title if gallery else '' }}" />
-  <label>Description</label>
-  <textarea name="description">{{ gallery.description if gallery else '' }}</textarea>
-  <label>Media Items (JSON array)</label>
-  <textarea name="media_items">{{ gallery.media_items|tojson if gallery and gallery.media_items else '[]' }}</textarea>
-  <button type="submit" class="btn btn-primary">Save</button>
+  <div class="form-group">
+    <label class="form-label">Title</label>
+    <input name="title" class="form-input" value="{{ gallery.title if gallery else '' }}" />
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Description</label>
+    <textarea name="description" class="form-input">{{ gallery.description if gallery else '' }}</textarea>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Media Items (JSON array)</label>
+    <textarea name="media_items" class="form-input">{{ gallery.media_items|tojson if gallery and gallery.media_items else '[]' }}</textarea>
+  </div>
+
+  {{ macros.action_buttons('Save', url_for('admin.list_media_galleries')) }}
 </form>
+{{ macros.form_card_end() }}
+
 {% endblock %}

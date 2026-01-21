@@ -23,7 +23,7 @@ from models import (
     map_gad7_to_risk_category
 )
 from decorators import prevention_advocate_required, supervisor_required, admin_required
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import func, case
 
 assessments_bp = Blueprint('assessments', __name__, url_prefix='/api/assessments')
@@ -106,7 +106,7 @@ def submit_assessment():
     if risk_data['auto_referral']:
         referral = RefferalPathway(
             champion_id=champion.champion_id,
-            refferal_date=datetime.utcnow().date(),
+            refferal_date=datetime.now(timezone.utc).date(),
             refferal_reason=f"{assessment_type} screening: {risk_data['description']}",
             reffered_to='Mental Health Professional',
             status='Pending',
@@ -115,7 +115,7 @@ def submit_assessment():
         )
         db.session.add(referral)
         db.session.flush()
-        
+
         # Update assessment to mark referral as made
         assessment.referral_made = True
         referral_id = referral.refferal_id
@@ -173,7 +173,7 @@ def assessment_dashboard():
     # Time filter
     days = request.args.get('days', 30, type=int)
     from datetime import timedelta
-    cutoff_date = datetime.utcnow() - timedelta(days=days)
+    cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
     
     query = MentalHealthAssessment.query.filter(
         MentalHealthAssessment.assessment_date >= cutoff_date
@@ -367,7 +367,7 @@ def admin_overview():
     
     # Recent assessments (last 7 days)
     from datetime import timedelta
-    week_ago = datetime.utcnow() - timedelta(days=7)
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
     recent_count = MentalHealthAssessment.query.filter(
         MentalHealthAssessment.assessment_date >= week_ago
     ).count()

@@ -6,7 +6,7 @@ For frontend integration testing
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 from models import db, User, Champion, MentalHealthAssessment
-from datetime import datetime
+from datetime import datetime, timezone
 
 api_status_bp = Blueprint('api_status', __name__, url_prefix='/api')
 
@@ -26,7 +26,7 @@ def health_check():
     
     return jsonify({
         'status': 'ok',
-        'timestamp': datetime.utcnow().isoformat(),
+        'timestamp': datetime.now(timezone.utc).isoformat(),
         'service': 'UMV Backend API',
         'version': '2.0.0-privacy-first',
         'database': db_status
@@ -58,7 +58,7 @@ def api_status():
     
     return jsonify({
         'status': 'operational',
-        'timestamp': datetime.utcnow().isoformat(),
+        'timestamp': datetime.now(timezone.utc).isoformat(),
         'api_version': '2.0.0',
         'privacy_mode': 'enabled',
         'features': {
@@ -133,5 +133,5 @@ def cors_test():
         'message': 'CORS is working correctly',
         'method': request.method,
         'origin': request.headers.get('Origin', 'No origin header'),
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': datetime.now(timezone.utc).isoformat()
     }), 200

@@ -1,6 +1,6 @@
 # Backend Safety Checklist - Preventing 502 Errors
 
-## ✅ Completed Fixes (January 2026)
+## Completed Fixes (January 2026)
 
 ### 1. **Import Threading Deadlocks** ✓
 **Problem**: Importing modules inside threaded functions causes Python interpreter deadlocks.
@@ -11,11 +11,11 @@
 
 **Prevention Rule**: 
 ```python
-# ❌ NEVER DO THIS
+# NEVER DO THIS
 def my_thread_function():
     from some_module import some_function  # Can deadlock!
     
-# ✅ ALWAYS DO THIS
+# ALWAYS DO THIS
 from some_module import some_function  # Import at top of file
 
 def my_thread_function():
@@ -37,7 +37,7 @@ def my_thread_function():
 supervisor = User.query.get(supervisor_id)
 name = supervisor.username  # Crashes if supervisor is None!
 
-# ❌ ALSO RISKY
+# ALSO RISKY
 name = User.query.get(supervisor_id).username  # Crashes if not found!
 
 # ✅ ALWAYS DO THIS
@@ -47,8 +47,10 @@ if supervisor:
 else:
     name = "Unknown"
     
-# OR use get_or_404 if the record MUST exist
-supervisor = User.query.get_or_404(supervisor_id)
+# OR use the session API and explicit handling if the record MUST exist
+supervisor = db.session.get(User, supervisor_id)
+if not supervisor:
+    abort(404)
 ```
 
 ---
@@ -63,12 +65,12 @@ supervisor = User.query.get_or_404(supervisor_id)
 
 **Prevention Rule**:
 ```python
-# ❌ RISKY PATTERN
+# RISKY PATTERN
 db.session.commit()
 send_email(user.email)  # If this fails, user sees 502!
 return render_template('success.html')
 
-# ✅ SAFE PATTERN
+# SAFE PATTERN
 db.session.commit()
 
 # Post-commit operations wrapped in error boundary
@@ -94,11 +96,11 @@ return render_template('success.html', email_sent=email_sent)
 
 **Prevention Rule**:
 ```python
-# ❌ ASSUME INPUT IS VALID
+# ASSUME INPUT IS VALID
 champion.supervisor_id = int(supervisor_id)
 db.session.commit()  # May crash with FK constraint violation!
 
-# ✅ VALIDATE BEFORE USING
+# VALIDATE BEFORE USING
 supervisor = User.query.get(int(supervisor_id))
 if not supervisor or supervisor.role != 'Supervisor':
     flash('Invalid supervisor selected', 'danger')
@@ -110,7 +112,7 @@ db.session.commit()
 
 ---
 
-## 🔍 Code Review Checklist
+## Code Review Checklist
 
 Before deploying any route that modifies the database:
 
@@ -124,7 +126,7 @@ Before deploying any route that modifies the database:
 
 ---
 
-## 🚨 High-Risk Patterns to Watch For
+## High-Risk Patterns to Watch For
 
 ### Pattern 1: Inline Attribute Access
 ```python
@@ -153,7 +155,7 @@ send_email(  # Should be wrapped in try-except
 
 ---
 
-## 🛠️ Testing Strategy
+## Testing Strategy
 
 ### Manual Testing
 1. **Test with invalid data**: Try to assign non-existent supervisors
@@ -175,7 +177,7 @@ def test_create_user_survives_email_failure(mock_email):
 
 ---
 
-## 📊 Monitoring
+## Monitoring
 
 Add alerts for:
 - **Email failure rate** > 10% (indicates SMTP issues)
@@ -184,20 +186,20 @@ Add alerts for:
 
 ---
 
-## 📝 Updated Files
+## Updated Files
 
 | File | Changes | Status |
 |------|---------|--------|
-| `blueprints/admin.py` | Fixed all 4 safety issues | ✅ Complete |
-| `create_champion` route | Safe supervisor lookup, error boundaries | ✅ Complete |
-| `create_user` route | Error boundary for email | ✅ Complete |
-| `reset_user_password` route | Error boundary for email | ✅ Complete |
-| `assign_champion` route | Safe database lookups | ✅ Complete |
-| `approve_champion_application` route | Validation for user lookup | ✅ Complete |
+| `blueprints/admin.py` | Fixed all 4 safety issues | Complete |
+| `create_champion` route | Safe supervisor lookup, error boundaries | Complete |
+| `create_user` route | Error boundary for email | Complete |
+| `reset_user_password` route | Error boundary for email | Complete |
+| `assign_champion` route | Safe database lookups | Complete |
+| `approve_champion_application` route | Validation for user lookup | Complete |
 
 ---
 
-## 🎯 Future Prevention
+## Future Prevention
 
 **Before merging any PR that touches user/database operations:**
 

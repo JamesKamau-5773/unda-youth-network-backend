@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from models import db, DailyAffirmation, AffirmationDelivery, Champion
 from decorators import supervisor_required, admin_required
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 affirmations_bp = Blueprint('affirmations', __name__, url_prefix='/api/affirmations')
 
@@ -38,7 +38,9 @@ def list_affirmations():
 @login_required
 def get_affirmation(affirmation_id):
     """Get detailed affirmation including delivery stats."""
-    affirmation = DailyAffirmation.query.get_or_404(affirmation_id)
+    affirmation = db.session.get(DailyAffirmation, affirmation_id)
+    if not affirmation:
+        return jsonify({'success': False, 'message': 'Affirmation not found'}), 404
     
     # Get delivery statistics
     deliveries = AffirmationDelivery.query.filter_by(affirmation_id=affirmation_id).all()
@@ -105,7 +107,9 @@ def create_affirmation():
 @supervisor_required
 def update_affirmation(affirmation_id):
     """Update an existing affirmation."""
-    affirmation = DailyAffirmation.query.get_or_404(affirmation_id)
+    affirmation = db.session.get(DailyAffirmation, affirmation_id)
+    if not affirmation:
+        return jsonify({'success': False, 'message': 'Affirmation not found'}), 404
     data = request.get_json()
     
     if not data:
@@ -120,7 +124,7 @@ def update_affirmation(affirmation_id):
     if 'is_active' in data:
         affirmation.is_active = data['is_active']
     
-    affirmation.updated_at = datetime.utcnow()
+    affirmation.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     
     return jsonify({
@@ -134,7 +138,9 @@ def update_affirmation(affirmation_id):
 @admin_required
 def delete_affirmation(affirmation_id):
     """Delete an affirmation (admin only)."""
-    affirmation = DailyAffirmation.query.get_or_404(affirmation_id)
+    affirmation = db.session.get(DailyAffirmation, affirmation_id)
+    if not affirmation:
+        return jsonify({'success': False, 'message': 'Affirmation not found'}), 404
     
     # Soft delete by deactivating
     affirmation.is_active = False
@@ -200,8 +206,8 @@ def create_delivery():
         }), 400
     
     # Validate affirmation and champion exist
-    affirmation = DailyAffirmation.query.get(data['affirmation_id'])
-    champion = Champion.query.get(data['champion_id'])
+    affirmation = db.session.get(DailyAffirmation, data['affirmation_id'])
+    champion = db.session.get(Champion, data['champion_id'])
     
     if not affirmation or not champion:
         return jsonify({
@@ -232,17 +238,19 @@ def create_delivery():
 @login_required
 def update_engagement(delivery_id):
     """Update engagement metrics for a delivery (viewed/liked)."""
-    delivery = AffirmationDelivery.query.get_or_404(delivery_id)
+    delivery = db.session.get(AffirmationDelivery, delivery_id)
+    if not delivery:
+        return jsonify({'success': False, 'message': 'Delivery not found'}), 404
     data = request.get_json()
     
     if not data:
         return jsonify({'success': False, 'message': 'No data provided'}), 400
     
     if 'viewed' in data and data['viewed'] and not delivery.viewed_at:
-        delivery.viewed_at = datetime.utcnow()
+        delivery.viewed_at = datetime.now(timezone.utc)
     
     if 'liked' in data and data['liked'] and not delivery.liked_at:
-        delivery.liked_at = datetime.utcnow()
+        delivery.liked_at = datetime.now(timezone.utc)
     
     if 'engagement_time_seconds' in data:
         delivery.engagement_time_seconds = data['engagement_time_seconds']
@@ -272,7 +280,7 @@ def get_themes():
 @login_required
 def get_today_affirmation():
     """Get the affirmation scheduled for today."""
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     
     affirmation = DailyAffirmation.query.filter_by(
         scheduled_date=today,

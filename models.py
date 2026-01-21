@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from bcrypt import hashpw, gensalt, checkpw
 
 
@@ -53,6 +53,8 @@ class User(db.Model, UserMixin):
   # Invite token for admin-created accounts (one-time set-password link)
   invite_token = db.Column(db.String(255), unique=True, nullable=True)
   invite_token_expires = db.Column(db.DateTime, nullable=True)
+  # Store a small list of frequently visited admin pages for quick access (kept to max 3)
+  frequent_pages = db.Column(db.JSON, nullable=True)
 
   #Implement UserMixin required methord
   def get_id(self):
@@ -108,7 +110,12 @@ class User(db.Model, UserMixin):
   def is_locked(self):
     """Check if account is currently locked."""
     if self.account_locked and self.locked_until:
-      if datetime.utcnow() < self.locked_until:
+      # Ensure comparison works if locked_until is naive (treat as UTC)
+      locked_until = self.locked_until
+      if locked_until.tzinfo is None:
+        from datetime import timezone as _tz
+        locked_until = locked_until.replace(tzinfo=_tz.utc)
+      if datetime.now(timezone.utc) < locked_until:
         return True
       else:
         # Lock expired, reset
@@ -125,7 +132,7 @@ class User(db.Model, UserMixin):
     self.failed_login_attempts = (self.failed_login_attempts or 0) + 1
     if self.failed_login_attempts >= 7:
       self.account_locked = True
-      self.locked_until = datetime.utcnow() + timedelta(minutes=30)
+      self.locked_until = datetime.now(timezone.utc) + timedelta(minutes=30)
     db.session.commit()
   
   def reset_failed_logins(self):
@@ -146,6 +153,43 @@ class User(db.Model, UserMixin):
     self.invite_token = None
     self.invite_token_expires = None
     db.session.commit()
+
+  def touch_frequent_page(self, page_id: str, name: str, endpoint: str):
+    """Record a visit to an admin page for quick-access personalization.
+
+    Keeps at most 3 entries ordered by most-recently-seen. Each entry is a dict:
+      { 'id': page_id, 'name': name, 'endpoint': endpoint, 'count': N, 'last_seen': iso8601 }
+    This method is idempotent and safe to call on every GET to an admin page.
+    """
+    try:
+      pages = (self.frequent_pages or [])[:]
+    except Exception:
+      pages = []
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    # Find existing entry
+    existing = None
+    for p in pages:
+      if p.get('id') == page_id or p.get('endpoint') == endpoint:
+        existing = p
+        break
+
+    if existing:
+      existing['count'] = (existing.get('count') or 0) + 1
+      existing['last_seen'] = now_iso
+    else:
+      pages.append({'id': page_id, 'name': name, 'endpoint': endpoint, 'count': 1, 'last_seen': now_iso})
+
+    # Sort by last_seen desc and keep only top 3
+    pages = sorted(pages, key=lambda x: x.get('last_seen', ''), reverse=True)[:3]
+
+    self.frequent_pages = pages
+    try:
+      db.session.add(self)
+      db.session.commit()
+    except Exception:
+      db.session.rollback()
   
 class Champion(db.Model):
   __tablename__ = 'champions'

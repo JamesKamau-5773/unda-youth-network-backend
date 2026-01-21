@@ -5,7 +5,7 @@ Handles seed funding applications for Campus Edition workstream
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from models import db, SeedFundingApplication, User
-from datetime import datetime
+from datetime import datetime, timezone
 from decorators import admin_required
 
 seed_funding_bp = Blueprint('seed_funding', __name__, url_prefix='/api/seed-funding')
@@ -112,7 +112,9 @@ def get_my_applications():
 def get_application(application_id):
     """Get details of a specific application"""
     try:
-        application = SeedFundingApplication.query.get_or_404(application_id)
+        application = db.session.get(SeedFundingApplication, application_id)
+        if not application:
+            return jsonify({'error': 'Application not found'}), 404
         
         # Only allow user to view their own applications unless admin
         if application.user_id != current_user.user_id and current_user.role != 'Admin':
@@ -166,7 +168,9 @@ def list_all_applications():
 def update_application_status(application_id):
     """Update application status (Admin only)"""
     try:
-        application = SeedFundingApplication.query.get_or_404(application_id)
+        application = db.session.get(SeedFundingApplication, application_id)
+        if not application:
+            return jsonify({'error': 'Application not found'}), 404
         data = request.get_json()
         
         new_status = data.get('status')
@@ -178,7 +182,7 @@ def update_application_status(application_id):
             return jsonify({'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'}), 400
         
         application.status = new_status
-        application.reviewed_at = datetime.utcnow()
+        application.reviewed_at = datetime.now(timezone.utc)
         application.reviewed_by = current_user.user_id
         
         # Handle approval
