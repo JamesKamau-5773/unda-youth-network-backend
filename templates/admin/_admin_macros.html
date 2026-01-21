@@ -1,0 +1,30 @@
+{% macro hero_header(title, subtitle='', create_url=None, create_text='Create') -%}
+<div class="hero-card">
+  <div class="hero-card__inner">
+    <div>
+      <h1 class="hero-card__title">{{ title }}</h1>
+      {% if subtitle %}<p class="hero-card__subtitle">{{ subtitle }}</p>{% endif %}
+    </div>
+    {% if create_url %}
+    <div class="hero-card__actions">
+      <a href="{{ create_url }}" class="btn btn--primary">{{ create_text }}</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro form_card_start() -%}
+<div class="card" style="max-width:900px; margin: 0 auto;">
+{%- endmacro %}
+
+{% macro form_card_end() -%}
+</div>
+{%- endmacro %}
+
+{% macro action_buttons(save_text='Save', cancel_url=None) -%}
+<div style="display:flex; gap:1rem; margin-top:1.25rem;">
+  <button type="submit" class="btn btn--primary">{{ save_text }}</button>
+  {% if cancel_url %}<a href="{{ cancel_url }}" class="btn btn--secondary">Cancel</a>{% endif %}
+</div>
+{%- endmacro %}

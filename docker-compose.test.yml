@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: unda_test
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_test_data:
+
+# Usage:
+# 1. Start Postgres in background:
+#    docker compose -f docker-compose.test.yml up -d
+# 2. Export test DB URL (example):
+#    export SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@localhost:5432/unda_test
+# 3. Run tests locally:
+#    pytest -q

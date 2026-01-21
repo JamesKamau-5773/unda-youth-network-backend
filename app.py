@@ -47,9 +47,28 @@ def create_app(test_config=None):
     app.config['SECRET_KEY'] = secret_key
     
     # Database URI from config or environment
-    database_url = app.config.get('SQLALCHEMY_DATABASE_URI') or os.environ.get('DATABASE_URL')
+    # Allow forcing a local SQLite fallback even if DATABASE_URL exists
+    force_sqlite = os.environ.get('FALLBACK_TO_SQLITE', 'False') == 'True'
+    database_url = None
+    if force_sqlite:
+        # Ensure the instance folder exists for the SQLite file
+        try:
+            os.makedirs(app.instance_path, exist_ok=True)
+        except Exception:
+            pass
+        if app.config.get('TESTING'):
+            database_url = 'sqlite:///:memory:'
+        else:
+            database_url = 'sqlite:///' + os.path.join(app.instance_path, 'local.db')
+    else:
+        database_url = app.config.get('SQLALCHEMY_DATABASE_URI') or os.environ.get('DATABASE_URL')
+
     if not database_url:
-        raise ValueError("DATABASE_URL environment variable must be set or provide 'SQLALCHEMY_DATABASE_URI' in test_config")
+        # Allow tests to default to an in-memory SQLite DB when no DATABASE_URL provided
+        if app.config.get('TESTING'):
+            database_url = 'sqlite:///:memory:'
+        else:
+            raise ValueError("DATABASE_URL environment variable must be set or provide 'SQLALCHEMY_DATABASE_URI' in test_config or enable FALLBACK_TO_SQLITE")
     
     # Fix for Render/Heroku: they use postgres:// but SQLAlchemy 1.4+ requires postgresql://
     if database_url.startswith('postgres://'):
@@ -129,7 +148,7 @@ def create_app(test_config=None):
         email_config_warnings.append('MAIL_DEFAULT_SENDER not set - using fallback')
     
     if email_config_warnings:
-        print("\n⚠️  EMAIL CONFIGURATION WARNINGS:")
+        print("\nEMAIL CONFIGURATION WARNINGS:")
         for warning in email_config_warnings:
             print(f"   - {warning}")
         print("   → Set these in your .env file to enable email notifications\n")
@@ -140,6 +159,24 @@ def create_app(test_config=None):
 
     # --- Initialization ---
     db.init_app(app)
+    # If running with a local SQLite fallback and migrations are intentionally
+    # skipped (useful for quick local development), ensure tables exist by
+    # creating the schema inside the application's context. This avoids
+    # "no such table" OperationalError when the developer used
+    # `CLEAN_BREAK_MODE=skip_migrations` and did not run alembic migrations.
+    try:
+        force_sqlite_local = database_url.startswith('sqlite')
+    except Exception:
+        force_sqlite_local = False
+
+    if (not app.config.get('TESTING') and force_sqlite_local
+            and os.environ.get('CLEAN_BREAK_MODE') == 'skip_migrations'):
+        try:
+            with app.app_context():
+                db.create_all()
+                app.logger.info('SQLite fallback: ensured DB schema with db.create_all()')
+        except Exception:
+            app.logger.exception('Failed to auto-create SQLite schema; continuing')
     
     # Initialize Flask-Mail
     # Allow disabling email initialization during build or CI to avoid outbound SMTP calls
@@ -347,13 +384,25 @@ def create_app(test_config=None):
     from blueprints.dev import dev
     app.register_blueprint(dev)
     
-    # Exempt API routes from CSRF protection
+    # Exempt certain public blueprints from CSRF protection
     csrf.exempt(public_auth_bp)
     csrf.exempt(podcasts_bp)
     csrf.exempt(events_bp)
     csrf.exempt(participation_bp)
     csrf.exempt(seed_funding_bp)
     csrf.exempt(api_status_bp)
+
+    # Conditionally exempt the API blueprint from CSRF in non-production when an API token is configured
+    api_token = os.environ.get('API_SMOKE_TOKEN')
+    if api_token and os.environ.get('FLASK_ENV') != 'production':
+        try:
+            from blueprints.api import api_bp
+            csrf.exempt(api_bp)
+            app.logger.info('API blueprint exempted from CSRF for local token-based testing')
+        except Exception:
+            pass
+
+    # Developer routes
     csrf.exempt(dev)
 
     # Optional: initialize Flask-Caching if available (Redis backend)
@@ -404,12 +453,12 @@ def create_app(test_config=None):
         Returns JSON with database connectivity, app status, and system info.
         """
         from flask import jsonify
-        from datetime import datetime
+        from datetime import datetime, timezone
         import time
         
         health_status = {
             'status': 'healthy',
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'service': 'UNDA Youth Network',
             'version': '1.0.0',
             'checks': {}

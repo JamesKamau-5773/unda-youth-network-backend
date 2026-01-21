@@ -24,7 +24,7 @@ def test_email_config():
         print("=" * 60)
         
         # Check configuration
-        print("\n📧 Email Configuration:")
+        print("\nEmail Configuration:")
         print(f"  MAIL_SERVER: {app.config.get('MAIL_SERVER')}")
         print(f"  MAIL_PORT: {app.config.get('MAIL_PORT')}")
         print(f"  MAIL_USE_TLS: {app.config.get('MAIL_USE_TLS')}")
@@ -44,7 +44,7 @@ def test_email_config():
         if missing:
             pytest.skip(f"Missing email configuration: {', '.join(missing)}")
 
-        print("\n✅ All email config variables are set")
+        print("\nAll email config variables are set")
 
         # If running under pytest / CI, skip interactive prompt
         if os.environ.get('PYTEST_CURRENT_TEST') or os.environ.get('CI') == 'true' or app.config.get('TESTING'):
@@ -56,7 +56,7 @@ def test_email_config():
         if test_email.lower() == 'skip' or not test_email:
             pytest.skip("Test email sending skipped by user")
         
-        print(f"\n📤 Sending test email to {test_email}...")
+        print(f"\nSending test email to {test_email}...")
         
         try:
             result = send_password_email(
@@ -66,15 +66,15 @@ def test_email_config():
             )
             
             if result:
-                print(f"\n✅ Email sent successfully to {test_email}")
-                print("📬 Check your inbox (and spam folder)")
+                print(f"\nEmail sent successfully to {test_email}")
+                print("Check your inbox (and spam folder)")
                 assert result is True
             else:
-                print(f"\n❌ Email sending failed - check logs above for details")
+                print(f"\nEmail sending failed - check logs above for details")
                 assert False, "Email sending reported failure"
                 
         except Exception as e:
-            print(f"\n❌ Email sending error: {str(e)}")
+            print(f"\nEmail sending error: {str(e)}")
             import traceback
             traceback.print_exc()
             assert False, f"Email sending raised exception: {str(e)}"

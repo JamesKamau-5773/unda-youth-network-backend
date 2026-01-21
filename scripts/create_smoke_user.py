@@ -35,7 +35,7 @@ with app.app_context():
         print('Test user already exists:', existing.username)
         # Ensure champion exists
         if existing.champion_id:
-            c = Champion.query.get(existing.champion_id)
+            c = db.session.get(Champion, existing.champion_id)
             print('Champion exists:', c and c.full_name)
         else:
             print('No champion linked to existing user')

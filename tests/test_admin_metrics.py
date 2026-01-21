@@ -1,3 +1,110 @@
+import types
+from services import admin_metrics
+
+
+class DummyQuery:
+    def __init__(self, count_value=0, scalar_value=0, all_value=None):
+        self._count = count_value
+        self._scalar = scalar_value
+        self._all = all_value if all_value is not None else []
+
+    def count(self):
+        return self._count
+
+    def filter_by(self, *a, **kw):
+        return self
+
+    def filter(self, *a, **kw):
+        return self
+
+    def order_by(self, *a, **kw):
+        return self
+
+    def join(self, *a, **kw):
+        return self
+
+    def outerjoin(self, *a, **kw):
+        return self
+
+    def group_by(self, *a, **kw):
+        return self
+
+    def distinct(self):
+        return self
+
+    def all(self):
+        return self._all
+
+    def scalar(self):
+        return self._scalar
+
+
+class DummySession:
+    def __init__(self, q):
+        self._q = q
+
+    def query(self, *a, **kw):
+        return self._q
+
+
+class ColumnStub:
+    def in_(self, vals):
+        return self
+    def isnot(self, other):
+        return self
+    def __eq__(self, other):
+        return self
+
+
+def test_get_dashboard_metrics_returns_dataclass(monkeypatch):
+    # Provide deterministic, simple return values for all DB interactions
+    dq = DummyQuery(count_value=4, scalar_value=10, all_value=[('recruit', 2)])
+
+    # Patch models that use .query
+    monkeypatch.setattr(admin_metrics, 'Champion', types.SimpleNamespace(
+        query=dq,
+        champion_id='champion_id',
+        full_name='full_name',
+        assigned_champion_code='assigned_champion_code',
+        recruitment_source=ColumnStub(),
+        consent_obtained=False,
+        institution_consent_obtained=False,
+    ))
+    monkeypatch.setattr(admin_metrics, 'YouthSupport', types.SimpleNamespace(
+        query=dq,
+        weekly_check_in_completion_rate='weekly_check_in_completion_rate',
+        monthly_mini_screenings_delivered='monthly_mini_screenings_delivered',
+        number_of_youth_under_support='number_of_youth_under_support',
+        self_reported_wellbeing_check='self_reported_wellbeing_check',
+        support_id='support_id',
+    ))
+    monkeypatch.setattr(admin_metrics, 'RefferalPathway', types.SimpleNamespace(
+        query=dq,
+        flag_to_referral_days='flag_to_referral_days',
+        referal_outcomes='referal_outcomes',
+    ))
+    monkeypatch.setattr(admin_metrics, 'TrainingRecord', types.SimpleNamespace(
+        query=dq,
+        training_module=ColumnStub(),
+        certification_status=ColumnStub(),
+    ))
+    monkeypatch.setattr(admin_metrics, 'MemberRegistration', types.SimpleNamespace(query=dq))
+    monkeypatch.setattr(admin_metrics, 'ChampionApplication', types.SimpleNamespace(query=dq))
+
+    # Patch db.session.query to return our dummy query
+    monkeypatch.setattr(admin_metrics, 'db', types.SimpleNamespace(session=DummySession(dq)))
+
+    # Patch helper functions used by the service
+    monkeypatch.setattr(admin_metrics, 'get_champions_needing_refresher', lambda days_ahead: [])
+    monkeypatch.setattr(admin_metrics, 'get_high_risk_champions', lambda: [])
+    monkeypatch.setattr(admin_metrics, 'get_overdue_reviews', lambda: [])
+
+    metrics = admin_metrics.get_dashboard_metrics()
+
+    assert isinstance(metrics, admin_metrics.AdminDashboardMetrics)
+    assert metrics.total_champions == 4
+    assert metrics.avg_check_in == 10
+    assert isinstance(metrics.recruitment_sources, list)
 import sys
 import os
 import pytest

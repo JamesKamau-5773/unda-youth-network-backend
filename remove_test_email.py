@@ -44,7 +44,7 @@ def remove_email(email_to_remove):
         for user in users:
             # Delete associated champion if exists
             if user.champion_id:
-                champion = Champion.query.get(user.champion_id)
+                champion = db.session.get(Champion, user.champion_id)
                 if champion:
                     db.session.delete(champion)
                     deleted_champions += 1
@@ -56,7 +56,7 @@ def remove_email(email_to_remove):
         
         # Delete standalone champions (not linked to users)
         for champ in champions:
-            if champ not in [Champion.query.get(u.champion_id) for u in users if u.champion_id]:
+            if champ not in [db.session.get(Champion, u.champion_id) for u in users if u.champion_id]:
                 db.session.delete(champ)
                 deleted_champions += 1
                 print(f"✓ Deleted champion: {champ.full_name}")

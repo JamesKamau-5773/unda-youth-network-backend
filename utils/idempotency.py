@@ -1,7 +1,7 @@
 import os
 import json
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 import redis
 from typing import Optional, Dict, Any
 from prometheus_client import Counter
@@ -55,7 +55,7 @@ def reserve_key(key: str, meta: dict = None, ttl: int = 60 * 60 * 24) -> bool:
     If reserved, an entry with status 'pending' is created with provided meta.
     """
     rkey = _redis_key(key)
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     value = {
         'status': 'pending',
         'created_at': now,
@@ -106,7 +106,7 @@ def get_key(key: str) -> Optional[dict]:
 
 def update_key(key: str, *, status: str, response: Optional[Dict[str, Any]] = None, meta: Optional[Dict[str, Any]] = None, ttl: int = 60 * 60 * 24) -> None:
     rkey = _redis_key(key)
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     entry = get_key(key) or {}
     entry.update({
         'status': status,

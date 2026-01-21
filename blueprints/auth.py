@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, current_user, login_required
-from models import db, User, Champion
+from models import db, User, Champion, MemberRegistration
 from decorators import admin_required, supervisor_required, champion_required
 from extensions import limiter
 from password_validator import validate_password_strength
-from datetime import datetime
+from datetime import datetime, timezone
 from metrics import track_login_attempt
 
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
@@ -20,55 +20,56 @@ def register():
         if not is_valid:
             flash(error_message, 'danger')
             return redirect(url_for('auth.register'))
-        
-        # Create Champion Profile (Initial Static Data)
-        champion = Champion(
-            full_name=request.form.get('full_name'),
-            email=request.form.get('email'),
-            phone_number=request.form.get('phone_number'),
-            assigned_champion_code=request.form.get('assigned_champion_code'),
+        # Create a MemberRegistration record for public signup.
+        # Email is optional at signup; username is auto-generated from first name.
+        full_name = request.form.get('full_name') or ''
+        email = request.form.get('email') or None
+        phone = request.form.get('phone_number')
+
+        # Auto-generate a username base from the first name
+        base = ''.join(ch for ch in (full_name.split()[0] if full_name else 'user').lower() if ch.isalnum()) or 'user'
+        username_candidate = base
+        idx = 1
+        while User.query.filter_by(username=username_candidate).first() or MemberRegistration.query.filter_by(username=username_candidate).first():
+            idx += 1
+            username_candidate = f"{base}{idx}"
+
+        registration = MemberRegistration(
+            full_name=full_name,
+            email=email,
+            phone_number=phone,
+            username=username_candidate
         )
-        db.session.add(champion)
+        # Store provided password hash (user submitted password at signup)
+        registration.set_password(password)
+        db.session.add(registration)
         db.session.commit()
-
-        # Create User Login Account
-        username = request.form.get('username')
-        # Get and validate role
-        role = request.form.get('role', 'Champion')
-        
-        # Check for existing username/email
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists', 'danger')
-            return redirect(url_for('auth.register'))
-
-        user = User(
-            username=username,
-            champion_id=champion.champion_id if role.capitalize() == 'Champion' else None
-        )
-        
-        # Use set_role for validation
-        try:
-            user.set_role(role)
-        except ValueError as e:
-            flash(str(e), 'danger')
-            return redirect(url_for('auth.register'))
-        
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-
-        # Update Champion FK link if the user is a Champion
-        if user.role == 'Champion':
-            champion.user_id = user.user_id  # Link Champion to newly created User
+        # If the current user is an Admin creating a registration via this
+        # endpoint, allow immediate creation of the active User (admin flows).
+        from flask_login import current_user
+        if current_user.is_authenticated and getattr(current_user, 'role', '') == 'Admin':
+            # Admin-initiated create: directly create User and mark registration approved
+            user = User(username=registration.username)
+            user.set_role(User.ROLE_PREVENTION_ADVOCATE)
+            user.password_hash = registration.password_hash
+            db.session.add(user)
+            db.session.flush()
+            registration.status = 'Approved'
+            registration.reviewed_at = datetime.now(timezone.utc)
+            registration.reviewed_by = current_user.user_id
+            registration.created_user_id = user.user_id
             db.session.commit()
+            flash(f'New Prevention Advocate account for {registration.full_name} created successfully. Username: {user.username}', 'success')
+            return redirect(url_for('main.index'))
 
-        flash(f'New {user.role} account for {champion.full_name} created successfully.', 'success')
+        # Public signup: leave registration as 'Pending' and notify user
+        flash('Your registration has been received and is pending admin approval.', 'info')
         return redirect(url_for('main.index'))
 
     # Simple form rendering for GET request (test-friendly placeholder)
     # In production this should render a proper template.
     if request.method == 'GET':
-        return 'Registration form'
+        return render_template('auth/register.html')
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -100,7 +101,11 @@ def login():
         if user:
             # Check if account is locked
             if user.is_locked():
-                remaining_time = int((user.locked_until - datetime.utcnow()).total_seconds() / 60)
+                locked_until = user.locked_until
+                if locked_until and locked_until.tzinfo is None:
+                    from datetime import timezone as _tz
+                    locked_until = locked_until.replace(tzinfo=_tz.utc)
+                remaining_time = int((locked_until - datetime.now(timezone.utc)).total_seconds() / 60)
                 flash(f'Account is locked due to too many failed login attempts. Please try again in {remaining_time} minutes.', 'danger')
                 return render_template('auth/login.html')
             

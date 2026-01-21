@@ -1,15 +1,33 @@
 {% extends 'admin/base.html' %}
+{% import 'admin/_admin_macros.html' as macros %}
+
 {% block content %}
-<h1>{{ post and 'Edit' or 'Create' }} Story</h1>
+{{ macros.hero_header(post and 'Edit Story' or 'Create Story', 'Success stories and community highlights') }}
+
+{{ macros.form_card_start() }}
 <form method="post">
-  <label>Title</label>
-  <input name="title" value="{{ post.title if post else '' }}" />
-  <label>Excerpt</label>
-  <textarea name="excerpt">{{ post.excerpt if post else '' }}</textarea>
-  <label>Content</label>
-  <textarea name="content">{{ post.content if post else '' }}</textarea>
-  <label>Featured Image URL</label>
-  <input name="featured_image" value="{{ post.featured_image if post else '' }}" />
-  <button type="submit" class="btn btn-primary">Save</button>
+  <div class="form-group">
+    <label class="form-label">Title</label>
+    <input name="title" class="form-input" value="{{ post.title if post else '' }}" />
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Excerpt</label>
+    <textarea name="excerpt" class="form-input">{{ post.excerpt if post else '' }}</textarea>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Content</label>
+    <textarea name="content" class="form-input">{{ post.content if post else '' }}</textarea>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Featured Image URL</label>
+    <input name="featured_image" class="form-input" value="{{ post.featured_image if post else '' }}" />
+  </div>
+
+  {{ macros.action_buttons('Save', url_for('admin.list_stories')) }}
 </form>
+{{ macros.form_card_end() }}
+
 {% endblock %}

@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from models import db, Event
 from decorators import admin_required
-from datetime import datetime
+from datetime import datetime, timezone
 
 ALLOWED_EVENT_TYPES = {
     'debate': 'debate',              # Debaters Circle
@@ -58,7 +58,9 @@ def list_events():
 @events_bp.route('/<int:event_id>', methods=['GET'])
 def get_event(event_id):
     """Get a single event by ID."""
-    event = Event.query.get_or_404(event_id)
+    event = db.session.get(Event, event_id)
+    if not event:
+        return jsonify({'success': False, 'message': 'Event not found'}), 404
     
     return jsonify({
         'success': True,
@@ -130,7 +132,9 @@ def create_event():
 @admin_required
 def update_event(event_id):
     """Update an existing event (Admin only)."""
-    event = Event.query.get_or_404(event_id)
+    event = db.session.get(Event, event_id)
+    if not event:
+        return jsonify({'success': False, 'message': 'Event not found'}), 404
     data = request.get_json()
     
     if not data:
@@ -176,7 +180,7 @@ def update_event(event_id):
     if 'image_url' in data:
         event.image_url = data['image_url']
     
-    event.updated_at = datetime.utcnow()
+    event.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     
     return jsonify({
@@ -190,7 +194,9 @@ def update_event(event_id):
 @admin_required
 def delete_event(event_id):
     """Delete an event (Admin only)."""
-    event = Event.query.get_or_404(event_id)
+    event = db.session.get(Event, event_id)
+    if not event:
+        return jsonify({'success': False, 'message': 'Event not found'}), 404
     
     db.session.delete(event)
     db.session.commit()

@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from models import db, BlogPost
 from decorators import admin_required, supervisor_required
-from datetime import datetime
+from datetime import datetime, timezone
 import re
 
 blog_bp = Blueprint('blog', __name__, url_prefix='/api/blog')
@@ -55,7 +55,9 @@ def list_posts():
 @blog_bp.route('/<int:post_id>', methods=['GET'])
 def get_post_by_id(post_id):
     """Get a single blog post by ID."""
-    post = BlogPost.query.get_or_404(post_id)
+    post = db.session.get(BlogPost, post_id)
+    if not post:
+        return jsonify({'success': False, 'message': 'Post not found'}), 404
     
     # Increment view count
     post.views += 1
@@ -88,7 +90,9 @@ def get_post_by_id(post_id):
 @blog_bp.route('/slug/<slug>', methods=['GET'])
 def get_post_by_slug(slug):
     """Get a single blog post by slug."""
-    post = BlogPost.query.filter_by(slug=slug).first_or_404()
+    post = BlogPost.query.filter_by(slug=slug).first()
+    if not post:
+        return jsonify({'success': False, 'message': 'Post not found'}), 404
     
     # Increment view count
     post.views += 1
@@ -138,7 +142,7 @@ def create_post():
     existing_post = BlogPost.query.filter_by(slug=slug).first()
     if existing_post:
         # Append timestamp to make unique
-        slug = f"{slug}-{int(datetime.utcnow().timestamp())}"
+        slug = f"{slug}-{int(datetime.now(timezone.utc).timestamp())}"
     
     post = BlogPost(
         title=data['title'],
@@ -153,7 +157,7 @@ def create_post():
     )
     
     if post.published:
-        post.published_at = datetime.utcnow()
+        post.published_at = datetime.now(timezone.utc)
     
     db.session.add(post)
     db.session.commit()
@@ -171,7 +175,9 @@ def create_post():
 @supervisor_required
 def update_post(post_id):
     """Update an existing blog post."""
-    post = BlogPost.query.get_or_404(post_id)
+    post = db.session.get(BlogPost, post_id)
+    if not post:
+        return jsonify({'success': False, 'message': 'Post not found'}), 404
     data = request.get_json()
     
     if not data:
@@ -208,12 +214,12 @@ def update_post(post_id):
         
         # Set published_at when first published
         if post.published and not was_published:
-            post.published_at = datetime.utcnow()
+            post.published_at = datetime.now(timezone.utc)
         # Clear published_at when unpublished
         elif not post.published and was_published:
             post.published_at = None
     
-    post.updated_at = datetime.utcnow()
+    post.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     
     return jsonify({
@@ -227,7 +233,9 @@ def update_post(post_id):
 @admin_required
 def delete_post(post_id):
     """Delete a blog post (Admin only)."""
-    post = BlogPost.query.get_or_404(post_id)
+    post = db.session.get(BlogPost, post_id)
+    if not post:
+        return jsonify({'success': False, 'message': 'Post not found'}), 404
     
     db.session.delete(post)
     db.session.commit()
