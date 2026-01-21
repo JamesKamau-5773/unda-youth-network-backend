@@ -5,12 +5,12 @@
 
 ## Quick Start
 
-### 1. Backend is Ready ✅
+### 1. Backend is Ready
 The backend API is already configured for local development with:
-- ✅ CORS enabled for `localhost` origins
-- ✅ All privacy-first endpoints operational
-- ✅ Session/cookie authentication working
-- ✅ Health check endpoints available
+- OK CORS enabled for `localhost` origins
+- OK All privacy-first endpoints operational
+- OK Session/cookie authentication working
+- OK Health check endpoints available
 
 ### 2. Backend URL
 ```
@@ -175,11 +175,11 @@ const submitAssessment = async (assessmentData) => {
 ```
 
 **Risk Categories:**
-- 🟢 **Green** (0-4): Minimal depression/anxiety
-- 🔵 **Blue** (5-9): Mild symptoms
-- 🟣 **Purple** (10-14): Moderate symptoms
-- 🟠 **Orange** (15-19): Moderately severe (PHQ-9 only, auto-referral)
-- 🔴 **Red** (20-27 PHQ-9 / 15-21 GAD-7): Severe (auto-referral)
+- Green (0-4): Minimal depression/anxiety
+- Blue (5-9): Mild symptoms
+- Purple (10-14): Moderate symptoms
+- Orange (15-19): Moderately severe (PHQ-9 only, auto-referral)
+- Red (20-27 PHQ-9 / 15-21 GAD-7): Severe (auto-referral)
 
 ### 4. View My Submissions (Prevention Advocate)
 ```javascript
@@ -289,12 +289,12 @@ api.interceptors.response.use(
 ### Roles & Permissions
 | Endpoint | Admin | Supervisor | Prevention Advocate | Public |
 |----------|-------|------------|---------------------|--------|
-| `/api/prevention advocates/register` | ✅ | ✅ | ✅ | ✅ |
-| `/api/prevention advocates/verify-code` | ✅ | ✅ | ✅ | ✅ |
-| `/api/assessments/submit` | ✅ | ✅ | ✅ | ❌ |
-| `/api/assessments/my-submissions` | ✅ | ✅ | ✅ | ❌ |
-| `/api/assessments/dashboard` | ✅ | ✅ | ❌ | ❌ |
-| `/api/me` | ✅ | ✅ | ✅ | ❌ |
+| `/api/prevention advocates/register` | YES | YES | YES | YES |
+| `/api/prevention advocates/verify-code` | YES | YES | YES | YES |
+| `/api/assessments/submit` | YES | YES | YES | NO |
+| `/api/assessments/my-submissions` | YES | YES | YES | NO |
+| `/api/assessments/dashboard` | YES | YES | NO | NO |
+| `/api/me` | YES | YES | YES | NO |
 
 ### Check User Role
 ```javascript
@@ -314,16 +314,16 @@ if (user.role === 'Prevention Advocate') {
 ## Privacy Compliance
 
 ### What Frontend Should NOT Display
-- ❌ Raw assessment scores (PHQ-9/GAD-7 numbers)
-- ❌ Prevention Advocate personal information alongside assessment results
-- ❌ Individual assessment details to supervisors (only aggregated stats)
+- NO Raw assessment scores (PHQ-9/GAD-7 numbers)
+- NO Prevention Advocate personal information alongside assessment results
+- NO Individual assessment details to supervisors (only aggregated stats)
 
 ### What Frontend SHOULD Display
-- ✅ Risk categories (Green/Blue/Purple/Orange/Red) as colors
-- ✅ Prevention Advocate codes (UMV-YYYY-NNNNNN)
-- ✅ Auto-referral flags
-- ✅ Aggregated statistics (counts, percentages)
-- ✅ Score ranges (0-4, 5-9, etc.) instead of exact scores
+- YES Risk categories (Green/Blue/Purple/Orange/Red) as colors
+- YES Prevention Advocate codes (UMV-YYYY-NNNNNN)
+- YES Auto-referral flags
+- YES Aggregated statistics (counts, percentages)
+- YES Score ranges (0-4, 5-9, etc.) instead of exact scores
 
 ### Privacy-First UI Examples
 ```javascript
@@ -349,7 +349,7 @@ const getRiskColor = (category) => {
 </div>
 
 // Bad: Don't do this
-<div>Raw Score: {assessment.total_score}</div> // ❌ Backend won't return this anyway
+<div>Raw Score: {assessment.total_score}</div> // Backend won't return this anyway
 ```
 
 ---

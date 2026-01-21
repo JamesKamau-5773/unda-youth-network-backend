@@ -1,24 +1,29 @@
-{% extends "base.html" %}
+{% extends "admin/base.html" %}
+{% import 'admin/_admin_macros.html' as macros %}
 
 {% block title %}Record Assessment - Admin{% endblock %}
 
 {% block content %}
-<h1>Record Assessment</h1>
+{{ macros.hero_header('Record Assessment', 'Create a new assessment record (privacy-first)') }}
+
+{{ macros.form_card_start() }}
 <form method="post">
-  <div>
-    <label>Champion Code *</label>
-    <input name="champion_code" required />
+  <div class="form-group">
+    <label class="form-label">Champion Code *</label>
+    <input name="champion_code" class="form-input" required />
   </div>
-  <div>
-    <label>Assessment Type *</label>
-    <select name="assessment_type" required>
+
+  <div class="form-group">
+    <label class="form-label">Assessment Type *</label>
+    <select name="assessment_type" class="form-input" required>
       <option value="PHQ-9">PHQ-9</option>
       <option value="GAD-7">GAD-7</option>
     </select>
   </div>
-  <div>
-    <label>Risk Category *</label>
-    <select name="risk_category" required>
+
+  <div class="form-group">
+    <label class="form-label">Risk Category *</label>
+    <select name="risk_category" class="form-input" required>
       <option value="Green">Green</option>
       <option value="Blue">Blue</option>
       <option value="Purple">Purple</option>
@@ -26,13 +31,14 @@
       <option value="Red">Red</option>
     </select>
   </div>
-  <div>
-    <label>Notes</label>
-    <textarea name="notes"></textarea>
+
+  <div class="form-group">
+    <label class="form-label">Notes</label>
+    <textarea name="notes" class="form-input"></textarea>
   </div>
-  <div>
-    <button class="btn btn--primary" type="submit">Save</button>
-    <a class="btn btn--secondary" href="{{ url_for('admin.list_assessments_admin') }}">Cancel</a>
-  </div>
+
+  {{ macros.action_buttons('Save', url_for('admin.list_assessments_admin')) }}
 </form>
+{{ macros.form_card_end() }}
+
 {% endblock %}

@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from models import db, SymbolicItem, ItemDistribution, Champion, TrainingRecord
 from decorators import supervisor_required, admin_required
-from datetime import datetime
+from datetime import datetime, timezone
 
 symbolic_items_bp = Blueprint('symbolic_items', __name__, url_prefix='/api/symbolic-items')
 
@@ -38,7 +38,9 @@ def list_items():
 @login_required
 def get_item(item_id):
     """Get detailed item information including distribution history."""
-    item = SymbolicItem.query.get_or_404(item_id)
+    item = db.session.get(SymbolicItem, item_id)
+    if not item:
+        return jsonify({'success': False, 'message': 'Item not found'}), 404
     
     distributions = ItemDistribution.query.filter_by(item_id=item_id).order_by(
         ItemDistribution.distributed_at.desc()
@@ -106,7 +108,9 @@ def create_item():
 @admin_required
 def update_item(item_id):
     """Update symbolic item details (admin only)."""
-    item = SymbolicItem.query.get_or_404(item_id)
+    item = db.session.get(SymbolicItem, item_id)
+    if not item:
+        return jsonify({'success': False, 'message': 'Item not found'}), 404
     data = request.get_json()
     
     if not data:
@@ -125,7 +129,7 @@ def update_item(item_id):
     if 'is_active' in data:
         item.is_active = data['is_active']
     
-    item.updated_at = datetime.utcnow()
+    item.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     
     return jsonify({
@@ -139,7 +143,9 @@ def update_item(item_id):
 @admin_required
 def restock_item(item_id):
     """Add more quantity to an item's inventory."""
-    item = SymbolicItem.query.get_or_404(item_id)
+    item = db.session.get(SymbolicItem, item_id)
+    if not item:
+        return jsonify({'success': False, 'message': 'Item not found'}), 404
     data = request.get_json()
     
     if not data.get('quantity') or data['quantity'] <= 0:
@@ -149,7 +155,7 @@ def restock_item(item_id):
         }), 400
     
     item.total_quantity += data['quantity']
-    item.updated_at = datetime.utcnow()
+    item.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     
     return jsonify({
@@ -214,8 +220,8 @@ def distribute_item():
         }), 400
     
     # Validate item and champion exist
-    item = SymbolicItem.query.get(data['item_id'])
-    champion = Champion.query.get(data['champion_id'])
+    item = db.session.get(SymbolicItem, data['item_id'])
+    champion = db.session.get(Champion, data['champion_id'])
     
     if not item or not champion:
         return jsonify({
@@ -233,7 +239,7 @@ def distribute_item():
     
     # Validate linked records if provided
     if data.get('linked_training_record_id'):
-        training = TrainingRecord.query.get(data['linked_training_record_id'])
+        training = db.session.get(TrainingRecord, data['linked_training_record_id'])
         if not training or training.champion_id != data['champion_id']:
             return jsonify({
                 'success': False,
@@ -254,10 +260,10 @@ def distribute_item():
     
     # If linked to training, update training record
     if data.get('linked_training_record_id'):
-        training = TrainingRecord.query.get(data['linked_training_record_id'])
+        training = db.session.get(TrainingRecord, data['linked_training_record_id'])
         training.symbolic_item_received = True
         training.symbolic_item_type = item.item_name
-        training.symbolic_item_date = datetime.utcnow().date()
+        training.symbolic_item_date = datetime.now(timezone.utc).date()
     
     db.session.add(distribution)
     db.session.commit()
@@ -275,7 +281,9 @@ def distribute_item():
 @admin_required
 def revoke_distribution(distribution_id):
     """Revoke an item distribution (admin only)."""
-    distribution = ItemDistribution.query.get_or_404(distribution_id)
+    distribution = db.session.get(ItemDistribution, distribution_id)
+    if not distribution:
+        return jsonify({'success': False, 'message': 'Distribution not found'}), 404
     
     # Update item inventory
     item = distribution.item
@@ -283,7 +291,7 @@ def revoke_distribution(distribution_id):
     
     # Update training record if linked
     if distribution.linked_training_record_id:
-        training = TrainingRecord.query.get(distribution.linked_training_record_id)
+        training = db.session.get(TrainingRecord, distribution.linked_training_record_id)
         if training:
             training.symbolic_item_received = False
             training.symbolic_item_type = None

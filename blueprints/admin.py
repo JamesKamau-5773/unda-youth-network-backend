@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app, abort
 import threading
 from flask_login import login_required, current_user
 from sqlalchemy import func
@@ -8,9 +8,10 @@ from decorators import admin_required
 from flask_bcrypt import Bcrypt
 import secrets
 import string
-from datetime import datetime, timedelta
-from email_utils import send_invite_email, send_password_email
-from extensions import limiter
+from datetime import datetime, timedelta, timezone
+from services import user_service, champion_service, mailer, registration_service, champion_application_service, assignment_service, event_service, affirmation_service, media_gallery_service, toolkit_service, resource_service, story_service, symbolic_item_service, umv_service, assessment_service, podcast_service
+from services.admin_metrics import get_dashboard_metrics
+from dataclasses import asdict
 from extensions import limiter
 import json
 import re
@@ -25,161 +26,58 @@ def slugify(value: str) -> str:
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
+# Pages we track for personalization (id, display name, endpoint)
+TRACKABLE_ADMIN_PAGES = {
+    'admin.podcasts': ('podcasts', 'Manage Podcasts'),
+    'admin.workstreams': ('workstreams', 'Workstreams'),
+    'admin.affirmations': ('affirmations', 'Daily Affirmations'),
+    'admin.list_media_galleries': ('media_galleries', 'Media Galleries'),
+    'admin.list_toolkit_items': ('institutional_toolkit', 'Institutional Toolkit'),
+    'admin.list_resources': ('resources', 'Resources'),
+    'admin.list_stories': ('stories', 'Success Stories'),
+    'admin.manage_users': ('manage_users', 'Manage Users'),
+    'admin.debates': ('debators_circle', 'Debators Circle')
+}
+
+
+@admin_bp.before_app_request
+def _record_admin_visit():
+    # Only track GET page loads in admin blueprint for authenticated users
+    try:
+        if request.blueprint != 'admin':
+            return
+        if request.method != 'GET':
+            return
+        if not current_user or not current_user.is_authenticated:
+            return
+
+        endpoint = request.endpoint
+        if not endpoint:
+            return
+
+        mapping = TRACKABLE_ADMIN_PAGES.get(endpoint)
+        if not mapping:
+            return
+
+        page_id, display_name = mapping
+        # Update user's frequent pages (non-blocking)
+        try:
+            current_user.touch_frequent_page(page_id, display_name, endpoint)
+        except Exception:
+            # Swallow errors - tracking must not break UI
+            current_app.logger.debug('Failed to update frequent_pages for user')
+    except Exception:
+        # Defensive: ensure nothing leaks through
+        return
+
 
 @admin_bp.route('/dashboard')
 @login_required
 @admin_required
 def dashboard():
-    # HIGH-LEVEL DASHBOARD METRICS
-
-    # CHAMPION STATUS TRACKING
-    total_champions = Champion.query.count()
-    active_champions = Champion.query.filter_by(
-        champion_status='Active').count()
-    inactive_champions = Champion.query.filter_by(
-        champion_status='Inactive').count()
-    on_hold_champions = Champion.query.filter_by(
-        champion_status='On Hold').count()
-
-    # 1. Average Check-In Completion Rate
-    # This calculates the rounded average of all weekly check-in completion rates
-    average_check_in = db.session.query(
-        func.avg(YouthSupport.weekly_check_in_completion_rate)).scalar() or 0
-    # Rounded to nearest percentage
-    avg_check_in_rounded = round(average_check_in, 0)
-
-    # 1b. Average Mini-Screening Completion Rate
-    # Calculate percentage of mini-screenings completed vs expected
-    total_expected_screenings = db.session.query(
-        func.count(YouthSupport.support_id)).scalar() or 0
-    total_completed_screenings = db.session.query(
-        func.sum(YouthSupport.monthly_mini_screenings_delivered)).scalar() or 0
-    avg_screening_completion_rate = (
-        total_completed_screenings / total_expected_screenings) if total_expected_screenings > 0 else 0
-
-    # 2. Referral Conversion Rate (Success Rate)
-    # Ratio of "Attended" outcomes vs total referrals
-    total_referrals = RefferalPathway.query.count()
-    successful_referrals = RefferalPathway.query.filter_by(
-        referal_outcomes='Attended').count()
-    conversion_rate = (successful_referrals /
-                       total_referrals * 100) if total_referrals > 0 else 0
-
-    # 3. Training Compliance Rate
-    # Percentage of champions with "Certified" status for core modules
-    total_training_records = TrainingRecord.query.count()
-    certified_records = TrainingRecord.query.filter_by(
-        certification_status='Certified').count()
-    training_compliance_rate = (
-        certified_records / total_training_records * 100) if total_training_records > 0 else 0
-
-    # Core modules compliance check
-    core_modules = ['Safeguarding', 'Referral Protocols']
-    champions_with_core_training = (
-        db.session.query(Champion.champion_id)
-        .join(TrainingRecord)
-        .filter(TrainingRecord.training_module.in_(core_modules))
-        .filter(TrainingRecord.certification_status == 'Certified')
-        .distinct()
-        .count()
-    )
-
-    # 4. Total Youth Reached per Champion
-    # Aggregates youth from support records and referrals
-    youth_per_champion = (
-        db.session.query(
-            Champion.champion_id,
-            Champion.full_name,
-            Champion.assigned_champion_code,
-            func.coalesce(func.max(YouthSupport.number_of_youth_under_support), 0).label(
-                'total_youth')
-        )
-        .outerjoin(YouthSupport)
-        .group_by(Champion.champion_id, Champion.full_name, Champion.assigned_champion_code)
-        .all()
-    )
-
-    # Total youth reached across all champions
-    total_youth_reached = db.session.query(
-        func.sum(YouthSupport.number_of_youth_under_support)).scalar() or 0
-
-    # 5. Quarterly Satisfaction Score
-    # Average of youth feedback scores (self_reported_wellbeing_check)
-    quarterly_satisfaction = db.session.query(
-        func.avg(YouthSupport.self_reported_wellbeing_check)).scalar() or 0
-    quarterly_satisfaction_rounded = round(quarterly_satisfaction, 1)
-
-    # 6. Recruitment Source Analytics (Operational Clarity)
-    recruitment_sources = (
-        db.session.query(
-            Champion.recruitment_source,
-            func.count(Champion.champion_id).label('count')
-        )
-        .filter(Champion.recruitment_source.isnot(None))
-        .group_by(Champion.recruitment_source)
-        .all()
-    )
-
-    # 7. Clinical Reliability - Average Flag-to-Referral Time
-    avg_flag_to_referral = db.session.query(
-        func.avg(RefferalPathway.flag_to_referral_days)).scalar() or 0
-    avg_flag_to_referral_rounded = round(avg_flag_to_referral, 1)
-
-    # CONSENT & LEGAL COMPLIANCE CHECK
-    champions_missing_consent = Champion.query.filter_by(
-        consent_obtained=False).count()
-    champions_missing_institution = Champion.query.filter_by(
-        institution_consent_obtained=False).count()
-
-    # REFRESHER ALERTS (next 30 days)
-    upcoming_refreshers = get_champions_needing_refresher(days_ahead=30)
-    
-    # PENDING REGISTRATIONS & APPLICATIONS
-    pending_registrations_count = MemberRegistration.query.filter_by(status='Pending').count()
-    pending_applications_count = ChampionApplication.query.filter_by(status='Pending').count()
-
-    return render_template('admin/dashboard.html',
-                           # Champion Status Counts
-                           total_champions=total_champions,
-                           active_champions=active_champions,
-                           inactive_champions=inactive_champions,
-                           on_hold_champions=on_hold_champions,
-
-                           # Performance Metrics
-                           avg_check_in=avg_check_in_rounded,
-                           avg_screening_completion_rate=round(
-                               avg_screening_completion_rate, 1),
-                           conversion_rate=round(conversion_rate, 1),
-                           training_compliance_rate=round(
-                               training_compliance_rate, 1),
-                           champions_with_core_training=champions_with_core_training,
-
-                           # Youth Reach
-                           youth_per_champion=youth_per_champion,
-                           total_youth_reached=total_youth_reached,
-
-                           # Satisfaction & Quality
-                           quarterly_satisfaction=quarterly_satisfaction_rounded,
-
-                           # Operational Analytics
-                           recruitment_sources=recruitment_sources,
-                           avg_flag_to_referral=avg_flag_to_referral_rounded,
-
-                           # Compliance
-                           champions_missing_consent=champions_missing_consent,
-                           champions_missing_institution=champions_missing_institution,
-                           upcoming_refreshers=upcoming_refreshers,
-
-                           # SAFETY ALERTS
-                           high_risk_champions=get_high_risk_champions(),
-                           overdue_reviews=get_overdue_reviews(),
-                           high_risk_count=len(get_high_risk_champions()),
-                           overdue_count=len(get_overdue_reviews()),
-                           
-                           # PENDING APPROVALS
-                           pending_registrations_count=pending_registrations_count,
-                           pending_applications_count=pending_applications_count
-                           )
+    metrics = get_dashboard_metrics()
+    # Use asdict() to convert dataclass to mapping for template rendering
+    return render_template('admin/dashboard.html', **asdict(metrics))
 
 
 @admin_bp.route('/settings')
@@ -192,6 +90,7 @@ def settings():
 
 @admin_bp.route('/change-password', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def change_password():
     """Allow any user to change their own password"""
     if request.method == 'POST':
@@ -199,50 +98,17 @@ def change_password():
         new_password = request.form.get('new_password', '')
         confirm_password = request.form.get('confirm_password', '')
 
-        # Validation
+        # Basic form validation
         if not current_password or not new_password or not confirm_password:
             flash('All fields are required', 'danger')
             return render_template('admin/change_password.html')
 
-        # Verify current password
-        bcrypt = Bcrypt()
-        if not bcrypt.check_password_hash(current_user.password_hash, current_password):
-            flash('Current password is incorrect', 'danger')
-            return render_template('admin/change_password.html')
-
-        # Check new password matches confirmation
         if new_password != confirm_password:
             flash('New passwords do not match', 'danger')
             return render_template('admin/change_password.html')
 
-        # Validate new password strength
-        if len(new_password) < 8:
-            flash('New password must be at least 8 characters long', 'danger')
-            return render_template('admin/change_password.html')
-
-        # Check for uppercase, lowercase, digit, special char
-        has_upper = any(c.isupper() for c in new_password)
-        has_lower = any(c.islower() for c in new_password)
-        has_digit = any(c.isdigit() for c in new_password)
-        has_special = any(
-            c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in new_password)
-
-        if not (has_upper and has_lower and has_digit and has_special):
-            flash(
-                'Password must contain uppercase, lowercase, digit, and special character', 'danger')
-            return render_template('admin/change_password.html')
-
-        # Don't allow same password
-        if bcrypt.check_password_hash(current_user.password_hash, new_password):
-            flash('New password must be different from current password', 'danger')
-            return render_template('admin/change_password.html')
-
-        # Update password
         try:
-            current_user.password_hash = bcrypt.generate_password_hash(
-                new_password).decode('utf-8')
-            db.session.commit()
-
+            result = user_service.change_password(current_user.user_id, current_password, new_password)
             flash('Password changed successfully!', 'success')
             flash('You can now use your new password on next login.', 'info')
 
@@ -257,6 +123,9 @@ def change_password():
             else:
                 return redirect(url_for('auth.login'))
 
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('admin/change_password.html')
         except Exception as e:
             db.session.rollback()
             flash(f'Error changing password: {str(e)}', 'danger')
@@ -275,7 +144,7 @@ def change_password():
 def manage_users():
     """Display all users with their roles and status"""
     users = User.query.order_by(User.username).all()
-    return render_template('admin/users.html', users=users, now=datetime.utcnow())
+    return render_template('admin/users.html', users=users, now=datetime.now(timezone.utc))
 
 
 @admin_bp.route('/users/create', methods=['GET', 'POST'])
@@ -331,36 +200,9 @@ def create_user():
             flash(f'Email "{email}" already exists. Please use a different email.', 'danger')
             return render_template('admin/create_user.html')
 
-        # Create a secure placeholder password hash and an invite token
-        temp_placeholder = secrets.token_urlsafe(32)
-        # Create new user
-        bcrypt = Bcrypt()
-        new_user = User(
-            username=username,
-            email=email if email else None,
-            role=role,
-            password_hash=bcrypt.generate_password_hash(
-                temp_placeholder).decode('utf-8')
-        )
-
         try:
-            db.session.add(new_user)
-            db.session.commit()
-            
-            # Generate invite token and expiry
-            invite_token = secrets.token_urlsafe(32)
-            expires_at = datetime.utcnow() + timedelta(days=7)
-            new_user.set_invite(invite_token, expires_at)
-
-            # Try to send invite email if email provided
-            invite_sent = False
-            if email:
-                try:
-                    invite_sent = send_invite_email(email, username, invite_token, expires_at)
-                except Exception as e:
-                    current_app.logger.error(f"Failed to send invite email after user creation: {str(e)}")
-
-            # Show success page indicating invite sent (no password displayed)
+            result = user_service.create_user(username, email, role)
+            invite_sent = result.get('invite_sent', False)
             return render_template('admin/create_user_success.html',
                                  username=username,
                                  temp_password=None,
@@ -368,9 +210,8 @@ def create_user():
                                  email=email,
                                  email_sent=invite_sent,
                                  invite_sent=invite_sent)
-
         except Exception as e:
-            db.session.rollback()
+            current_app.logger.exception('Error creating user')
             flash(f'Error creating user: {str(e)}', 'danger')
             return render_template('admin/create_user.html')
 
@@ -383,38 +224,23 @@ def create_user():
 @limiter.limit("30 per hour", methods=["POST"])
 def reset_user_password(user_id):
     """Reset a user's password to a new temporary password"""
-    user = User.query.get_or_404(user_id)
-
-    # Create invite token for password reset (admin-initiated)
-    bcrypt = Bcrypt()
-    placeholder = secrets.token_urlsafe(32)
-    user.password_hash = bcrypt.generate_password_hash(placeholder).decode('utf-8')
-    user.failed_login_attempts = 0  # Reset lockout counter
-    user.locked_until = None  # Remove any lockout
+    user = db.session.get(User, user_id)
+    if not user:
+        abort(404)
 
     try:
-        invite_token = secrets.token_urlsafe(32)
-        expires_at = datetime.utcnow() + timedelta(days=7)
-        user.set_invite(invite_token, expires_at)
-
-        db.session.commit()
-
-        # Construct invite URL for admin to copy (we do NOT send emails)
-        app_url = current_app.config.get('APP_URL', 'https://your-app-url.com')
-        invite_url = f"{app_url}/auth/complete-invite?token={invite_token}"
-
-        # Show success page with invite URL for admin to share manually
+        result = user_service.reset_password(user_id)
+        temp_password = result.get('temp_password')
         return render_template('admin/create_user_success.html',
                      username=user.username,
-                     temp_password=None,
+                     temp_password=temp_password,
                      role=user.role,
                      email=user.email,
                      email_sent=False,
                      invite_sent=False,
-                     invite_url=invite_url,
                      is_reset=True)
     except Exception as e:
-        db.session.rollback()
+        current_app.logger.exception('Error resetting user password')
         flash(f'Error resetting password: {str(e)}', 'danger')
         return redirect(url_for('admin.manage_users'))
 
@@ -424,16 +250,14 @@ def reset_user_password(user_id):
 @admin_required
 def unlock_user_account(user_id):
     """Unlock a locked user account"""
-    user = User.query.get_or_404(user_id)
-
-    user.failed_login_attempts = 0
-    user.lockout_until = None
-
+    user = db.session.get(User, user_id)
+    if not user:
+        abort(404)
     try:
-        db.session.commit()
+        user_service.unlock_user(user_id)
         flash(f'Account unlocked for user "{user.username}"', 'success')
     except Exception as e:
-        db.session.rollback()
+        current_app.logger.exception('Error unlocking user')
         flash(f'Error unlocking account: {str(e)}', 'danger')
 
     return redirect(url_for('admin.manage_users'))
@@ -444,22 +268,18 @@ def unlock_user_account(user_id):
 @admin_required
 def change_user_role(user_id):
     """Change a user's role"""
-    user = User.query.get_or_404(user_id)
+    user = db.session.get(User, user_id)
+    if not user:
+        abort(404)
     new_role_raw = request.form.get('role', '')
     # Try to set role using model helper which handles legacy mappings
-    old_role = user.role
     try:
-        user.set_role(new_role_raw)
+        result = user_service.change_role(user_id, new_role_raw)
+        flash(f'Role changed for "{user.username}" from {result.get("old_role")} to {result.get("new_role")}', 'success')
     except ValueError:
         flash('Invalid role selected', 'danger')
-        return redirect(url_for('admin.manage_users'))
-
-    try:
-        db.session.commit()
-        flash(
-            f'Role changed for "{user.username}" from {old_role} to {user.role}', 'success')
     except Exception as e:
-        db.session.rollback()
+        current_app.logger.exception('Error changing role')
         flash(f'Error changing role: {str(e)}', 'danger')
 
     return redirect(url_for('admin.manage_users'))
@@ -470,7 +290,9 @@ def change_user_role(user_id):
 @admin_required
 def delete_user(user_id):
     """Delete a user account and associated Champion profile"""
-    user = User.query.get_or_404(user_id)
+    user = db.session.get(User, user_id)
+    if not user:
+        abort(404)
 
     # Prevent deleting your own account
     from flask_login import current_user
@@ -478,22 +300,13 @@ def delete_user(user_id):
         flash('You cannot delete your own account', 'danger')
         return redirect(url_for('admin.manage_users'))
 
-    username = user.username
-
     try:
-        # Delete associated Champion profile if exists
-        if user.champion_id:
-            champion = Champion.query.get(user.champion_id)
-            if champion:
-                db.session.delete(champion)
-                print(f"✅ Deleted Champion profile: {champion.full_name} ({champion.assigned_champion_code})")
-        
-        # Delete the user account
-        db.session.delete(user)
-        db.session.commit()
-        flash(f'User "{username}" and associated records deleted successfully', 'success')
+        user_service.delete_user(user_id, current_user.user_id)
+        flash(f'User "{user.username}" and associated records deleted successfully', 'success')
+    except ValueError as e:
+        flash(str(e), 'danger')
     except Exception as e:
-        db.session.rollback()
+        current_app.logger.exception('Error deleting user')
         flash(f'Error deleting user: {str(e)}', 'danger')
 
     return redirect(url_for('admin.manage_users'))
@@ -506,156 +319,74 @@ def delete_user(user_id):
 def create_champion():
     """Create a new champion with user account and profile"""
     if request.method == 'POST':
-        # Debug: Log that we received a POST request
-        print(f"DEBUG: POST request received from {current_user.username}")
-        print(f"DEBUG: Form data keys: {list(request.form.keys())}")
-
-        # Get form data
+        # Collect form data and delegate validation/creation to service layer
         username = request.form.get('username', '').strip()
         full_name = request.form.get('full_name', '').strip()
-        email = request.form.get('email', '').strip()
-        gender = request.form.get('gender', '').strip()
-        date_of_birth = request.form.get('date_of_birth', '').strip()
+        email = request.form.get('email', '').strip() or None
+        gender = request.form.get('gender', '').strip() or None
+        date_of_birth = request.form.get('date_of_birth', '').strip() or None
         phone_number = request.form.get('phone_number', '').strip()
-        county_sub_county = request.form.get('county_sub_county', '').strip()
+        county_sub_county = request.form.get('county_sub_county', '').strip() or None
         supervisor_id = request.form.get('supervisor_id', '').strip()
 
-        # Validation (email is optional)
-        if not username or not full_name or not phone_number:
-            flash('Username, Full Name, and Phone Number are required', 'danger')
-            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
-            return render_template('admin/create_champion.html', supervisors=supervisors)
-
-        if len(username) < 3:
-            flash('Username must be at least 3 characters long', 'danger')
-            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
-            return render_template('admin/create_champion.html', supervisors=supervisors)
-
-        # Check if username already exists
-        if User.query.filter_by(username=username).first():
-            flash(
-                f'Username "{username}" already exists. Please choose a different username.', 'danger')
-            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
-            return render_template('admin/create_champion.html', supervisors=supervisors)
-
-        # Check if email already exists (only when provided)
-        if email:
-            if Champion.query.filter_by(email=email).first():
-                flash(
-                    f'Email "{email}" already exists. Please use a different email.', 'danger')
-                supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
-                return render_template('admin/create_champion.html', supervisors=supervisors)
-
-        # Check if phone number already exists
-        if Champion.query.filter_by(phone_number=phone_number).first():
-            flash(
-                f'Phone number "{phone_number}" already exists. Please use a different phone number.', 'danger')
-            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
-            return render_template('admin/create_champion.html', supervisors=supervisors)
-
-        # Create a secure placeholder password hash and an invite token
-        temp_placeholder = secrets.token_urlsafe(32)
-
         try:
-            # Create user account with placeholder password hash
-            bcrypt = Bcrypt()
-            new_user = User(username=username)
-            new_user.set_role(User.ROLE_PREVENTION_ADVOCATE)  # Use constant to prevent typos
-            new_user.password_hash = bcrypt.generate_password_hash(
-                temp_placeholder).decode('utf-8')
-            db.session.add(new_user)
-            db.session.flush()  # Get the user_id
-
-            # Generate champion code (e.g., CH-001, CH-002)
-            existing_count = Champion.query.count()
-            champion_code = f"CH-{str(existing_count + 1).zfill(3)}"
-
-            # Create champion profile with optional supervisor assignment
-            new_champion = Champion(
-                user_id=new_user.user_id,
-                supervisor_id=int(supervisor_id) if supervisor_id else None,
+            sup_id = int(supervisor_id) if supervisor_id else None
+            result = champion_service.create_champion(
+                username=username,
                 full_name=full_name,
                 email=email,
-                gender=gender if gender else None,
-                date_of_birth=date_of_birth if date_of_birth else None,
                 phone_number=phone_number,
-                county_sub_county=county_sub_county if county_sub_county else None,
-                assigned_champion_code=champion_code,
-                application_status='Approved',
-                champion_status='Active',
-                risk_level='Low'
+                supervisor_id=sup_id,
+                gender=gender,
+                date_of_birth=date_of_birth,
+                county_sub_county=county_sub_county
             )
-            db.session.add(new_champion)
-            db.session.flush()  # Get the champion_id
 
-            # Link champion to user
-            new_user.champion_id = new_champion.champion_id
-
-            # Commit before creating invite
-            db.session.commit()
-
-            # Generate invite token and send invite email if email provided
-            invite_token = secrets.token_urlsafe(32)
-            expires_at = datetime.utcnow() + timedelta(days=7)
-            new_user.set_invite(invite_token, expires_at)
-
-            email_sent = False
-            if email:
-                try:
-                    current_app.logger.info(f"Attempting to send invite email to {email}")
-                    email_sent = send_invite_email(email, username, invite_token, expires_at)
-                    if email_sent:
-                        current_app.logger.info(f"✅ Invite email sent successfully to {email}")
-                    else:
-                        current_app.logger.warning(f"⚠️ Invite email sending failed for {email} - check email configuration")
-                except Exception as e:
-                    current_app.logger.error(f"❌ Email exception for {email}: {str(e)}")
-                    email_sent = False
-            # Safe supervisor name retrieval
+            invite_sent = result.get('invite_sent', False)
+            champion_code = result.get('champion_code')
             supervisor_name = None
-            if supervisor_id:
+            if sup_id:
                 try:
-                    supervisor = User.query.get(int(supervisor_id))
-                    if supervisor:
-                        supervisor_name = supervisor.username
+                    sup = db.session.get(User, sup_id)
+                    if sup:
+                        supervisor_name = sup.username
                 except Exception:
-                    pass
+                    supervisor_name = None
 
-            # Show success page with password modal (instead of flash messages)
             return render_template('admin/create_user_success.html',
                                  username=username,
-                                 temp_password=temp_password,
+                                 temp_password=None,
                                  role=User.ROLE_PREVENTION_ADVOCATE,
                                  email=email,
-                                 email_sent=email_sent,
+                                 email_sent=invite_sent,
                                  is_champion=True,
                                  champion_code=champion_code,
                                  full_name=full_name,
                                  supervisor_username=supervisor_name)
 
+        except ValueError as e:
+            flash(str(e), 'danger')
+            supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
+            return render_template('admin/create_champion.html', supervisors=supervisors)
+
         except IntegrityError as e:
             db.session.rollback()
             error_msg = str(e.orig)
 
-            # Parse common constraint violations
             if 'phone_number' in error_msg and 'duplicate' in error_msg.lower():
-                flash(
-                    f'Phone number "{phone_number}" is already registered. Please use a different phone number.', 'danger')
+                flash(f'Phone number "{phone_number}" is already registered. Please use a different phone number.', 'danger')
             elif 'email' in error_msg and 'duplicate' in error_msg.lower():
-                flash(
-                    f'Email "{email}" is already registered. Please use a different email.', 'danger')
+                flash(f'Email "{email}" is already registered. Please use a different email.', 'danger')
             elif 'username' in error_msg and 'duplicate' in error_msg.lower():
-                flash(
-                    f'Username "{username}" is already taken. Please choose a different username.', 'danger')
+                flash(f'Username "{username}" is already taken. Please choose a different username.', 'danger')
             else:
-                flash(
-                    f'A champion with this information already exists. Please check phone number, email, and username.', 'danger')
+                flash(f'A champion with this information already exists. Please check phone number, email, and username.', 'danger')
 
             supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
             return render_template('admin/create_champion.html', supervisors=supervisors)
 
         except Exception as e:
-            db.session.rollback()
+            current_app.logger.exception('Error creating champion')
             flash(f'Error creating champion: {str(e)}', 'danger')
             supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
             return render_template('admin/create_champion.html', supervisors=supervisors)
@@ -706,44 +437,23 @@ def manage_assignments():
 def assign_champion(champion_id):
     """Assign or reassign a champion to a supervisor"""
     supervisor_id = request.form.get('supervisor_id', '').strip()
-
-    champion = Champion.query.get_or_404(champion_id)
-
     try:
         if supervisor_id:
-            # Assign to supervisor (with safe lookup)
-            supervisor = User.query.get(int(supervisor_id))
-            if not supervisor or supervisor.role != 'Supervisor':
-                flash('Invalid supervisor selected', 'danger')
-                return redirect(url_for('admin.manage_assignments'))
-
-            old_supervisor_id = champion.supervisor_id
-            champion.supervisor_id = int(supervisor_id)
-
-            # Safe lookup of old supervisor name
-            old_supervisor_name = "Unknown"
-            if old_supervisor_id:
-                old_supervisor = User.query.get(old_supervisor_id)
-                if old_supervisor:
-                    old_supervisor_name = old_supervisor.username
-                flash(
-                    f'Champion {champion.assigned_champion_code} reassigned from {old_supervisor_name} to {supervisor.username}', 'success')
+            res = assignment_service.assign_champion(champion_id, int(supervisor_id))
+            old_name = res.get('old_supervisor_name') or 'Unknown'
+            new_name = res.get('new_supervisor_name')
+            code = res.get('assigned_champion_code') or champion_id
+            if old_name == 'Unknown' or old_name is None:
+                flash(f'Champion {code} assigned to {new_name}', 'success')
             else:
-                flash(
-                    f'Champion {champion.assigned_champion_code} assigned to {supervisor.username}', 'success')
+                flash(f'Champion {code} reassigned from {old_name} to {new_name}', 'success')
         else:
-            # Unassign from supervisor (with safe lookup)
-            supervisor_name = "supervisor"
-            if champion.supervisor_id:
-                old_supervisor = User.query.get(champion.supervisor_id)
-                if old_supervisor:
-                    supervisor_name = old_supervisor.username
-                flash(
-                    f'Champion {champion.assigned_champion_code} unassigned from {supervisor_name}', 'info')
-            champion.supervisor_id = None
-
-        db.session.commit()
-
+            res = assignment_service.unassign_champion(champion_id)
+            old_name = res.get('old_supervisor_name') or 'supervisor'
+            code = res.get('assigned_champion_code') or champion_id
+            flash(f'Champion {code} unassigned from {old_name}', 'info')
+    except ValueError as e:
+        flash(str(e), 'danger')
     except Exception as e:
         db.session.rollback()
         flash(f'Error updating assignment: {str(e)}', 'danger')
@@ -758,7 +468,7 @@ def assign_champion(champion_id):
 @login_required
 @admin_required
 def list_affirmations():
-    affirmations = DailyAffirmation.query.order_by(DailyAffirmation.scheduled_date.desc().nullslast()).all()
+    affirmations = affirmation_service.list_affirmations()
     return render_template('admin/affirmations.html', affirmations=affirmations)
 
 
@@ -767,20 +477,18 @@ def list_affirmations():
 @admin_required
 def create_affirmation():
     if request.method == 'POST':
-        content = request.form.get('content', '').strip()
-        theme = request.form.get('theme', '').strip()
-        scheduled_date = request.form.get('scheduled_date') or None
-
-        if not content:
-            flash('Content is required', 'danger')
-            return render_template('admin/affirmation_form.html')
-
         try:
-            affirmation = DailyAffirmation(content=content, theme=theme, scheduled_date=scheduled_date, created_by=current_user.user_id)
-            db.session.add(affirmation)
-            db.session.commit()
+            data = {
+                'content': request.form.get('content', '').strip(),
+                'theme': request.form.get('theme', '').strip(),
+                'scheduled_date': request.form.get('scheduled_date') or None,
+            }
+            affirmation = affirmation_service.create_affirmation(data, creator_id=current_user.user_id)
             flash('Affirmation created', 'success')
             return redirect(url_for('admin.list_affirmations'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('admin/affirmation_form.html')
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating affirmation: {str(e)}', 'danger')
@@ -793,13 +501,17 @@ def create_affirmation():
 @login_required
 @admin_required
 def edit_affirmation(affirmation_id):
-    affirmation = DailyAffirmation.query.get_or_404(affirmation_id)
+    affirmation = db.session.get(DailyAffirmation, affirmation_id)
+    if not affirmation:
+        abort(404)
     if request.method == 'POST':
-        affirmation.content = request.form.get('content', affirmation.content)
-        affirmation.theme = request.form.get('theme', affirmation.theme)
-        affirmation.scheduled_date = request.form.get('scheduled_date') or affirmation.scheduled_date
         try:
-            db.session.commit()
+            data = {
+                'content': request.form.get('content', affirmation.content),
+                'theme': request.form.get('theme', affirmation.theme),
+                'scheduled_date': request.form.get('scheduled_date') or affirmation.scheduled_date,
+            }
+            affirmation_service.update_affirmation(affirmation_id, data)
             flash('Affirmation updated', 'success')
             return redirect(url_for('admin.list_affirmations'))
         except Exception as e:
@@ -810,12 +522,9 @@ def edit_affirmation(affirmation_id):
 
 @admin_bp.route('/affirmations/<int:affirmation_id>/delete', methods=['POST'])
 @login_required
-@admin_required
 def delete_affirmation(affirmation_id):
-    affirmation = DailyAffirmation.query.get_or_404(affirmation_id)
     try:
-        db.session.delete(affirmation)
-        db.session.commit()
+        affirmation_service.delete_affirmation(affirmation_id)
         flash('Affirmation deleted', 'success')
     except Exception as e:
         db.session.rollback()
@@ -828,9 +537,8 @@ def delete_affirmation(affirmation_id):
 # -----------------------------
 @admin_bp.route('/symbolic-items')
 @login_required
-@admin_required
 def list_symbolic_items():
-    items = SymbolicItem.query.order_by(SymbolicItem.created_at.desc()).all()
+    items = symbolic_item_service.list_symbolic_items()
     return render_template('admin/symbolic_items.html', items=items)
 
 
@@ -841,7 +549,7 @@ def list_symbolic_items():
 @login_required
 @admin_required
 def list_media_galleries():
-    galleries = MediaGallery.query.order_by(MediaGallery.created_at.desc()).all()
+    galleries = media_gallery_service.list_media_galleries()
     return render_template('admin/media_galleries.html', galleries=galleries)
 
 
@@ -850,20 +558,19 @@ def list_media_galleries():
 @admin_required
 def create_media_gallery():
     if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        description = request.form.get('description')
-        media_items = request.form.get('media_items')  # expect JSON string from admin JS
-
-        if not title:
-            flash('Title is required', 'danger')
-            return render_template('admin/media_gallery_form.html')
-
         try:
-            gallery = MediaGallery(title=title, description=description, media_items=media_items and json.loads(media_items) or None, created_by=current_user.user_id)
-            db.session.add(gallery)
-            db.session.commit()
+            data = {
+                'title': request.form.get('title', '').strip(),
+                'description': request.form.get('description'),
+                # controller extracts files from request; service will accept saved paths or JSON
+                'media_items': request.files.getlist('media_items') or request.form.get('media_items')
+            }
+            gallery = media_gallery_service.create_media_gallery(data, creator_id=current_user.user_id)
             flash('Media gallery created', 'success')
             return redirect(url_for('admin.list_media_galleries'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('admin/media_gallery_form.html')
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating gallery: {str(e)}', 'danger')
@@ -876,17 +583,21 @@ def create_media_gallery():
 @login_required
 @admin_required
 def edit_media_gallery(gallery_id):
-    gallery = MediaGallery.query.get_or_404(gallery_id)
+    gallery = db.session.get(MediaGallery, gallery_id)
+    if not gallery:
+        abort(404)
     if request.method == 'POST':
-        gallery.title = request.form.get('title', gallery.title)
-        gallery.description = request.form.get('description', gallery.description)
-        media_items = request.form.get('media_items')
-        if media_items:
-            gallery.media_items = json.loads(media_items)
         try:
-            db.session.commit()
+            data = {
+                'title': request.form.get('title', gallery.title),
+                'description': request.form.get('description', gallery.description),
+                'media_items': request.files.getlist('media_items') or request.form.get('media_items')
+            }
+            media_gallery_service.update_media_gallery(gallery_id, data)
             flash('Media gallery updated', 'success')
             return redirect(url_for('admin.list_media_galleries'))
+        except ValueError as e:
+            flash(str(e), 'danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating gallery: {str(e)}', 'danger')
@@ -897,10 +608,8 @@ def edit_media_gallery(gallery_id):
 @login_required
 @admin_required
 def delete_media_gallery(gallery_id):
-    gallery = MediaGallery.query.get_or_404(gallery_id)
     try:
-        db.session.delete(gallery)
-        db.session.commit()
+        media_gallery_service.delete_media_gallery(gallery_id)
         flash('Media gallery deleted', 'success')
     except Exception as e:
         db.session.rollback()
@@ -915,7 +624,7 @@ def delete_media_gallery(gallery_id):
 @login_required
 @admin_required
 def list_toolkit_items():
-    items = InstitutionalToolkitItem.query.order_by(InstitutionalToolkitItem.created_at.desc()).all()
+    items = toolkit_service.list_toolkit_items()
     return render_template('admin/toolkit_items.html', items=items)
 
 
@@ -924,20 +633,19 @@ def list_toolkit_items():
 @admin_required
 def create_toolkit_item():
     if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        content = request.form.get('content')
-        attachments = request.form.get('attachments')
-
-        if not title:
-            flash('Title is required', 'danger')
-            return render_template('admin/toolkit_form.html')
-
         try:
-            item = InstitutionalToolkitItem(title=title, content=content, attachments=attachments and json.loads(attachments) or None, created_by=current_user.user_id)
-            db.session.add(item)
-            db.session.commit()
+            data = {
+                'title': request.form.get('title', '').strip(),
+                'content': request.form.get('content'),
+                # prefer files if uploaded
+                'attachments': request.files.getlist('attachments') or request.form.get('attachments')
+            }
+            item = toolkit_service.create_toolkit_item(data, creator_id=current_user.user_id)
             flash('Toolkit item created', 'success')
             return redirect(url_for('admin.list_toolkit_items'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('admin/toolkit_form.html')
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating toolkit item: {str(e)}', 'danger')
@@ -950,17 +658,21 @@ def create_toolkit_item():
 @login_required
 @admin_required
 def edit_toolkit_item(item_id):
-    item = InstitutionalToolkitItem.query.get_or_404(item_id)
+    item = db.session.get(InstitutionalToolkitItem, item_id)
+    if not item:
+        abort(404)
     if request.method == 'POST':
-        item.title = request.form.get('title', item.title)
-        item.content = request.form.get('content', item.content)
-        attachments = request.form.get('attachments')
-        if attachments:
-            item.attachments = json.loads(attachments)
         try:
-            db.session.commit()
+            data = {
+                'title': request.form.get('title', item.title),
+                'content': request.form.get('content', item.content),
+                'attachments': request.files.getlist('attachments') or request.form.get('attachments')
+            }
+            toolkit_service.update_toolkit_item(item_id, data)
             flash('Toolkit item updated', 'success')
             return redirect(url_for('admin.list_toolkit_items'))
+        except ValueError as e:
+            flash(str(e), 'danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating toolkit item: {str(e)}', 'danger')
@@ -971,10 +683,8 @@ def edit_toolkit_item(item_id):
 @login_required
 @admin_required
 def delete_toolkit_item(item_id):
-    item = InstitutionalToolkitItem.query.get_or_404(item_id)
     try:
-        db.session.delete(item)
-        db.session.commit()
+        toolkit_service.delete_toolkit_item(item_id)
         flash('Toolkit item deleted', 'success')
     except Exception as e:
         db.session.rollback()
@@ -989,7 +699,7 @@ def delete_toolkit_item(item_id):
 @login_required
 @admin_required
 def list_umv_global():
-    entries = UMVGlobalEntry.query.order_by(UMVGlobalEntry.key.asc()).all()
+    entries = umv_service.list_umv_entries()
     return render_template('admin/umv_global.html', entries=entries)
 
 
@@ -1006,11 +716,12 @@ def create_umv_entry():
             return render_template('admin/umv_form.html')
 
         try:
-            entry = UMVGlobalEntry(key=key, value=value)
-            db.session.add(entry)
-            db.session.commit()
+            umv_service.create_umv_entry(key, value)
             flash('UMV entry created', 'success')
             return redirect(url_for('admin.list_umv_global'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('admin/umv_form.html')
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating UMV entry: {str(e)}', 'danger')
@@ -1023,12 +734,14 @@ def create_umv_entry():
 @login_required
 @admin_required
 def edit_umv_entry(entry_id):
-    entry = UMVGlobalEntry.query.get_or_404(entry_id)
+    entry = db.session.get(UMVGlobalEntry, entry_id)
+    if not entry:
+        abort(404)
     if request.method == 'POST':
-        entry.key = request.form.get('key', entry.key)
-        entry.value = request.form.get('value', entry.value)
         try:
-            db.session.commit()
+            key = request.form.get('key', entry.key)
+            value = request.form.get('value', entry.value)
+            umv_service.update_umv_entry(entry_id, key, value)
             flash('UMV entry updated', 'success')
             return redirect(url_for('admin.list_umv_global'))
         except Exception as e:
@@ -1041,10 +754,8 @@ def edit_umv_entry(entry_id):
 @login_required
 @admin_required
 def delete_umv_entry(entry_id):
-    entry = UMVGlobalEntry.query.get_or_404(entry_id)
     try:
-        db.session.delete(entry)
-        db.session.commit()
+        umv_service.delete_umv_entry(entry_id)
         flash('UMV entry deleted', 'success')
     except Exception as e:
         db.session.rollback()
@@ -1059,7 +770,7 @@ def delete_umv_entry(entry_id):
 @login_required
 @admin_required
 def list_resources():
-    resources = ResourceItem.query.order_by(ResourceItem.created_at.desc()).all()
+    resources = resource_service.list_resource_items()
     return render_template('admin/resources.html', resources=resources)
 
 
@@ -1068,22 +779,20 @@ def list_resources():
 @admin_required
 def create_resource():
     if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        url_val = request.form.get('url')
-        description = request.form.get('description')
-        resource_type = request.form.get('resource_type')
-        tags = request.form.get('tags')
-
-        if not title:
-            flash('Title is required', 'danger')
-            return render_template('admin/resource_form.html')
-
         try:
-            resource = ResourceItem(title=title, url=url_val, description=description, resource_type=resource_type, tags=tags and json.loads(tags) or None, created_by=current_user.user_id)
-            db.session.add(resource)
-            db.session.commit()
+            data = {
+                'title': request.form.get('title', '').strip(),
+                'url': request.form.get('url'),
+                'description': request.form.get('description'),
+                'resource_type': request.form.get('resource_type'),
+                'tags': request.form.get('tags')
+            }
+            resource = resource_service.create_resource_item(data, creator_id=current_user.user_id)
             flash('Resource created', 'success')
             return redirect(url_for('admin.list_resources'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('admin/resource_form.html')
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating resource: {str(e)}', 'danger')
@@ -1096,19 +805,23 @@ def create_resource():
 @login_required
 @admin_required
 def edit_resource(resource_id):
-    resource = ResourceItem.query.get_or_404(resource_id)
+    resource = db.session.get(ResourceItem, resource_id)
+    if not resource:
+        abort(404)
     if request.method == 'POST':
-        resource.title = request.form.get('title', resource.title)
-        resource.url = request.form.get('url', resource.url)
-        resource.description = request.form.get('description', resource.description)
-        resource.resource_type = request.form.get('resource_type', resource.resource_type)
-        tags = request.form.get('tags')
-        if tags:
-            resource.tags = json.loads(tags)
         try:
-            db.session.commit()
+            data = {
+                'title': request.form.get('title', resource.title),
+                'url': request.form.get('url', resource.url),
+                'description': request.form.get('description', resource.description),
+                'resource_type': request.form.get('resource_type', resource.resource_type),
+                'tags': request.form.get('tags')
+            }
+            resource_service.update_resource_item(resource_id, data)
             flash('Resource updated', 'success')
             return redirect(url_for('admin.list_resources'))
+        except ValueError as e:
+            flash(str(e), 'danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating resource: {str(e)}', 'danger')
@@ -1119,10 +832,8 @@ def edit_resource(resource_id):
 @login_required
 @admin_required
 def delete_resource(resource_id):
-    resource = ResourceItem.query.get_or_404(resource_id)
     try:
-        db.session.delete(resource)
-        db.session.commit()
+        resource_service.delete_resource_item(resource_id)
         flash('Resource deleted', 'success')
     except Exception as e:
         db.session.rollback()
@@ -1137,7 +848,7 @@ def delete_resource(resource_id):
 @login_required
 @admin_required
 def list_stories():
-    stories = BlogPost.query.filter_by(category='Success Stories').order_by(BlogPost.created_at.desc()).all()
+    stories = story_service.list_stories()
     return render_template('admin/stories.html', stories=stories)
 
 
@@ -1146,22 +857,19 @@ def list_stories():
 @admin_required
 def create_story():
     if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        content = request.form.get('content')
-        excerpt = request.form.get('excerpt')
-        featured_image = request.form.get('featured_image')
-
-        if not title or not content:
-            flash('Title and content are required', 'danger')
-            return render_template('admin/story_form.html')
-
         try:
-            slug = slugify(title)
-            post = BlogPost(title=title, slug=slug, content=content, excerpt=excerpt, featured_image=featured_image, category='Success Stories', author_id=current_user.user_id, published=True, published_at=datetime.utcnow())
-            db.session.add(post)
-            db.session.commit()
+            data = {
+                'title': request.form.get('title', '').strip(),
+                'content': request.form.get('content'),
+                'excerpt': request.form.get('excerpt'),
+                'featured_image': request.form.get('featured_image')
+            }
+            story = story_service.create_story(data, author_id=current_user.user_id, publish=True)
             flash('Story created', 'success')
             return redirect(url_for('admin.list_stories'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('admin/story_form.html')
         except IntegrityError:
             db.session.rollback()
             flash('A story with this slug already exists. Please modify the title.', 'danger')
@@ -1174,39 +882,41 @@ def create_story():
     return render_template('admin/story_form.html')
 
 
-    @admin_bp.route('/stories/<int:post_id>/edit', methods=['GET', 'POST'])
-    @login_required
-    @admin_required
-    def edit_story(post_id):
-        post = BlogPost.query.get_or_404(post_id)
-        if request.method == 'POST':
-            post.title = request.form.get('title', post.title)
-            post.content = request.form.get('content', post.content)
-            post.excerpt = request.form.get('excerpt', post.excerpt)
-            post.featured_image = request.form.get('featured_image', post.featured_image)
-            try:
-                db.session.commit()
-                flash('Story updated', 'success')
-                return redirect(url_for('admin.list_stories'))
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Error updating story: {str(e)}', 'danger')
-        return render_template('admin/story_form.html', post=post)
-
-
-    @admin_bp.route('/stories/<int:post_id>/delete', methods=['POST'])
-    @login_required
-    @admin_required
-    def delete_story(post_id):
-        post = BlogPost.query.get_or_404(post_id)
+@admin_bp.route('/stories/<int:post_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_story(post_id):
+    post = db.session.get(BlogPost, post_id)
+    if not post:
+        abort(404)
+    if request.method == 'POST':
         try:
-            db.session.delete(post)
-            db.session.commit()
-            flash('Story deleted', 'success')
+            data = {
+                'title': request.form.get('title', post.title),
+                'content': request.form.get('content', post.content),
+                'excerpt': request.form.get('excerpt', post.excerpt),
+                'featured_image': request.form.get('featured_image', post.featured_image)
+            }
+            story_service.update_story(post_id, data)
+            flash('Story updated', 'success')
+            return redirect(url_for('admin.list_stories'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error deleting story: {str(e)}', 'danger')
-        return redirect(url_for('admin.list_stories'))
+            flash(f'Error updating story: {str(e)}', 'danger')
+    return render_template('admin/story_form.html', post=post)
+
+
+@admin_bp.route('/stories/<int:post_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_story(post_id):
+    try:
+        story_service.delete_story(post_id)
+        flash('Story deleted', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting story: {str(e)}', 'danger')
+    return redirect(url_for('admin.list_stories'))
 
 
 @admin_bp.route('/symbolic-items/create', methods=['GET', 'POST'])
@@ -1214,19 +924,19 @@ def create_story():
 @admin_required
 def create_symbolic_item():
     if request.method == 'POST':
-        item_name = request.form.get('item_name', '').strip()
-        item_type = request.form.get('item_type', '').strip()
-        description = request.form.get('description', '').strip()
-        total_quantity = int(request.form.get('total_quantity') or 0)
-        if not item_name:
-            flash('Item name is required', 'danger')
-            return render_template('admin/symbolic_item_form.html')
         try:
-            item = SymbolicItem(item_name=item_name, item_type=item_type, description=description, total_quantity=total_quantity)
-            db.session.add(item)
-            db.session.commit()
+            data = {
+                'item_name': request.form.get('item_name', '').strip(),
+                'item_type': request.form.get('item_type', '').strip(),
+                'description': request.form.get('description', '').strip(),
+                'total_quantity': request.form.get('total_quantity')
+            }
+            symbolic_item_service.create_symbolic_item(data)
             flash('Symbolic item created', 'success')
             return redirect(url_for('admin.list_symbolic_items'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('admin/symbolic_item_form.html')
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating item: {str(e)}', 'danger')
@@ -1237,16 +947,22 @@ def create_symbolic_item():
 @login_required
 @admin_required
 def edit_symbolic_item(item_id):
-    item = SymbolicItem.query.get_or_404(item_id)
+    item = db.session.get(SymbolicItem, item_id)
+    if not item:
+        abort(404)
     if request.method == 'POST':
-        item.item_name = request.form.get('item_name', item.item_name)
-        item.item_type = request.form.get('item_type', item.item_type)
-        item.description = request.form.get('description', item.description)
-        item.total_quantity = int(request.form.get('total_quantity') or item.total_quantity)
         try:
-            db.session.commit()
+            data = {
+                'item_name': request.form.get('item_name', item.item_name),
+                'item_type': request.form.get('item_type', item.item_type),
+                'description': request.form.get('description', item.description),
+                'total_quantity': request.form.get('total_quantity')
+            }
+            symbolic_item_service.update_symbolic_item(item_id, data)
             flash('Symbolic item updated', 'success')
             return redirect(url_for('admin.list_symbolic_items'))
+        except ValueError as e:
+            flash(str(e), 'danger')
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating item: {str(e)}', 'danger')
@@ -1257,10 +973,8 @@ def edit_symbolic_item(item_id):
 @login_required
 @admin_required
 def delete_symbolic_item(item_id):
-    item = SymbolicItem.query.get_or_404(item_id)
     try:
-        db.session.delete(item)
-        db.session.commit()
+        symbolic_item_service.delete_symbolic_item(item_id)
         flash('Symbolic item deleted', 'success')
     except Exception as e:
         db.session.rollback()
@@ -1284,19 +998,19 @@ def list_assessments_admin():
 @admin_required
 def create_assessment():
     if request.method == 'POST':
-        champion_code = request.form.get('champion_code', '').strip()
-        assessment_type = request.form.get('assessment_type', '').strip()
-        risk_category = request.form.get('risk_category', '').strip()
-        notes = request.form.get('notes', '').strip()
-        if not champion_code or not assessment_type or not risk_category:
-            flash('Champion code, type and risk category are required', 'danger')
-            return render_template('admin/assessment_form.html')
         try:
-            assessment = MentalHealthAssessment(champion_code=champion_code, assessment_type=assessment_type, risk_category=risk_category, notes=notes, administered_by=current_user.user_id)
-            db.session.add(assessment)
-            db.session.commit()
+            data = {
+                'champion_code': request.form.get('champion_code', '').strip(),
+                'assessment_type': request.form.get('assessment_type', '').strip(),
+                'risk_category': request.form.get('risk_category', '').strip(),
+                'notes': request.form.get('notes', '').strip()
+            }
+            assessment_service.create_assessment(data, administered_by=current_user.user_id)
             flash('Assessment recorded', 'success')
             return redirect(url_for('admin.list_assessments_admin'))
+        except ValueError as e:
+            flash(str(e), 'danger')
+            return render_template('admin/assessment_form.html')
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating assessment: {str(e)}', 'danger')
@@ -1307,10 +1021,8 @@ def create_assessment():
 @login_required
 @admin_required
 def delete_assessment(assessment_id):
-    assessment = MentalHealthAssessment.query.get_or_404(assessment_id)
     try:
-        db.session.delete(assessment)
-        db.session.commit()
+        assessment_service.delete_assessment(assessment_id)
         flash('Assessment deleted', 'success')
     except Exception as e:
         db.session.rollback()
@@ -1370,33 +1082,15 @@ def registrations():
 def approve_registration_web(registration_id):
     """Approve a registration from the web interface"""
     try:
-        registration = MemberRegistration.query.get_or_404(registration_id)
-        
-        if registration.status != 'Pending':
-            flash('Registration has already been processed.', 'warning')
-            return redirect(url_for('admin.registrations'))
-        
-        # Create user account
-        user = User(username=registration.username)
-        user.set_role(User.ROLE_PREVENTION_ADVOCATE)  # Use constant to prevent typos
-        user.password_hash = registration.password_hash
-        
-        db.session.add(user)
-        db.session.flush()
-        
-        # Update registration
-        registration.status = 'Approved'
-        registration.reviewed_at = datetime.utcnow()
-        registration.reviewed_by = current_user.user_id
-        registration.created_user_id = user.user_id
-        
-        db.session.commit()
-        
+        result = registration_service.approve_registration(registration_id, current_user.user_id)
+        registration = result.get('registration')
         flash(f'Registration for {registration.full_name} ({registration.username}) has been approved!', 'success')
         return redirect(url_for('admin.registrations'))
-        
+    except ValueError as e:
+        flash(str(e), 'warning')
+        return redirect(url_for('admin.registrations'))
     except Exception as e:
-        db.session.rollback()
+        current_app.logger.exception('Error approving registration')
         flash(f'Error approving registration: {str(e)}', 'danger')
         return redirect(url_for('admin.registrations'))
 
@@ -1407,26 +1101,17 @@ def approve_registration_web(registration_id):
 def reject_registration_web(registration_id):
     """Reject a registration from the web interface"""
     try:
-        registration = MemberRegistration.query.get_or_404(registration_id)
-        
-        if registration.status != 'Pending':
-            flash('Registration has already been processed.', 'warning')
-            return redirect(url_for('admin.registrations'))
-        
         reason = request.form.get('reason', 'No reason provided')
-        
-        registration.status = 'Rejected'
-        registration.reviewed_at = datetime.utcnow()
-        registration.reviewed_by = current_user.user_id
-        registration.rejection_reason = reason
-        
-        db.session.commit()
-        
-        flash(f'Registration for {registration.full_name} has been rejected.', 'info')
+        registration_service.reject_registration(registration_id, current_user.user_id, reason)
+        flash('Registration has been rejected.', 'info')
         return redirect(url_for('admin.registrations'))
-        
+    except ValueError as e:
+        flash(str(e), 'warning')
+        return redirect(url_for('admin.registrations'))
     except Exception as e:
-        db.session.rollback()
+        current_app.logger.exception('Error rejecting registration')
+        flash(f'Error rejecting registration: {str(e)}', 'danger')
+        return redirect(url_for('admin.registrations'))
         flash(f'Error rejecting registration: {str(e)}', 'danger')
         return redirect(url_for('admin.registrations'))
 
@@ -1455,73 +1140,20 @@ def champion_applications():
 @login_required
 @admin_required
 def approve_application_web(application_id):
-    """Approve a champion application from the web interface"""
-    try:
-        application = ChampionApplication.query.get_or_404(application_id)
-        
-        if application.status != 'Pending':
-            flash('Application has already been processed.', 'warning')
+        """Approve a champion application from the web interface"""
+        try:
+            result = champion_application_service.approve_application(application_id, current_user.user_id)
+            app = result.get('application')
+            flash(f'Application for {app.full_name} has been approved.', 'success')
             return redirect(url_for('admin.champion_applications'))
-        
-        assigned_champion_code = request.form.get('champion_code')
-        
-        if not assigned_champion_code:
-            flash('Champion code is required.', 'danger')
+        except ValueError as e:
+            flash(str(e), 'warning')
             return redirect(url_for('admin.champion_applications'))
-        
-        # Check if champion code already exists
-        if Champion.query.filter_by(assigned_champion_code=assigned_champion_code).first():
-            flash('Champion code already exists. Please use a unique code.', 'danger')
+        except Exception as e:
+            current_app.logger.exception('Error approving application')
+            flash(f'Error approving application: {str(e)}', 'danger')
             return redirect(url_for('admin.champion_applications'))
-        
-        # Create champion profile
-        champion = Champion(
-            user_id=application.user_id,
-            full_name=application.full_name,
-            email=application.email,
-            phone_number=application.phone_number,
-            alternative_phone_number=application.alternative_phone_number,
-            gender=application.gender,
-            date_of_birth=application.date_of_birth,
-            county_sub_county=application.county_sub_county,
-            assigned_champion_code=assigned_champion_code,
-            emergency_contact_name=application.emergency_contact_name,
-            emergency_contact_relationship=application.emergency_contact_relationship,
-            emergency_contact_phone=application.emergency_contact_phone,
-            current_education_level=application.current_education_level,
-            education_institution_name=application.education_institution_name,
-            course_field_of_study=application.course_field_of_study,
-            year_of_study=application.year_of_study,
-            workplace_organization=application.workplace_organization,
-            date_of_application=datetime.utcnow().date(),
-            application_status='Recruited',
-            champion_status='Active'
-        )
-        
-        db.session.add(champion)
-        db.session.flush()
-        
-        # Update user to link champion profile (with safe lookup)
-        user = User.query.get(application.user_id)
-        if not user:
-            raise ValueError(f"User with ID {application.user_id} not found")
-        user.champion_id = champion.champion_id
-        
-        # Update application
-        application.status = 'Approved'
-        application.reviewed_at = datetime.utcnow()
-        application.reviewed_by = current_user.user_id
-        application.created_champion_id = champion.champion_id
-        
-        db.session.commit()
-        
-        flash(f'Champion application for {application.full_name} has been approved! Champion code: {assigned_champion_code}', 'success')
-        return redirect(url_for('admin.champion_applications'))
-        
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error approving application: {str(e)}', 'danger')
-        return redirect(url_for('admin.champion_applications'))
+    
 
 
 @admin_bp.route('/champion-applications/<int:application_id>/reject', methods=['POST'])
@@ -1530,8 +1162,22 @@ def approve_application_web(application_id):
 def reject_application_web(application_id):
     """Reject a champion application from the web interface"""
     try:
-        application = ChampionApplication.query.get_or_404(application_id)
-        
+        application = db.session.get(ChampionApplication, application_id)
+        if not application:
+            flash('Application not found', 'warning')
+            return redirect(url_for('admin.champion_applications'))
+        try:
+            reason = request.form.get('reason', 'No reason provided')
+            champion_application_service.reject_application(application_id, current_user.user_id, reason)
+            flash('Application has been rejected.', 'info')
+            return redirect(url_for('admin.champion_applications'))
+        except ValueError as e:
+            flash(str(e), 'warning')
+            return redirect(url_for('admin.champion_applications'))
+        except Exception as e:
+            current_app.logger.exception('Error rejecting application')
+            flash(f'Error rejecting application: {str(e)}', 'danger')
+            return redirect(url_for('admin.champion_applications'))
         if application.status != 'Pending':
             flash('Application has already been processed.', 'warning')
             return redirect(url_for('admin.champion_applications'))
@@ -1539,7 +1185,7 @@ def reject_application_web(application_id):
         reason = request.form.get('reason', 'No reason provided')
         
         application.status = 'Rejected'
-        application.reviewed_at = datetime.utcnow()
+        application.reviewed_at = datetime.now(timezone.utc)
         application.reviewed_by = current_user.user_id
         application.rejection_reason = reason
         
@@ -1596,7 +1242,7 @@ def debates():
         events=events,
         status_filter=status_filter,
         stats={'total': total, 'upcoming': upcoming, 'completed': completed},
-        now=datetime.utcnow()
+        now=datetime.now(timezone.utc)
     )
 
 
@@ -1606,54 +1252,19 @@ def debates():
 def create_debate_event():
     """Create a new Debaters Circle event"""
     if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        motion = request.form.get('motion', '').strip()
-        event_date_raw = request.form.get('event_date', '').strip()
-        if not title or not motion or not event_date_raw:
-            flash('Title, motion, and event date are required.', 'danger')
-            return render_template('admin/debate_event_form.html', action='Create', event=None)
-
+        data = {k: request.form.get(k) for k in ['title', 'motion', 'event_date', 'registration_deadline', 'max_participants', 'description', 'location', 'organizer', 'status', 'image_url']}
+        data['event_type'] = 'debate'
         try:
-            event_date = datetime.strptime(event_date_raw, '%Y-%m-%dT%H:%M')
-        except ValueError:
-            flash('Invalid date format. Please use the provided date picker.', 'danger')
+            event_service.create_event(data, current_user.user_id)
+            flash('Debaters Circle event created.', 'success')
+            return redirect(url_for('admin.debates'))
+        except ValueError as e:
+            flash(str(e), 'danger')
             return render_template('admin/debate_event_form.html', action='Create', event=None)
-
-        registration_deadline = None
-        registration_deadline_raw = request.form.get('registration_deadline', '').strip()
-        if registration_deadline_raw:
-            try:
-                registration_deadline = datetime.strptime(registration_deadline_raw, '%Y-%m-%dT%H:%M')
-            except ValueError:
-                registration_deadline = None
-
-        try:
-            max_participants_raw = request.form.get('max_participants')
-            max_participants = int(max_participants_raw) if max_participants_raw else None
-        except ValueError:
-            flash('Max participants must be a number.', 'danger')
+        except Exception as e:
+            current_app.logger.exception('Error creating event')
+            flash(f'Error creating event: {str(e)}', 'danger')
             return render_template('admin/debate_event_form.html', action='Create', event=None)
-
-        event = Event(
-            title=title,
-            description=request.form.get('description'),
-            event_date=event_date,
-            location=request.form.get('location'),
-            event_type='debate',
-            organizer=request.form.get('organizer'),
-            max_participants=max_participants,
-            registration_deadline=registration_deadline,
-            status=request.form.get('status', 'Upcoming'),
-            image_url=request.form.get('image_url'),
-            motion=motion,
-            created_by=current_user.user_id
-        )
-
-        db.session.add(event)
-        db.session.commit()
-
-        flash('Debaters Circle event created.', 'success')
-        return redirect(url_for('admin.debates'))
 
     return render_template('admin/debate_event_form.html', action='Create', event=None)
 
@@ -1663,56 +1274,27 @@ def create_debate_event():
 @admin_required
 def edit_debate_event(event_id):
     """Edit an existing Debaters Circle event"""
-    event = Event.query.get_or_404(event_id)
+    event = db.session.get(Event, event_id)
+    if not event:
+        flash('Event not found', 'warning')
+        return redirect(url_for('admin.debates'))
     if event.event_type not in ['debate', 'Debaters Circle']:
         flash('This event is not part of Debaters Circle.', 'warning')
         return redirect(url_for('admin.debates'))
 
     if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        motion = request.form.get('motion', '').strip()
-        event_date_raw = request.form.get('event_date', '').strip()
-        if not title or not motion or not event_date_raw:
-            flash('Title, motion, and event date are required.', 'danger')
-            return render_template('admin/debate_event_form.html', action='Edit', event=event)
-
+        data = {k: request.form.get(k) for k in ['title', 'motion', 'event_date', 'registration_deadline', 'max_participants', 'description', 'location', 'organizer', 'status', 'image_url']}
         try:
-            event_date = datetime.strptime(event_date_raw, '%Y-%m-%dT%H:%M')
-        except ValueError:
-            flash('Invalid date format. Please use the provided date picker.', 'danger')
+            event_service.update_event(event_id, data)
+            flash('Debaters Circle event updated.', 'success')
+            return redirect(url_for('admin.debates'))
+        except ValueError as e:
+            flash(str(e), 'danger')
             return render_template('admin/debate_event_form.html', action='Edit', event=event)
-
-        registration_deadline = None
-        registration_deadline_raw = request.form.get('registration_deadline', '').strip()
-        if registration_deadline_raw:
-            try:
-                registration_deadline = datetime.strptime(registration_deadline_raw, '%Y-%m-%dT%H:%M')
-            except ValueError:
-                registration_deadline = None
-
-        try:
-            max_participants_raw = request.form.get('max_participants')
-            max_participants = int(max_participants_raw) if max_participants_raw else None
-        except ValueError:
-            flash('Max participants must be a number.', 'danger')
+        except Exception as e:
+            current_app.logger.exception('Error updating event')
+            flash(f'Error updating event: {str(e)}', 'danger')
             return render_template('admin/debate_event_form.html', action='Edit', event=event)
-
-        event.title = title
-        event.description = request.form.get('description')
-        event.event_date = event_date
-        event.location = request.form.get('location')
-        event.organizer = request.form.get('organizer')
-        event.max_participants = max_participants
-        event.registration_deadline = registration_deadline
-        event.status = request.form.get('status', 'Upcoming')
-        event.image_url = request.form.get('image_url')
-        event.motion = motion
-        event.updated_at = datetime.utcnow()
-
-        db.session.commit()
-
-        flash('Debaters Circle event updated.', 'success')
-        return redirect(url_for('admin.debates'))
 
     return render_template('admin/debate_event_form.html', action='Edit', event=event)
 
@@ -1722,7 +1304,10 @@ def edit_debate_event(event_id):
 @admin_required
 def delete_debate_event(event_id):
     """Delete a Debaters Circle event"""
-    event = Event.query.get_or_404(event_id)
+    event = db.session.get(Event, event_id)
+    if not event:
+        flash('Event not found', 'warning')
+        return redirect(url_for('admin.debates'))
     if event.event_type != 'Debaters Circle':
         flash('This event is not part of Debaters Circle.', 'warning')
         return redirect(url_for('admin.debates'))
@@ -1760,7 +1345,7 @@ def campus_edition():
         events=events,
         status_filter=status_filter,
         stats={'total': total, 'upcoming': upcoming, 'completed': completed},
-        now=datetime.utcnow()
+        now=datetime.now(timezone.utc)
     )
 
 
@@ -1825,7 +1410,10 @@ def create_campus_event():
 @admin_required
 def edit_campus_event(event_id):
     """Edit an existing Campus Edition event"""
-    event = Event.query.get_or_404(event_id)
+    event = db.session.get(Event, event_id)
+    if not event:
+        flash('Event not found', 'warning')
+        return redirect(url_for('admin.campus_edition'))
     if event.event_type != 'campus':
         flash('This event is not part of Campus Edition.', 'warning')
         return redirect(url_for('admin.campus_edition'))
@@ -1867,7 +1455,7 @@ def edit_campus_event(event_id):
         event.registration_deadline = registration_deadline
         event.status = request.form.get('status', 'Upcoming')
         event.image_url = request.form.get('image_url')
-        event.updated_at = datetime.utcnow()
+        event.updated_at = datetime.now(timezone.utc)
 
         db.session.commit()
 
@@ -1882,7 +1470,10 @@ def edit_campus_event(event_id):
 @admin_required
 def delete_campus_event(event_id):
     """Delete a Campus Edition event"""
-    event = Event.query.get_or_404(event_id)
+    event = db.session.get(Event, event_id)
+    if not event:
+        flash('Event not found', 'warning')
+        return redirect(url_for('admin.campus_edition'))
     if event.event_type != 'campus':
         flash('This event is not part of Campus Edition.', 'warning')
         return redirect(url_for('admin.campus_edition'))
@@ -1903,53 +1494,17 @@ def delete_campus_event(event_id):
 @admin_required
 def seed_funding_applications():
     """View and manage seed funding applications"""
-    from models import SeedFundingApplication
-    
+    from services.seed_funding_service import list_applications
+
     status_filter = request.args.get('status', 'all')
-    
-    query = SeedFundingApplication.query
-    if status_filter != 'all' and status_filter:
-        query = query.filter_by(status=status_filter)
-    
-    applications = query.order_by(SeedFundingApplication.submitted_at.desc()).all()
-    
-    # Get statistics
-    total = SeedFundingApplication.query.count()
-    pending = SeedFundingApplication.query.filter_by(status='Pending').count()
-    under_review = SeedFundingApplication.query.filter_by(status='Under Review').count()
-    approved = SeedFundingApplication.query.filter_by(status='Approved').count()
-    rejected = SeedFundingApplication.query.filter_by(status='Rejected').count()
-    funded = SeedFundingApplication.query.filter_by(status='Funded').count()
-    
-    # Calculate total amounts
-    from sqlalchemy import func
-    total_requested = db.session.query(
-        func.sum(SeedFundingApplication.total_budget_requested)
-    ).scalar() or 0
-    
-    total_approved = db.session.query(
-        func.sum(SeedFundingApplication.approved_amount)
-    ).filter(
-        SeedFundingApplication.status.in_(['Approved', 'Funded'])
-    ).scalar() or 0
-    
-    stats = {
-        'total': total,
-        'pending': pending,
-        'under_review': under_review,
-        'approved': approved,
-        'rejected': rejected,
-        'funded': funded,
-        'total_requested': float(total_requested) if total_requested else 0,
-        'total_approved': float(total_approved) if total_approved else 0
-    }
-    
+    applications, stats = list_applications(status_filter=status_filter)
+
     return render_template(
         'admin/seed_funding_list.html',
         applications=applications,
         status_filter=status_filter,
         stats=stats,
-        now=datetime.utcnow()
+        now=datetime.now(timezone.utc)
     )
 
 
@@ -1958,14 +1513,15 @@ def seed_funding_applications():
 @admin_required
 def seed_funding_detail(application_id):
     """View detailed seed funding application"""
-    from models import SeedFundingApplication
-    
-    application = SeedFundingApplication.query.get_or_404(application_id)
-    
-    return render_template(
-        'admin/seed_funding_detail.html',
-        application=application
-    )
+    from services.seed_funding_service import get_application
+
+    try:
+        application = get_application(application_id)
+    except ValueError:
+        flash('Application not found', 'warning')
+        return redirect(url_for('admin.list_seed_funding'))
+
+    return render_template('admin/seed_funding_detail.html', application=application)
 
 
 @admin_bp.route('/seed-funding/<int:application_id>/approve', methods=['POST'])
@@ -1973,33 +1529,24 @@ def seed_funding_detail(application_id):
 @admin_required
 def approve_seed_funding(application_id):
     """Approve a seed funding application"""
-    from models import SeedFundingApplication
-    
-    application = SeedFundingApplication.query.get_or_404(application_id)
-    
+    from services.seed_funding_service import approve_application
+
     approved_amount = request.form.get('approved_amount')
     approval_conditions = request.form.get('approval_conditions', '').strip()
     admin_notes = request.form.get('admin_notes', '').strip()
-    
+
     if not approved_amount:
         flash('Approved amount is required.', 'danger')
         return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
-    
+
     try:
-        application.status = 'Approved'
-        application.approved_amount = float(approved_amount)
-        application.approval_conditions = approval_conditions if approval_conditions else None
-        application.admin_notes = admin_notes if admin_notes else None
-        application.reviewed_at = datetime.utcnow()
-        application.reviewed_by = current_user.user_id
-        
-        db.session.commit()
-        flash(f'Seed funding application approved with KES {approved_amount:,.2f}', 'success')
-        
+        approve_application(application_id, approved_amount, approval_conditions, admin_notes, current_user.user_id)
+        flash(f'Seed funding application approved with KES {float(approved_amount):,.2f}', 'success')
+    except ValueError as e:
+        flash(str(e), 'warning')
     except Exception as e:
-        db.session.rollback()
         flash(f'Error approving application: {str(e)}', 'danger')
-    
+
     return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
 
 
@@ -2008,26 +1555,19 @@ def approve_seed_funding(application_id):
 @admin_required
 def reject_seed_funding(application_id):
     """Reject a seed funding application"""
-    from models import SeedFundingApplication
-    
-    application = SeedFundingApplication.query.get_or_404(application_id)
-    
+    from services.seed_funding_service import reject_application
+
     rejection_reason = request.form.get('rejection_reason', '').strip()
     admin_notes = request.form.get('admin_notes', '').strip()
-    
-    if not rejection_reason:
-        flash('Rejection reason is required.', 'danger')
-        return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
-    
-    application.status = 'Rejected'
-    application.rejection_reason = rejection_reason
-    application.admin_notes = admin_notes if admin_notes else None
-    application.reviewed_at = datetime.utcnow()
-    application.reviewed_by = current_user.user_id
-    
-    db.session.commit()
-    flash('Seed funding application rejected.', 'success')
-    
+
+    try:
+        reject_application(application_id, rejection_reason, admin_notes, current_user.user_id)
+        flash('Seed funding application rejected.', 'success')
+    except ValueError as e:
+        flash(str(e), 'danger')
+    except Exception as e:
+        flash(f'Error rejecting application: {str(e)}', 'danger')
+
     return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
 
 
@@ -2036,39 +1576,28 @@ def reject_seed_funding(application_id):
 @admin_required
 def mark_seed_funding_funded(application_id):
     """Mark a seed funding application as funded (disbursed)"""
-    from models import SeedFundingApplication
-    
-    application = SeedFundingApplication.query.get_or_404(application_id)
-    
-    if application.status != 'Approved':
-        flash('Only approved applications can be marked as funded.', 'warning')
-        return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
-    
+    from services.seed_funding_service import mark_as_funded
+
     disbursement_date_raw = request.form.get('disbursement_date', '').strip()
     disbursement_method = request.form.get('disbursement_method', '').strip()
     disbursement_reference = request.form.get('disbursement_reference', '').strip()
-    
+
     if not disbursement_date_raw or not disbursement_method:
         flash('Disbursement date and method are required.', 'danger')
         return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
-    
+
     try:
-        disbursement_date = datetime.strptime(disbursement_date_raw, '%Y-%m-%d').date()
-        
-        application.status = 'Funded'
-        application.disbursement_date = disbursement_date
-        application.disbursement_method = disbursement_method
-        application.disbursement_reference = disbursement_reference if disbursement_reference else None
-        
-        db.session.commit()
+        mark_as_funded(application_id, disbursement_date_raw, disbursement_method, disbursement_reference)
         flash('Application marked as funded.', 'success')
-        
-    except ValueError:
-        flash('Invalid date format. Please use YYYY-MM-DD.', 'danger')
+    except ValueError as e:
+        msg = str(e)
+        if 'date' in msg.lower():
+            flash('Invalid date format. Please use YYYY-MM-DD.', 'danger')
+        else:
+            flash(msg, 'danger')
     except Exception as e:
-        db.session.rollback()
         flash(f'Error marking as funded: {str(e)}', 'danger')
-    
+
     return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
 
 
@@ -2077,21 +1606,17 @@ def mark_seed_funding_funded(application_id):
 @admin_required
 def update_seed_funding_review_status(application_id):
     """Update seed funding application to Under Review"""
-    from models import SeedFundingApplication
-    
-    application = SeedFundingApplication.query.get_or_404(application_id)
-    
-    application.status = 'Under Review'
-    application.reviewed_at = datetime.utcnow()
-    application.reviewed_by = current_user.user_id
-    
+    from services.seed_funding_service import update_review_status
+
     admin_notes = request.form.get('admin_notes', '').strip()
-    if admin_notes:
-        application.admin_notes = admin_notes
-    
-    db.session.commit()
-    flash('Application moved to Under Review.', 'success')
-    
+    try:
+        update_review_status(application_id, current_user.user_id, admin_notes or None)
+        flash('Application moved to Under Review.', 'success')
+    except ValueError:
+        flash('Application not found', 'warning')
+    except Exception as e:
+        flash(f'Error updating review status: {str(e)}', 'danger')
+
     return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
 
 
@@ -2121,7 +1646,7 @@ def umv_mtaani():
         events=events,
         status_filter=status_filter,
         stats={'total': total, 'upcoming': upcoming, 'completed': completed},
-        now=datetime.utcnow()
+        now=datetime.now(timezone.utc)
     )
 
 
@@ -2186,7 +1711,10 @@ def create_mtaani_event():
 @admin_required
 def edit_mtaani_event(event_id):
     """Edit an existing UMV Mtaani event"""
-    event = Event.query.get_or_404(event_id)
+    event = db.session.get(Event, event_id)
+    if not event:
+        flash('Event not found', 'warning')
+        return redirect(url_for('admin.umv_mtaani'))
     if event.event_type != 'mtaani':
         flash('This event is not part of UMV Mtaani.', 'warning')
         return redirect(url_for('admin.umv_mtaani'))
@@ -2228,7 +1756,7 @@ def edit_mtaani_event(event_id):
         event.registration_deadline = registration_deadline
         event.status = request.form.get('status', 'Upcoming')
         event.image_url = request.form.get('image_url')
-        event.updated_at = datetime.utcnow()
+        event.updated_at = datetime.now(timezone.utc)
 
         db.session.commit()
 
@@ -2243,7 +1771,10 @@ def edit_mtaani_event(event_id):
 @admin_required
 def delete_mtaani_event(event_id):
     """Delete a UMV Mtaani event"""
-    event = Event.query.get_or_404(event_id)
+    event = db.session.get(Event, event_id)
+    if not event:
+        flash('Event not found', 'warning')
+        return redirect(url_for('admin.umv_mtaani'))
     if event.event_type != 'mtaani':
         flash('This event is not part of UMV Mtaani.', 'warning')
         return redirect(url_for('admin.umv_mtaani'))
@@ -2311,47 +1842,22 @@ def create_podcast():
     """Create a new podcast"""
     if request.method == 'POST':
         try:
-            # Get form data
-            title = request.form.get('title')
-            description = request.form.get('description')
-            guest = request.form.get('guest')
-            audio_url = request.form.get('audio_url')
-            thumbnail_url = request.form.get('thumbnail_url')
-            duration = request.form.get('duration')
-            episode_number = request.form.get('episode_number')
-            season_number = request.form.get('season_number')
-            category = request.form.get('category')
-            tags_str = request.form.get('tags', '')
-            published = request.form.get('published') == 'on'
-            
-            # Parse tags
-            tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
-            
-            # Create podcast
-            podcast = Podcast(
-                title=title,
-                description=description,
-                guest=guest,
-                audio_url=audio_url,
-                thumbnail_url=thumbnail_url,
-                duration=int(duration) if duration else None,
-                episode_number=int(episode_number) if episode_number else None,
-                season_number=int(season_number) if season_number else None,
-                category=category if category else None,
-                tags=tags,
-                published=published,
-                created_by=current_user.user_id
-            )
-            
-            if published:
-                podcast.published_at = datetime.utcnow()
-            
-            db.session.add(podcast)
-            db.session.commit()
-            
+            data = {
+                'title': request.form.get('title'),
+                'description': request.form.get('description'),
+                'guest': request.form.get('guest'),
+                'audio_url': request.form.get('audio_url'),
+                'thumbnail_url': request.form.get('thumbnail_url'),
+                'duration': request.form.get('duration'),
+                'episode_number': request.form.get('episode_number'),
+                'season_number': request.form.get('season_number'),
+                'category': request.form.get('category'),
+                'tags': request.form.get('tags', ''),
+                'published': request.form.get('published') == 'on'
+            }
+            podcast_service.create_podcast(data, creator_id=current_user.user_id)
             flash('Podcast created successfully!', 'success')
             return redirect(url_for('admin.podcasts'))
-            
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating podcast: {str(e)}', 'error')
@@ -2364,50 +1870,33 @@ def create_podcast():
 @admin_required
 def edit_podcast(podcast_id):
     """Edit an existing podcast"""
-    podcast = Podcast.query.get_or_404(podcast_id)
-    
+    podcast = db.session.get(Podcast, podcast_id)
+    if not podcast:
+        flash('Podcast not found', 'warning')
+        return redirect(url_for('admin.podcasts'))
+
     if request.method == 'POST':
         try:
-            # Update fields
-            podcast.title = request.form.get('title')
-            podcast.description = request.form.get('description')
-            podcast.guest = request.form.get('guest')
-            podcast.audio_url = request.form.get('audio_url')
-            podcast.thumbnail_url = request.form.get('thumbnail_url')
-            
-            duration = request.form.get('duration')
-            podcast.duration = int(duration) if duration else None
-            
-            episode_number = request.form.get('episode_number')
-            podcast.episode_number = int(episode_number) if episode_number else None
-            
-            season_number = request.form.get('season_number')
-            podcast.season_number = int(season_number) if season_number else None
-            
-            category = request.form.get('category')
-            podcast.category = category if category else None
-            
-            tags_str = request.form.get('tags', '')
-            podcast.tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
-            
-            was_published = podcast.published
-            podcast.published = request.form.get('published') == 'on'
-            
-            # Set published_at when first publishing
-            if not was_published and podcast.published:
-                podcast.published_at = datetime.utcnow()
-            
-            podcast.updated_at = datetime.utcnow()
-            
-            db.session.commit()
-            
+            data = {
+                'title': request.form.get('title'),
+                'description': request.form.get('description'),
+                'guest': request.form.get('guest'),
+                'audio_url': request.form.get('audio_url'),
+                'thumbnail_url': request.form.get('thumbnail_url'),
+                'duration': request.form.get('duration'),
+                'episode_number': request.form.get('episode_number'),
+                'season_number': request.form.get('season_number'),
+                'category': request.form.get('category'),
+                'tags': request.form.get('tags', ''),
+                'published': request.form.get('published') == 'on'
+            }
+            podcast_service.update_podcast(podcast_id, data)
             flash('Podcast updated successfully!', 'success')
             return redirect(url_for('admin.podcasts'))
-            
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating podcast: {str(e)}', 'error')
-    
+
     return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
 
 
@@ -2417,12 +1906,8 @@ def edit_podcast(podcast_id):
 def delete_podcast(podcast_id):
     """Delete a podcast"""
     try:
-        podcast = Podcast.query.get_or_404(podcast_id)
-        db.session.delete(podcast)
-        db.session.commit()
-        
+        podcast_service.delete_podcast(podcast_id)
         flash('Podcast deleted successfully!', 'success')
-        
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting podcast: {str(e)}', 'error')
@@ -2436,20 +1921,12 @@ def delete_podcast(podcast_id):
 def toggle_publish_podcast(podcast_id):
     """Toggle podcast published status"""
     try:
-        podcast = Podcast.query.get_or_404(podcast_id)
-        
-        was_published = podcast.published
-        podcast.published = not podcast.published
-        
-        # Set published_at when first publishing
-        if not was_published and podcast.published:
-            podcast.published_at = datetime.utcnow()
-        
-        podcast.updated_at = datetime.utcnow()
-        
-        db.session.commit()
-        
-        status = 'published' if podcast.published else 'unpublished'
+        podcast_service.toggle_publish_podcast(podcast_id)
+        refreshed = db.session.get(Podcast, podcast_id)
+        if not refreshed:
+            flash('Podcast not found', 'warning')
+            return redirect(url_for('admin.podcasts'))
+        status = 'published' if refreshed.published else 'unpublished'
         flash(f'Podcast {status} successfully!', 'success')
         
     except Exception as e:
@@ -2477,7 +1954,7 @@ def workstreams():
             'id': 'podcasts',
             'name': 'Podcasts',
             'description': 'Manage podcast episodes and guests',
-            'icon': '🎙️',
+            'icon': 'podcast',
             'route': 'admin.podcasts',
             'create_route': 'admin.create_podcast',
             'count': Podcast.query.count()
@@ -2486,7 +1963,7 @@ def workstreams():
             'id': 'debators_circle',
             'name': 'Debators Circle',
             'description': 'Manage debate events and champion participation',
-            'icon': '🎤',
+            'icon': 'mic',
             'route': 'admin.debates',
             'create_route': 'admin.create_debate_event',
             'count': Event.query.filter(Event.event_type.in_(['debate', 'Debaters Circle'])).count()
@@ -2495,7 +1972,7 @@ def workstreams():
             'id': 'campus_edition',
             'name': 'Campus Edition',
             'description': 'Manage campus-based events and activities',
-            'icon': '🎓',
+            'icon': 'training',
             'route': 'admin.campus_edition',
             'create_route': 'admin.create_campus_event',
             'count': Event.query.filter(Event.event_type == 'campus').count()
@@ -2504,7 +1981,7 @@ def workstreams():
             'id': 'seed_funding',
             'name': 'Seed Funding',
             'description': 'Review and approve seed funding applications',
-            'icon': '💰',
+            'icon': 'funding',
             'route': 'admin.seed_funding_applications',
             'create_route': None,  # Applications come from frontend
             'count': SeedFundingApplication.query.count()
@@ -2513,7 +1990,7 @@ def workstreams():
             'id': 'umv_mtaani',
             'name': 'UMV Mtaani',
             'description': 'Manage community barazas and mtaani events',
-            'icon': '🏘️',
+            'icon': 'community',
             'route': 'admin.umv_mtaani',
             'create_route': 'admin.create_mtaani_event',
             'count': Event.query.filter(Event.event_type == 'mtaani').count()
@@ -2527,7 +2004,7 @@ def workstreams():
                 'id': 'media_galleries',
                 'name': 'Media Galleries',
                 'description': 'Manage image and video galleries used across the site',
-                'icon': '🖼️',
+                'icon': 'gallery',
                 'route': 'admin.list_media_galleries',
                 'create_route': 'admin.create_media_gallery',
                 'count': MediaGallery.query.count()
@@ -2536,7 +2013,7 @@ def workstreams():
                 'id': 'institutional_toolkit',
                 'name': 'Institutional Toolkit',
                 'description': 'Guides, templates and checklists for institutions',
-                'icon': '📚',
+                'icon': 'toolkit',
                 'route': 'admin.list_toolkit_items',
                 'create_route': 'admin.create_toolkit_item',
                 'count': InstitutionalToolkitItem.query.count()
@@ -2545,7 +2022,7 @@ def workstreams():
                 'id': 'resources',
                 'name': 'Resources',
                 'description': 'External/internal resource links and documents',
-                'icon': '🔗',
+                'icon': 'link',
                 'route': 'admin.list_resources',
                 'create_route': 'admin.create_resource',
                 'count': ResourceItem.query.count()
@@ -2554,7 +2031,7 @@ def workstreams():
                 'id': 'stories',
                 'name': 'Success Stories',
                 'description': 'Manage success stories / case studies',
-                'icon': '🌟',
+                'icon': 'star',
                 'route': 'admin.list_stories',
                 'create_route': 'admin.create_story',
                 'count': BlogPost.query.filter_by(category='Success Stories').count()
@@ -2563,10 +2040,10 @@ def workstreams():
     except Exception:
         # If models/tables not present yet (migration state), fallback to zero counts
         workstreams_data.extend([
-            {'id': 'media_galleries','name':'Media Galleries','description':'Manage image and video galleries used across the site','icon':'🖼️','route':'admin.list_media_galleries','create_route':'admin.create_media_gallery','count':0},
-            {'id': 'institutional_toolkit','name':'Institutional Toolkit','description':'Guides, templates and checklists for institutions','icon':'📚','route':'admin.list_toolkit_items','create_route':'admin.create_toolkit_item','count':0},
-            {'id': 'resources','name':'Resources','description':'External/internal resource links and documents','icon':'🔗','route':'admin.list_resources','create_route':'admin.create_resource','count':0},
-            {'id': 'stories','name':'Success Stories','description':'Manage success stories / case studies','icon':'🌟','route':'admin.list_stories','create_route':'admin.create_story','count':0}
+            {'id': 'media_galleries','name':'Media Galleries','description':'Manage image and video galleries used across the site','icon':'gallery','route':'admin.list_media_galleries','create_route':'admin.create_media_gallery','count':0},
+            {'id': 'institutional_toolkit','name':'Institutional Toolkit','description':'Guides, templates and checklists for institutions','icon':'toolkit','route':'admin.list_toolkit_items','create_route':'admin.create_toolkit_item','count':0},
+            {'id': 'resources','name':'Resources','description':'External/internal resource links and documents','icon':'link','route':'admin.list_resources','create_route':'admin.create_resource','count':0},
+            {'id': 'stories','name':'Success Stories','description':'Manage success stories / case studies','icon':'star','route':'admin.list_stories','create_route':'admin.create_story','count':0}
         ])
     # Additional workstreams: affirmations, symbolic items, assessments
     try:
@@ -2575,7 +2052,7 @@ def workstreams():
                 'id': 'affirmations',
                 'name': 'Affirmations',
                 'description': 'Manage daily affirmations and schedules',
-                'icon': '💬',
+                'icon': 'chat',
                 'route': 'admin.affirmations',
                 'create_route': 'admin.affirmation_form',
                 'count': DailyAffirmation.query.count()
@@ -2584,7 +2061,7 @@ def workstreams():
                 'id': 'symbolic_items',
                 'name': 'Symbolic Items',
                 'description': 'Items and symbolic resources used in sessions',
-                'icon': '🎗️',
+                'icon': 'item',
                 'route': 'admin.list_symbolic_items',
                 'create_route': 'admin.symbolic_item_form',
                 'count': SymbolicItem.query.count()
@@ -2592,8 +2069,8 @@ def workstreams():
         ])
     except Exception:
         workstreams_data.extend([
-            {'id': 'affirmations','name':'Affirmations','description':'Manage daily affirmations and schedules','icon':'💬','route':'admin.affirmations','create_route':'admin.affirmation_form','count':0},
-            {'id': 'symbolic_items','name':'Symbolic Items','description':'Items and symbolic resources used in sessions','icon':'🎗️','route':'admin.list_symbolic_items','create_route':'admin.symbolic_item_form','count':0}
+            {'id': 'affirmations','name':'Affirmations','description':'Manage daily affirmations and schedules','icon':'chat','route':'admin.affirmations','create_route':'admin.affirmation_form','count':0},
+            {'id': 'symbolic_items','name':'Symbolic Items','description':'Items and symbolic resources used in sessions','icon':'item','route':'admin.list_symbolic_items','create_route':'admin.symbolic_item_form','count':0}
         ])
     
     return render_template('admin/workstreams.html', workstreams=workstreams_data)
@@ -2670,14 +2147,17 @@ def affirmation_form():
 @admin_required
 def affirmation_edit(affirmation_id):
     """Edit an affirmation"""
-    affirmation = DailyAffirmation.query.get_or_404(affirmation_id)
+    affirmation = db.session.get(DailyAffirmation, affirmation_id)
+    if not affirmation:
+        flash('Affirmation not found', 'warning')
+        return redirect(url_for('admin.affirmations'))
     
     if request.method == 'POST':
         affirmation.content = request.form.get('content', '').strip()
         affirmation.theme = request.form.get('theme', 'General').strip()
         scheduled_date = request.form.get('scheduled_date', '').strip()
         affirmation.active = request.form.get('active') == 'on'
-        affirmation.updated_at = datetime.utcnow()
+        affirmation.updated_at = datetime.now(timezone.utc)
         
         if scheduled_date:
             try:
@@ -2703,7 +2183,10 @@ def affirmation_edit(affirmation_id):
 def affirmation_delete(affirmation_id):
     """Delete (deactivate) an affirmation"""
     try:
-        affirmation = DailyAffirmation.query.get_or_404(affirmation_id)
+        affirmation = db.session.get(DailyAffirmation, affirmation_id)
+        if not affirmation:
+            flash('Affirmation not found', 'warning')
+            return redirect(url_for('admin.affirmations'))
         affirmation.active = False
         db.session.commit()
         
@@ -2787,7 +2270,10 @@ def symbolic_item_form():
 @admin_required
 def symbolic_item_edit(item_id):
     """Edit a symbolic item"""
-    item = SymbolicItem.query.get_or_404(item_id)
+    item = db.session.get(SymbolicItem, item_id)
+    if not item:
+        flash('Item not found', 'warning')
+        return redirect(url_for('admin.symbolic_items'))
     
     if request.method == 'POST':
         item.item_name = request.form.get('item_name', '').strip()
@@ -2817,7 +2303,10 @@ def symbolic_item_edit(item_id):
 def symbolic_item_delete(item_id):
     """Delete a symbolic item"""
     try:
-        item = SymbolicItem.query.get_or_404(item_id)
+        item = db.session.get(SymbolicItem, item_id)
+        if not item:
+            flash('Item not found', 'warning')
+            return redirect(url_for('admin.symbolic_items'))
         db.session.delete(item)
         db.session.commit()
         
@@ -2871,8 +2360,11 @@ def assessment_detail(assessment_id):
     View assessment details - PRIVACY: Shows risk category, NOT raw scores
     Champion code is displayed but NOT the champion name
     """
-    assessment = MentalHealthAssessment.query.get_or_404(assessment_id)
-    
+    assessment = db.session.get(MentalHealthAssessment, assessment_id)
+    if not assessment:
+        flash('Assessment not found', 'warning')
+        return redirect(url_for('admin.assessments'))
+
     return render_template('admin/assessment_detail.html', assessment=assessment)
 
 
@@ -2902,13 +2394,13 @@ def test_email():
             )
             
             if email_sent:
-                flash(f'✅ Test email sent successfully to {test_recipient}. Check inbox and spam folder.', 'success')
+                flash(f'Test email sent successfully to {test_recipient}. Check inbox and spam folder.', 'success')
             else:
-                flash(f'❌ Email sending failed. Check server logs for details.', 'danger')
+                flash(f'Email sending failed. Check server logs for details.', 'danger')
                 
         except Exception as e:
             current_app.logger.error(f"Email test error: {str(e)}")
-            flash(f'❌ Email error: {str(e)}', 'danger')
+            flash(f'Email error: {str(e)}', 'danger')
         
         return redirect(url_for('admin.test_email'))
     
@@ -2918,7 +2410,7 @@ def test_email():
         'MAIL_PORT': current_app.config.get('MAIL_PORT'),
         'MAIL_USE_TLS': current_app.config.get('MAIL_USE_TLS'),
         'MAIL_USERNAME': current_app.config.get('MAIL_USERNAME'),
-        'MAIL_PASSWORD': '✓ Set' if current_app.config.get('MAIL_PASSWORD') else '✗ Missing',
+        'MAIL_PASSWORD': 'Set' if current_app.config.get('MAIL_PASSWORD') else 'Missing',
         'MAIL_DEFAULT_SENDER': current_app.config.get('MAIL_DEFAULT_SENDER'),
     }
     

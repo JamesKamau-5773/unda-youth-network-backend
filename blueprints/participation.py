@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from models import db, EventParticipation, Event, Champion
 from decorators import supervisor_required
-from datetime import datetime
+from datetime import datetime, timezone
 
 participation_bp = Blueprint('participation', __name__, url_prefix='/api/event-participation')
 
@@ -52,7 +52,9 @@ def list_participations():
 @supervisor_required
 def get_participation(participation_id):
     """Get detailed participation record."""
-    participation = EventParticipation.query.get_or_404(participation_id)
+    participation = db.session.get(EventParticipation, participation_id)
+    if not participation:
+        return jsonify({'success': False, 'message': 'Participation not found'}), 404
     
     return jsonify({
         'success': True,
@@ -89,8 +91,8 @@ def register_for_event():
         }), 400
     
     # Validate event and champion exist
-    event = Event.query.get(data['event_id'])
-    champion = Champion.query.get(data['champion_id'])
+    event = db.session.get(Event, data['event_id'])
+    champion = db.session.get(Champion, data['champion_id'])
     
     if not event or not champion:
         return jsonify({
@@ -145,7 +147,9 @@ def register_for_event():
 @supervisor_required
 def update_registration_status(participation_id):
     """Update registration status (confirm, cancel, etc.)."""
-    participation = EventParticipation.query.get_or_404(participation_id)
+    participation = db.session.get(EventParticipation, participation_id)
+    if not participation:
+        return jsonify({'success': False, 'message': 'Participation not found'}), 404
     data = request.get_json()
     
     if not data.get('status'):
@@ -175,7 +179,9 @@ def update_registration_status(participation_id):
 @supervisor_required
 def mark_attendance(participation_id):
     """Mark attendance for an event."""
-    participation = EventParticipation.query.get_or_404(participation_id)
+    participation = db.session.get(EventParticipation, participation_id)
+    if not participation:
+        return jsonify({'success': False, 'message': 'Participation not found'}), 404
     data = request.get_json()
     
     if 'attended' not in data:
@@ -186,7 +192,7 @@ def mark_attendance(participation_id):
     
     participation.attended = data['attended']
     if data['attended']:
-        participation.attendance_verified_at = datetime.utcnow()
+        participation.attendance_verified_at = datetime.now(timezone.utc)
     
     db.session.commit()
     
@@ -200,7 +206,9 @@ def mark_attendance(participation_id):
 @login_required
 def submit_feedback(participation_id):
     """Submit feedback for an event."""
-    participation = EventParticipation.query.get_or_404(participation_id)
+    participation = db.session.get(EventParticipation, participation_id)
+    if not participation:
+        return jsonify({'success': False, 'message': 'Participation not found'}), 404
     data = request.get_json()
     
     if 'feedback_score' in data:
@@ -228,7 +236,9 @@ def submit_feedback(participation_id):
 @supervisor_required
 def issue_certificate(participation_id):
     """Issue a certificate for event attendance."""
-    participation = EventParticipation.query.get_or_404(participation_id)
+    participation = db.session.get(EventParticipation, participation_id)
+    if not participation:
+        return jsonify({'success': False, 'message': 'Participation not found'}), 404
     
     if not participation.attended:
         return jsonify({
@@ -244,7 +254,7 @@ def issue_certificate(participation_id):
         }), 409
     
     participation.certificate_issued = True
-    participation.certificate_issued_at = datetime.utcnow()
+    participation.certificate_issued_at = datetime.now(timezone.utc)
     
     db.session.commit()
     
@@ -260,7 +270,9 @@ def issue_certificate(participation_id):
 @supervisor_required
 def get_event_stats(event_id):
     """Get participation statistics for an event."""
-    event = Event.query.get_or_404(event_id)
+    event = db.session.get(Event, event_id)
+    if not event:
+        return jsonify({'success': False, 'message': 'Event not found'}), 404
     
     participations = EventParticipation.query.filter_by(event_id=event_id).all()
     

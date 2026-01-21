@@ -3,7 +3,7 @@ import os
 from flask_login import login_required, current_user
 from models import db, Champion, YouthSupport, EventParticipation, Event
 from decorators import champion_required
-from datetime import date
+from datetime import date, datetime, timezone
 from sqlalchemy.exc import IntegrityError
 
 
@@ -14,23 +14,39 @@ champion_bp = Blueprint('champion', __name__, url_prefix='/champion', template_f
 @login_required
 @champion_required  # Champions, Supervisors, Admins can view; Supervisors/Admins may act on behalf
 def dashboard():
-	# If configured, route Prevention Advocates (legacy Champions) to the external member portal
+	# If configured, route Prevention Advocates (legacy Champions) to the external
+	# Prevention Advocate dashboard (supports both new and legacy config keys)
 	role_lower = (current_user.role or '').lower()
 	if role_lower in ['prevention advocate', 'champion']:
 		# Prefer explicit environment override (keeps backward compatibility
-		# with tests that monkeypatch env). Otherwise use app config when set.
-		use_portal = os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES')
-		portal_url = os.environ.get('MEMBER_PORTAL_URL')
+		# with tests that monkeypatch env). Support new keys first, fall back
+		# to legacy MEMBER_PORTAL_* keys.
+		use_portal = os.environ.get('USE_PREVENTION_ADVOCATE_DASHBOARD')
+		if use_portal is None:
+			use_portal = os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES')
+
+		portal_url = os.environ.get('PREVENTION_ADVOCATE_DASHBOARD_URL')
+		if portal_url is None:
+			portal_url = os.environ.get('MEMBER_PORTAL_URL')
+
 		if use_portal is None:
 			try:
-				use_portal = current_app.config.get('USE_MEMBER_PORTAL_FOR_ADVOCATES')
+				use_portal = current_app.config.get('USE_PREVENTION_ADVOCATE_DASHBOARD')
 			except RuntimeError:
 				use_portal = 'False'
 		if portal_url is None:
 			try:
+				portal_url = current_app.config.get('PREVENTION_ADVOCATE_DASHBOARD_URL')
+			except RuntimeError:
+				portal_url = '/prevention-advocate-dashboard'
+
+		# Backwards-compat: check legacy config key if new one wasn't set
+		if portal_url is None:
+			try:
 				portal_url = current_app.config.get('MEMBER_PORTAL_URL')
 			except RuntimeError:
-				portal_url = '/member-portal'
+				portal_url = '/prevention-advocate-dashboard'
+
 		if str(use_portal) == 'True':
 			return redirect(portal_url)
 
@@ -88,19 +104,29 @@ def submit_report():
 	# If advocates have been migrated to the member portal, stop in-place submissions
 	role_lower = (current_user.role or '').lower()
 	if role_lower in ['prevention advocate', 'champion']:
-		use_portal = None
-		portal_url = None
-		try:
-			use_portal = current_app.config.get('USE_MEMBER_PORTAL_FOR_ADVOCATES')
-			portal_url = current_app.config.get('MEMBER_PORTAL_URL')
-		except RuntimeError:
-			pass
+		use_portal = os.environ.get('USE_PREVENTION_ADVOCATE_DASHBOARD')
 		if use_portal is None:
 			use_portal = os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False')
+
+		portal_url = os.environ.get('PREVENTION_ADVOCATE_DASHBOARD_URL')
 		if portal_url is None:
-			portal_url = os.environ.get('MEMBER_PORTAL_URL', '/member-portal')
+			portal_url = os.environ.get('MEMBER_PORTAL_URL', '/prevention-advocate-dashboard')
+
+		try:
+			cfg_use = current_app.config.get('USE_PREVENTION_ADVOCATE_DASHBOARD')
+			if use_portal is None:
+				use_portal = cfg_use
+		except RuntimeError:
+			pass
+		try:
+			cfg_url = current_app.config.get('PREVENTION_ADVOCATE_DASHBOARD_URL')
+			if portal_url is None:
+				portal_url = cfg_url
+		except RuntimeError:
+			pass
+
 		if str(use_portal) == 'True':
-			flash('This dashboard has moved to the member portal. Please access your reports there.', 'info')
+			flash('This dashboard has moved to the Prevention Advocate dashboard. Please access your reports there.', 'info')
 			return redirect(portal_url)
 
 	if not current_user.champion_id:
@@ -136,8 +162,7 @@ def submit_report():
 
 		# If the champion raised referrals, capture the flag time for SLA tracking
 		if new_report.referrals_initiated and int(new_report.referrals_initiated) > 0:
-			from datetime import datetime
-			new_report.flag_timestamp = datetime.utcnow()
+			new_report.flag_timestamp = datetime.now(timezone.utc)
 
 		db.session.add(new_report)
 		db.session.commit()

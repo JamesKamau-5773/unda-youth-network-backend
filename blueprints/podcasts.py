@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from models import db, Podcast
 from decorators import admin_required
 from flask_login import login_required, current_user
-from datetime import datetime
+from datetime import datetime, timezone
 
 podcasts_bp = Blueprint('podcasts', __name__, url_prefix='/api/podcasts')
 
@@ -66,7 +66,7 @@ def get_podcasts():
 def get_podcast(podcast_id):
     """Get a single podcast by ID"""
     try:
-        podcast = Podcast.query.get(podcast_id)
+        podcast = db.session.get(Podcast, podcast_id)
         
         if not podcast:
             return jsonify({
@@ -125,7 +125,7 @@ def create_podcast():
         
         # Set published_at if publishing
         if podcast.published:
-            podcast.published_at = datetime.utcnow()
+            podcast.published_at = datetime.now(timezone.utc)
         
         db.session.add(podcast)
         db.session.commit()
@@ -150,7 +150,7 @@ def create_podcast():
 def update_podcast(podcast_id):
     """Update a podcast (Admin only)"""
     try:
-        podcast = Podcast.query.get(podcast_id)
+        podcast = db.session.get(Podcast, podcast_id)
         
         if not podcast:
             return jsonify({
@@ -187,9 +187,9 @@ def update_podcast(podcast_id):
             
             # Set published_at when first publishing
             if not was_published and podcast.published:
-                podcast.published_at = datetime.utcnow()
+                podcast.published_at = datetime.now(timezone.utc)
         
-        podcast.updated_at = datetime.utcnow()
+        podcast.updated_at = datetime.now(timezone.utc)
         
         db.session.commit()
         
@@ -213,7 +213,7 @@ def update_podcast(podcast_id):
 def delete_podcast(podcast_id):
     """Delete a podcast (Admin only)"""
     try:
-        podcast = Podcast.query.get(podcast_id)
+        podcast = db.session.get(Podcast, podcast_id)
         
         if not podcast:
             return jsonify({

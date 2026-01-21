@@ -2,7 +2,7 @@
 
 This document describes the hidden developer routes that provide comprehensive access to the application's build, configuration, and system information.
 
-## 🔒 Security
+## Security
 
 These routes are **hidden** and only accessible with a secret key. They are designed for developer/admin use only.
 
@@ -20,7 +20,7 @@ These routes are **hidden** and only accessible with a secret key. They are desi
    python -c "import secrets; print(secrets.token_urlsafe(32))"
    ```
 
-## 📍 Available Routes
+## Available Routes
 
 All routes are prefixed with `/__dev__/` and require authentication via the secret key.
 
@@ -101,7 +101,7 @@ Example with curl:
 curl -H "X-Dev-Key: YOUR_SECRET_KEY" "https://your-app.com/__dev__/info"
 ```
 
-## ⚠️ Security Notes
+## Security Notes
 
 1. **404 on Invalid Key:** If an incorrect key is provided (or no key), the routes return a 404 error instead of 403. This hides the existence of these routes from unauthorized users.
 
@@ -115,7 +115,7 @@ curl -H "X-Dev-Key: YOUR_SECRET_KEY" "https://your-app.com/__dev__/info"
 
 4. **Access Control:** Only developers/admins who know the secret key can access these routes.
 
-## 🚀 Quick Start
+## Quick Start
 
 1. Set your secret key:
    ```bash
@@ -132,7 +132,7 @@ curl -H "X-Dev-Key: YOUR_SECRET_KEY" "https://your-app.com/__dev__/info"
    http://localhost:5000/__dev__/dashboard?key=my-secret-dev-key-2024
    ```
 
-## 📊 Use Cases
+## Use Cases
 
 - **Debugging:** Check environment variables and system configuration
 - **Monitoring:** View database stats and health
@@ -140,7 +140,7 @@ curl -H "X-Dev-Key: YOUR_SECRET_KEY" "https://your-app.com/__dev__/info"
 - **Troubleshooting:** Quick access to build information
 - **Auditing:** Review installed packages and dependencies
 
-## 🔧 Extending
+## Extending
 
 To add new developer routes, edit `/blueprints/dev.py`:
 
@@ -152,7 +152,7 @@ def custom_route():
     return jsonify({'message': 'Custom developer data'})
 ```
 
-## 🗑️ Removing for Production
+## Removing for Production
 
 If you want to completely disable these routes in production:
 

@@ -1,0 +1,8 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    WORKSTREAMS ADMIN CRUD OPERATIONS                         ║
+║                          Quick Reference Guide                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+YES! Admin has FULL CRUD access to all 4 workstreams through the admin dashboard.
+
+... (see repository WORKSTREAMS_QUICK_REFERENCE.txt for full content)
