@@ -6,6 +6,7 @@ from password_validator import validate_password_strength
 from datetime import datetime, date, timezone
 import re
 import sqlalchemy as sa
+import uuid
 try:
     import phonenumbers
 except Exception:
@@ -172,17 +173,37 @@ def register_member():
                 username_candidate = f"{base}{idx}"
             data['username'] = username_candidate
 
-        # Check for existing username (explicit or generated) and pending registration
+        # Server-side authoritative checks for existing users/registrations
+        # Prevent bypass of frontend guards by direct API calls. We block when
+        # there is an existing registration in an in-progress state (e.g.
+        # Pending/Submitted/Under_Review). Re-submission is allowed when the
+        # previous registration was rejected/denied.
+        blocking_statuses = {'pending', 'submitted', 'under_review'}
+
+        # Existing user account with same username blocks registration
         if User.query.filter_by(username=data['username']).first():
             return _error_response('Username already exists', field='username', status=409)
 
-        if MemberRegistration.query.filter_by(username=data['username']).first():
-            return _error_response('Registration with this username already pending', field='username', status=409)
+        # Existing champion with same email or phone blocks registration
+        if data.get('email') and Champion.query.filter_by(email=data['email']).first():
+            return _error_response('Email already registered', field='email', status=409)
 
-        # Check for existing email only if provided
+        if Champion.query.filter_by(phone_number=normalized_phone).first():
+            return _error_response('Phone number already registered', field='phone_number', status=409)
+
+        # Look for prior registrations matching username, phone or email
+        filters = [MemberRegistration.username == data['username'], MemberRegistration.phone_number == normalized_phone]
         if data.get('email'):
-            if Champion.query.filter_by(email=data['email']).first():
-                return _error_response('Email already registered', field='email', status=409)
+            filters.append(MemberRegistration.email == data['email'])
+
+        existing_regs = MemberRegistration.query.filter(sa.or_(*filters)).all()
+        for reg in existing_regs:
+            if reg and getattr(reg, 'status', None) and reg.status.lower() in blocking_statuses:
+                return _error_response(
+                    f'Existing registration (id={reg.registration_id}) with status "{reg.status}" is already in progress',
+                    field='registration',
+                    status=409
+                )
 
         # Parse date of birth if provided
         date_of_birth = None
@@ -203,6 +224,8 @@ def register_member():
             county_sub_county=data.get('county_sub_county')
         )
         registration.set_password(data['password'])
+        # Generate a cancellation token so the registrant can cancel later
+        registration.cancellation_token = uuid.uuid4().hex
 
         db.session.add(registration)
         db.session.commit()
@@ -210,7 +233,7 @@ def register_member():
         # return a proper (response, status) tuple from helper
         return _success_response(
             'Registration submitted successfully. Your account will be reviewed by an administrator.',
-            data={'registration_id': registration.registration_id, 'status': 'Pending'},
+            data={'registration_id': registration.registration_id, 'status': 'Pending', 'cancellation_token': registration.cancellation_token},
             status=201
         )
 
@@ -239,10 +262,103 @@ def get_registration_status(registration_id):
             'status': reg.status,
             'submitted_at': reg.submitted_at.isoformat() if reg.submitted_at else None,
             'reviewed_at': reg.reviewed_at.isoformat() if reg.reviewed_at else None,
-            'rejection_reason': reg.rejection_reason
+            'rejection_reason': reg.rejection_reason,
+            'cancellation_token': reg.cancellation_token
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+
+@public_auth_bp.route('/api/auth/registration/<int:registration_id>', methods=['DELETE'])
+def cancel_registration(registration_id):
+    """Allow a registrant to cancel their pending registration.
+
+    Security: requires either the `X-Registration-Token` header or a JSON
+    body with `cancellation_token`. Administrators (authenticated users)
+    who created an associated user may also cancel.
+    """
+    try:
+        reg = db.session.get(MemberRegistration, registration_id)
+        if not reg:
+            return jsonify({'success': False, 'error': {'message': 'Registration not found'}}), 404
+
+        # Only pending/in-progress registrations can be cancelled
+        if reg.status and reg.status.lower() not in ('pending', 'submitted', 'under_review'):
+            return _error_response('Registration cannot be cancelled in its current status', field='status', status=400)
+
+        payload = request.get_json(silent=True) or {}
+        token = request.headers.get('X-Registration-Token') or payload.get('cancellation_token')
+
+        # Allow owner if they are an authenticated user linked to this registration
+        owner_allowed = False
+        if current_user and getattr(current_user, 'is_authenticated', False) and reg.created_user_id and current_user.user_id == reg.created_user_id:
+            owner_allowed = True
+
+        if not owner_allowed:
+            if not token or not reg.cancellation_token or token != reg.cancellation_token:
+                return _error_response('Missing or invalid cancellation token', field='cancellation_token', status=403)
+
+        # Mark as cancelled
+        reg.status = 'Cancelled'
+        reg.reviewed_at = datetime.utcnow()
+        db.session.add(reg)
+        db.session.commit()
+
+        return _success_response('Registration cancelled', data={'registration_id': registration_id, 'status': reg.status}, status=200)
+    except Exception as e:
+        db.session.rollback()
+        from flask import current_app
+        current_app.logger.exception('Cancel registration failed')
+        return jsonify({'success': False, 'error': {'message': 'Internal server error'}}), 500
+
+
+
+@public_auth_bp.route('/api/certificates/<int:certificate_id>', methods=['GET'])
+def get_certificate(certificate_id):
+    """Return the PDF bytes for a certificate. Only the owner or an admin may download."""
+    try:
+        from models import Certificate
+        cert = db.session.get(Certificate, certificate_id)
+        if not cert:
+            return jsonify({'success': False, 'error': {'message': 'Certificate not found'}}), 404
+
+        # Enforce owner-only access for downloads
+        if not (current_user and getattr(current_user, 'is_authenticated', False) and (current_user.user_id == cert.user_id)):
+            return _error_response('Forbidden', field='certificate', status=403)
+
+        # Return raw PDF bytes with appropriate content-type
+        from flask import Response
+        return Response(cert.pdf_data or b'', mimetype='application/pdf', headers={
+            'Content-Disposition': f'attachment; filename=certificate_{certificate_id}.pdf'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': {'message': str(e)}}), 500
+
+
+@public_auth_bp.route('/api/certificates/verify', methods=['POST'])
+def verify_certificate():
+    """Public endpoint: accepts JSON {certificate_id, signature} and returns validity."""
+    try:
+        data = request.get_json() or {}
+        cid = data.get('certificate_id')
+        sig = data.get('signature')
+        if not cid or not sig:
+            return _error_response('Missing certificate_id or signature', status=422)
+
+        from models import Certificate
+        cert = db.session.get(Certificate, cid)
+        if not cert:
+            return _error_response('Certificate not found', status=404)
+
+        secret = current_app.config.get('SECRET_KEY', 'dev-secret')
+        import hmac, hashlib
+        expected = hmac.new(secret.encode('utf-8'), cert.pdf_data or b'', hashlib.sha256).hexdigest()
+        valid = hmac.compare_digest(expected, sig)
+
+        return jsonify({'valid': valid, 'certificate_id': cid}), 200
+    except Exception as e:
+        return _error_response('Internal error', status=500)
 
 
 @public_auth_bp.route('/api/auth/login', methods=['POST'])

@@ -1007,8 +1007,24 @@ class MemberRegistration(db.Model):
   # Created user reference
   created_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
   
+  # Token to allow a registrant to cancel their pending registration
+  cancellation_token = db.Column(db.String(64), nullable=True, unique=True)
+  
   def set_password(self, password):
     self.password_hash = hash_password(password)
+
+
+class Certificate(db.Model):
+    """Issued membership certificates (stored as PDF blobs with a signature)."""
+    __tablename__ = 'certificates'
+
+    certificate_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+    issued_at = db.Column(db.DateTime, default=datetime.utcnow)
+    pdf_data = db.Column(db.LargeBinary)  # Raw PDF bytes
+    signature = db.Column(db.String(255), nullable=False)  # HMAC or JWT
+
+    user = db.relationship('User', backref='certificates')
 
 
 class ChampionApplication(db.Model):
