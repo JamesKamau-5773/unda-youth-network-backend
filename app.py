@@ -177,6 +177,28 @@ def create_app(test_config=None):
                 app.logger.info('SQLite fallback: ensured DB schema with db.create_all()')
         except Exception:
             app.logger.exception('Failed to auto-create SQLite schema; continuing')
+
+    # Support resetting the admin password via an environment variable so
+    # deployments without shell access (e.g., Render) can update the admin
+    # credentials by setting `ADMIN_TEMP_PASSWORD` in the service env and
+    # redeploying. This is temporary and should be removed or rotated after use.
+    admin_temp = os.environ.get('ADMIN_TEMP_PASSWORD')
+    if admin_temp:
+        try:
+            with app.app_context():
+                admin = User.query.filter_by(username='admin').first()
+                if admin:
+                    admin.set_password(admin_temp)
+                    admin.account_locked = False
+                    admin.failed_login_attempts = 0
+                    admin.locked_until = None
+                    admin.invite_token = None
+                    admin.invite_token_expires = None
+                    db.session.add(admin)
+                    db.session.commit()
+                    app.logger.info('Admin account password reset from ADMIN_TEMP_PASSWORD env var')
+        except Exception:
+            app.logger.exception('Failed to reset admin password from ADMIN_TEMP_PASSWORD')
     
     # Initialize Flask-Mail
     # Allow disabling email initialization during build or CI to avoid outbound SMTP calls
