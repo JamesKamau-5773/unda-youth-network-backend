@@ -297,9 +297,25 @@ def create_app(test_config=None):
         return redirect(url_for('auth.login'))
     
     @app.errorhandler(429)
+    def is_api_request(req=None):
+        """Return True if the request is likely from an API client (JSON/XHR).
+
+        Checks `request.is_json`, the `Accept` header, `X-Requested-With`,
+        or if the path starts with `/api/`.
+        """
+        r = req or request
+        accept = r.headers.get('Accept', '') or ''
+        x_requested = r.headers.get('X-Requested-With', '') or ''
+        return (
+            r.is_json
+            or r.path.startswith('/api/')
+            or x_requested == 'XMLHttpRequest'
+            or 'application/json' in accept
+        )
+
     def ratelimit_handler(e):
         """Handle 429 Too Many Requests (rate limit exceeded)"""
-        if request.is_json or request.path.startswith('/api/'):
+        if is_api_request():
             return jsonify({
                 'error': 'Too Many Requests',
                 'message': 'Rate limit exceeded. Please try again later.',
@@ -320,7 +336,7 @@ def create_app(test_config=None):
         except:
             pass
         
-        if request.is_json or request.path.startswith('/api/'):
+        if is_api_request():
             return jsonify({
                 'error': 'Internal Server Error',
                 'message': 'An unexpected error occurred. Our team has been notified.',
@@ -343,6 +359,14 @@ def create_app(test_config=None):
     
     @login_manager.unauthorized_handler
     def unauthorized():
+        # For API/XHR requests return JSON 401 instead of redirecting to login page.
+        if is_api_request():
+            return jsonify({
+                'error': 'Unauthorized',
+                'message': 'Authentication required',
+                'code': 401
+            }), 401
+
         # Prevent redirect loops - directly redirect to login without using url_for in request context
         return redirect('/auth/login')
 
