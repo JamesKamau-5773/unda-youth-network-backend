@@ -1,5 +1,6 @@
 import logging
 from logging.config import fileConfig
+import os
 
 from flask import current_app
 
@@ -89,6 +90,13 @@ def run_migrations_online():
             if script.upgrade_ops.is_empty():
                 directives[:] = []
                 logger.info('No changes in schema detected.')
+
+    # If the environment requests skipping migrations (e.g. local SQLite
+    # fallback or an explicit clean-break mode), stop here to avoid Alembic
+    # trying to create tables that may already exist.
+    if os.getenv('CLEAN_BREAK_MODE') == 'skip_migrations' or os.getenv('FALLBACK_TO_SQLITE', '').lower() in ('1', 'true', 'yes'):
+        logger.info('Skipping Alembic migrations because CLEAN_BREAK_MODE=skip_migrations or FALLBACK_TO_SQLITE is set')
+        return
 
     conf_args = current_app.extensions['migrate'].configure_args
     if conf_args.get("process_revision_directives") is None:
