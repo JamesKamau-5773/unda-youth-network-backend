@@ -197,6 +197,19 @@ def create_app(test_config=None):
                     db.session.add(admin)
                     db.session.commit()
                     app.logger.info('Admin account password reset from ADMIN_TEMP_PASSWORD env var')
+                else:
+                    # Create an admin user when one does not exist (useful for headless deployments)
+                    try:
+                        admin = User(username='admin', email=os.environ.get('ADMIN_TEMP_EMAIL', 'admin@example.com'))
+                        admin.set_password(admin_temp)
+                        admin.set_role(User.ROLE_ADMIN)
+                        admin.account_locked = False
+                        admin.failed_login_attempts = 0
+                        db.session.add(admin)
+                        db.session.commit()
+                        app.logger.info('Admin account created and password set from ADMIN_TEMP_PASSWORD env var')
+                    except Exception:
+                        app.logger.exception('Failed to create admin account from ADMIN_TEMP_PASSWORD')
         except Exception:
             app.logger.exception('Failed to reset admin password from ADMIN_TEMP_PASSWORD')
     
