@@ -10,6 +10,8 @@ import secrets
 import string
 from datetime import datetime, timedelta, timezone
 from services import user_service, champion_service, mailer, registration_service, champion_application_service, assignment_service, event_service, affirmation_service, media_gallery_service, toolkit_service, resource_service, story_service, symbolic_item_service, umv_service, assessment_service, podcast_service
+from flask import current_app
+import json
 from services.admin_metrics import get_dashboard_metrics
 from dataclasses import asdict
 from extensions import limiter
@@ -25,6 +27,18 @@ def slugify(value: str) -> str:
     return value
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+
+
+@admin_bp.before_app_request
+def _debug_auth_state():
+    # Verbose per-request auth state logging for triage
+    try:
+        current_app.logger.info(
+            f"admin.before_app_request: endpoint={request.endpoint} path={request.path} method={request.method} "
+            + f"authenticated={getattr(current_user,'is_authenticated',False)} username={getattr(current_user,'username',None)} role={getattr(current_user,'role',None)} cookies={list(request.cookies.keys())}"
+        )
+    except Exception:
+        pass
 
 # Pages we track for personalization (id, display name, endpoint)
 TRACKABLE_ADMIN_PAGES = {
@@ -559,24 +573,49 @@ def list_media_galleries():
 def create_media_gallery():
     if request.method == 'POST':
         try:
+            # collect files from file input and existing media_items JSON, merge into a list
+            uploaded = request.files.getlist('media_files') or []
+            form_media = request.form.get('media_items')
+            try:
+                existing = json.loads(form_media) if form_media else []
+            except Exception:
+                existing = []
+            # Filter out frontend placeholders or items marked for deletion
+            def _keep_existing_item(it):
+                if not isinstance(it, dict):
+                    return False
+                if it.get('_delete') or it.get('marked_for_deletion'):
+                    return False
+                # drop placeholder objects created by some clients
+                if it.get('newly_uploaded') or it.get('__placeholder'):
+                    return False
+                # Accept items that have a persisted path/id/filename/url
+                if any(k in it for k in ('path','id','url','filename','src','file_url')):
+                    return True
+                return False
+
+            kept = [it for it in existing if _keep_existing_item(it)]
+            # pass a combined list: existing entries first, then file objects
+            combined_media = list(kept) + list(uploaded)
             data = {
                 'title': request.form.get('title', '').strip(),
                 'description': request.form.get('description'),
-                # controller extracts files from request; service will accept saved paths or JSON
-                'media_items': request.files.getlist('media_items') or request.form.get('media_items')
+                'media_items': combined_media
             }
             gallery = media_gallery_service.create_media_gallery(data, creator_id=current_user.user_id)
             flash('Media gallery created', 'success')
             return redirect(url_for('admin.list_media_galleries'))
         except ValueError as e:
             flash(str(e), 'danger')
-            return render_template('admin/media_gallery_form.html')
+            max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
+            return render_template('admin/media_gallery_form.html', max_file_size=max_file_size)
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating gallery: {str(e)}', 'danger')
             return render_template('admin/media_gallery_form.html')
 
-    return render_template('admin/media_gallery_form.html')
+    max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
+    return render_template('admin/media_gallery_form.html', max_file_size=max_file_size)
 
 
 @admin_bp.route('/media-galleries/<int:gallery_id>/edit', methods=['GET', 'POST'])
@@ -588,10 +627,28 @@ def edit_media_gallery(gallery_id):
         abort(404)
     if request.method == 'POST':
         try:
+            uploaded = request.files.getlist('media_files') or []
+            form_media = request.form.get('media_items')
+            try:
+                existing = json.loads(form_media) if form_media else []
+            except Exception:
+                existing = []
+            def _keep_existing_item(it):
+                if not isinstance(it, dict):
+                    return False
+                if it.get('_delete') or it.get('marked_for_deletion'):
+                    return False
+                if it.get('newly_uploaded') or it.get('__placeholder'):
+                    return False
+                if any(k in it for k in ('path','id','url','filename','src','file_url')):
+                    return True
+                return False
+            kept = [it for it in existing if _keep_existing_item(it)]
+            combined_media = list(kept) + list(uploaded)
             data = {
                 'title': request.form.get('title', gallery.title),
                 'description': request.form.get('description', gallery.description),
-                'media_items': request.files.getlist('media_items') or request.form.get('media_items')
+                'media_items': combined_media
             }
             media_gallery_service.update_media_gallery(gallery_id, data)
             flash('Media gallery updated', 'success')
@@ -601,7 +658,8 @@ def edit_media_gallery(gallery_id):
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating gallery: {str(e)}', 'danger')
-    return render_template('admin/media_gallery_form.html', gallery=gallery)
+    max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
+    return render_template('admin/media_gallery_form.html', gallery=gallery, max_file_size=max_file_size)
 
 
 @admin_bp.route('/media-galleries/<int:gallery_id>/delete', methods=['POST'])
@@ -707,6 +765,11 @@ def list_umv_global():
 @login_required
 @admin_required
 def create_umv_entry():
+    # Debugging: log caller and submitted form keys to aid triage of 400s
+    try:
+        current_app.logger.info(f"UMV create called by user={getattr(current_user,'username',None)} role={getattr(current_user,'role',None)} method={request.method} form_keys={list(request.form.keys())}")
+    except Exception:
+        pass
     if request.method == 'POST':
         key = request.form.get('key', '').strip()
         value = request.form.get('value')

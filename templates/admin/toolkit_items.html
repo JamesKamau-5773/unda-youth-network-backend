@@ -1,36 +1,145 @@
+
 {% extends 'admin/base.html' %}
 {% block content %}
-<div class="hero-card">
-  <div class="hero-card__inner">
-    <div>
-      <h1 class="hero-card__title">Institutional Toolkit</h1>
-      <p class="hero-card__subtitle">Add and manage toolkit items for partners and staff.</p>
-    </div>
-    <div class="hero-card__actions">
-      <a href="{{ url_for('admin.create_toolkit_item') }}" class="btn btn--primary">Create Item</a>
-    </div>
-  </div>
-</div>
 
-<div class="table-container">
-  <div class="table-header">
-    <h2 class="section-title">Toolkit Items</h2>
+<div class="max-w-7xl mx-auto px-6 py-8">
+
+  
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl font-black text-[#0B1E3B] tracking-tight">
+        Institutional Toolkit
+      </h1>
+      <p class="text-[#006064] font-bold text-sm mt-1">
+        Add and manage toolkit items for partners and staff.
+      </p>
+    </div>
+
+    <a id="create-toolkit-btn" href="{{ url_for('admin.create_toolkit_item') }}"
+      class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-[#00838F] hover:bg-[#006064] shadow-lg shadow-[#00838F]/20 transition-transform hover:-translate-y-0.5"
+      role="button" aria-label="Create toolkit item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Create Item
+    </a>
   </div>
-  <div class="card">
-    <ul>
-    {% for it in items %}
-      <li style="padding:0.5rem 0; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color);">
-        <div>{{ it.title }}</div>
-        <div style="display:flex; gap:0.5rem;">
-          <a href="{{ url_for('admin.edit_toolkit_item', item_id=it.item_id) }}" class="btn btn--secondary">Edit</a>
-          <form action="{{ url_for('admin.delete_toolkit_item', item_id=it.item_id) }}" method="post" style="display:inline">
-            <button class="btn btn--secondary">Delete</button>
-          </form>
+
+<script>
+// Defensive click handler: if some global JS/CSS is preventing the anchor
+// from navigating (overlay, pointer-events:none, or delegated preventDefault),
+// force navigation on click. Also logs to console for quick debugging.
+(function(){
+  try{
+    var btn = document.getElementById('create-toolkit-btn');
+    if(!btn) return;
+    btn.addEventListener('click', function(e){
+      // If default was prevented upstream, force navigation
+      if(e.defaultPrevented) {
+        window.location.href = btn.getAttribute('href');
+        return;
+      }
+      // Small safety: ensure pointer-events allow clicks
+      var style = window.getComputedStyle(btn);
+      if(style && style.pointerEvents === 'none'){
+        window.location.href = btn.getAttribute('href');
+      }
+    });
+  }catch(err){
+    // swallow errors to avoid breaking the admin UI
+    console && console.info && console.info('Create toolkit defensive handler error', err);
+  }
+})();
+</script>
+
+  
+  <div class="bg-white rounded-[2rem] border border-[#D6EAFC] shadow-sm overflow-hidden">
+
+  
+    <div class="px-8 py-4 bg-[#ECF5FF] border-b border-[#D6EAFC] flex items-center justify-between">
+      <span class="text-xs font-bold text-[#006064] uppercase tracking-wider">Item Details</span>
+      <span class="text-xs font-bold text-[#006064] uppercase tracking-wider">Actions</span>
+    </div>
+
+    <div class="divide-y divide-[#D6EAFC]">
+      {% if items %}
+        {% for it in items %}
+        <div class="group flex items-center justify-between p-6 hover:bg-[#ECF5FF] transition-colors duration-200">
+
+        
+        <div class="flex items-center gap-4">
+          
+          <div
+            class="h-12 w-12 rounded-2xl bg-[#D6EAFC] flex items-center justify-center text-[#00838F] group-hover:bg-white group-hover:scale-110 transition-all shadow-sm border border-transparent group-hover:border-[#D6EAFC]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-[#0B1E3B]">{{ it.title }}</h3>
+            <span
+              class="text-[10px] font-bold text-[#006064] bg-[#D6EAFC] px-2 py-0.5 rounded-md uppercase tracking-wide">Resource</span>
+          </div>
         </div>
-      </li>
-    {% endfor %}
-    </ul>
+
+        
+        <div class="flex items-center gap-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+
+          <a href="{{ url_for('admin.edit_toolkit_item', item_id=it.item_id) }}"
+            class="p-2.5 rounded-xl text-[#00838F] hover:bg-white hover:text-[#006064] hover:shadow-sm border border-transparent hover:border-[#D6EAFC] transition-all"
+            title="Edit">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </a>
+
+          <form action="{{ url_for('admin.delete_toolkit_item', item_id=it.item_id) }}" method="post"
+            onsubmit="return confirm('Delete this toolkit item?');" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="p-2.5 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors"
+              title="Delete">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </form>
+
+        </div>
+      </div>
+        {% endfor %}
+      {% else %}
+      <div class="p-12 text-center flex flex-col items-center">
+        <div class="h-16 w-16 bg-[#ECF5FF] rounded-full flex items-center justify-center mb-4 border border-[#D6EAFC]">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00838F" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="opacity-60">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="18" x2="12" y2="12"></line>
+            <line x1="9" y1="15" x2="15" y2="15"></line>
+          </svg>
+        </div>
+        <h3 class="text-[#0B1E3B] font-bold text-lg">No Items Found</h3>
+        <p class="text-[#006064] text-sm mt-1 mb-6 font-medium">Your toolkit is empty. Add resources for your team.</p>
+        <a href="{{ url_for('admin.create_toolkit_item') }}"
+          class="px-6 py-2 rounded-xl text-sm font-bold text-[#006064] bg-[#D6EAFC] hover:bg-[#D6EAFC] transition-colors border border-[#D6EAFC]">
+          Create First Item
+        </a>
+      </div>
+      {% endif %}
+    </div>
   </div>
+
 </div>
 
 {% endblock %}

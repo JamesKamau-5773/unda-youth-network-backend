@@ -117,6 +117,29 @@ def create_app(test_config=None):
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour
+
+    # Uploads configuration
+    # Default upload folder is `static/uploads` but can be overridden by env
+    app.config['UPLOAD_FOLDER'] = os.environ.get('UPLOAD_FOLDER') or os.path.join(app.root_path, 'static', 'uploads')
+    # Ensure uploads dir exists
+    try:
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    except Exception:
+        app.logger.exception('Failed to create upload folder')
+
+    # Max content length (bytes) - default 150MB, override with env as integer
+    try:
+        app.config['MAX_CONTENT_LENGTH'] = int(os.environ.get('MAX_CONTENT_LENGTH') or 150 * 1024 * 1024)
+    except Exception:
+        app.config['MAX_CONTENT_LENGTH'] = 150 * 1024 * 1024
+
+    # AWS S3 configuration (optional)
+    app.config['S3_BUCKET'] = os.environ.get('AWS_S3_BUCKET')
+    app.config['S3_REGION'] = os.environ.get('AWS_REGION') or os.environ.get('AWS_DEFAULT_REGION')
+    app.config['S3_ACCESS_KEY'] = os.environ.get('AWS_ACCESS_KEY_ID')
+    app.config['S3_SECRET_KEY'] = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    # If S3_BUCKET is set, we consider S3 enabled
+    app.config['USE_S3'] = bool(app.config.get('S3_BUCKET'))
     
     # WTF-CSRF Protection
     app.config['WTF_CSRF_ENABLED'] = True
@@ -178,16 +201,29 @@ def create_app(test_config=None):
         except Exception:
             app.logger.exception('Failed to auto-create SQLite schema; continuing')
 
-    # Support resetting the admin password via an environment variable so
-    # deployments without shell access (e.g., Render) can update the admin
-    # credentials by setting `ADMIN_TEMP_PASSWORD` in the service env and
-    # redeploying. This is temporary and should be removed or rotated after use.
+    # Support resetting or provisioning an admin account via environment variables
+    # This mechanism is intended only for initial bootstrap or emergency recovery
+    # in environments without interactive shell access. It is designed to be
+    # idempotent, auditable (logs), and conservative: it will prefer an explicit
+    # username if provided, otherwise it will target any existing user with the
+    # Admin role. The temporary credentials must be rotated after use.
     admin_temp = os.environ.get('ADMIN_TEMP_PASSWORD')
     if admin_temp:
+        admin_username = os.environ.get('ADMIN_TEMP_USERNAME', 'admin')
+        admin_email = os.environ.get('ADMIN_TEMP_EMAIL', None)
         try:
             with app.app_context():
-                admin = User.query.filter_by(username='admin').first()
+                # Prefer explicit username match first
+                admin = None
+                if admin_username:
+                    admin = User.query.filter_by(username=admin_username).first()
+
+                # If not found by username, find any user with Admin role
+                if not admin:
+                    admin = User.query.filter(User.role.ilike('%admin%')).first()
+
                 if admin:
+                    # Reset password and unlock account
                     admin.set_password(admin_temp)
                     admin.account_locked = False
                     admin.failed_login_attempts = 0
@@ -196,22 +232,29 @@ def create_app(test_config=None):
                     admin.invite_token_expires = None
                     db.session.add(admin)
                     db.session.commit()
-                    app.logger.info('Admin account password reset from ADMIN_TEMP_PASSWORD env var')
+                    app.logger.info('Admin provisioning: password reset for user=%s (id=%s)', admin.username, getattr(admin, 'user_id', 'unknown'))
                 else:
-                    # Create an admin user when one does not exist (useful for headless deployments)
-                    try:
-                        admin = User(username='admin', email=os.environ.get('ADMIN_TEMP_EMAIL', 'admin@example.com'))
-                        admin.set_password(admin_temp)
-                        admin.set_role(User.ROLE_ADMIN)
-                        admin.account_locked = False
-                        admin.failed_login_attempts = 0
-                        db.session.add(admin)
-                        db.session.commit()
-                        app.logger.info('Admin account created and password set from ADMIN_TEMP_PASSWORD env var')
-                    except Exception:
-                        app.logger.exception('Failed to create admin account from ADMIN_TEMP_PASSWORD')
+                    # Create a new admin user with a safe, configured username/email
+                    # Ensure we do not accidentally overwrite existing usernames
+                    base_username = admin_username or 'admin'
+                    username = base_username
+                    suffix = 0
+                    while User.query.filter_by(username=username).first():
+                        suffix += 1
+                        username = f"{base_username}{suffix}"
+
+                    email_to_use = admin_email or os.environ.get('ADMIN_TEMP_EMAIL', f'{username}@example.com')
+                    new_admin = User(username=username, email=email_to_use)
+                    new_admin.set_password(admin_temp)
+                    new_admin.set_role(User.ROLE_ADMIN)
+                    new_admin.account_locked = False
+                    new_admin.failed_login_attempts = 0
+                    db.session.add(new_admin)
+                    db.session.commit()
+                    app.logger.info('Admin provisioning: created admin user=%s (id=%s)', new_admin.username, getattr(new_admin, 'user_id', 'unknown'))
         except Exception:
-            app.logger.exception('Failed to reset admin password from ADMIN_TEMP_PASSWORD')
+            # Capture the exception but do not raise; application should continue booting.
+            app.logger.exception('Admin provisioning failed while applying ADMIN_TEMP_PASSWORD')
     
     # Initialize Flask-Mail
     # Allow disabling email initialization during build or CI to avoid outbound SMTP calls

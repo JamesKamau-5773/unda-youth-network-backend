@@ -1,11 +1,37 @@
 {% extends 'admin/base.html' %}
+
 {% block content %}
-<h1>{{ entry and 'Edit' or 'Create' }} UMV Entry</h1>
-<form method="post">
-  <label>Key</label>
-  <input name="key" value="{{ entry.key if entry else '' }}" />
-  <label>Value</label>
-  <textarea name="value">{{ entry.value if entry else '' }}</textarea>
-  <button type="submit" class="btn btn-primary">Save</button>
-</form>
+<div class="max-w-7xl mx-auto px-6 py-8">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl font-black text-[#0B1E3B] tracking-tight">{{ entry and 'Edit' or 'Create' }} Setting</h1>
+      <p class="text-[#006064] font-bold text-sm mt-1">Configure a global system preference or value.</p>
+    </div>
+    <div class="flex gap-3">
+      <a href="{{ url_for('admin.list_umv_global') }}" class="px-5 py-2.5 rounded-xl text-sm font-bold text-[#00838F] bg-white border border-[#D6EAFC] hover:bg-[#ECF5FF]">Cancel</a>
+      <button type="submit" form="umvForm" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#00838F]">Save Changes</button>
+    </div>
+  </div>
+
+  <form method="post" id="umvForm" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="lg:col-span-1 space-y-6">
+      <div class="bg-white p-6 rounded-[2rem] border border-[#D6EAFC] shadow-sm">
+        <h3 class="text-lg font-bold text-[#0B1E3B] mb-4">1. Name the Setting</h3>
+        <div class="form-group">
+          <label class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2">Unique Name (Key)</label>
+          <input name="key" type="text" required class="w-full px-4 py-3 rounded-xl bg-[#ECF5FF]" value="{{ entry.key if entry else '' }}" placeholder="E.G. SUPPORT_EMAIL" />
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2">
+      <div class="bg-white p-6 md:p-8 rounded-[2rem] border border-[#D6EAFC] shadow-sm h-full flex flex-col">
+        <h3 class="text-lg font-bold text-[#0B1E3B] mb-4">2. Enter the Value</h3>
+        <textarea name="value" rows="12" class="w-full" placeholder="Type the value here...">{{ entry.value if entry else '' }}</textarea>
+      </div>
+    </div>
+  </form>
+</div>
 {% endblock %}

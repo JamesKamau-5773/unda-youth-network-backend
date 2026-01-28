@@ -21,11 +21,12 @@ flask-caching==2.0.2
 # Align OpenTelemetry API/SDK with the instrumentation 0.41b0 series
 opentelemetry-instrumentation-flask==0.41b0
 sentry-sdk==2.48.0
-prometheus-client==0.23.1
-prometheus_flask_exporter==0.23.2
-prometheus_client==0.23.1
-sentry-sdk==2.48.0
-prometheus_client==0.23.1
+# Use a PyPI-available prometheus client
+prometheus-client==0.21.1
 prometheus_flask_exporter==0.23.2
 
 phonenumbers>=8.12.0,<9.0
+
+# Image processing for thumbnails
+Pillow>=10.0.0
+boto3>=1.28.0

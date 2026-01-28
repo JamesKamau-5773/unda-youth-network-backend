@@ -1,0 +1,20 @@
+[Unit]
+Description=Gunicorn instance to serve unda
+After=network.target
+
+[Service]
+Type=simple
+User=james
+Group=james
+RuntimeDirectory=gunicorn
+WorkingDirectory=/home/james/projects/unda
+EnvironmentFile=-/etc/unda/unda.env
+# Ensure the virtualenv bin is on PATH for subprocesses
+Environment=PATH=/home/james/projects/unda/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+ExecStart=/home/james/projects/unda/.venv/bin/gunicorn --workers 3 --bind 127.0.0.1:5000 wsgi:app
+Restart=always
+RestartSec=5
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

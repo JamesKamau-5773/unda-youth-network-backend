@@ -1,0 +1,20 @@
+[Unit]
+Description=Celery worker for unda
+After=network.target
+
+[Service]
+Type=simple
+User=james
+Group=james
+WorkingDirectory=/home/james/projects/unda
+EnvironmentFile=-/etc/unda/unda.env
+# Default Redis broker; override in /etc/unda/unda.env if needed
+Environment=REDIS_URL=redis://localhost:6379/0
+Environment=PATH=/home/james/projects/unda/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+ExecStart=/home/james/projects/unda/.venv/bin/celery -A celery_worker.celery worker --loglevel=info --concurrency=2
+Restart=always
+RestartSec=10
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

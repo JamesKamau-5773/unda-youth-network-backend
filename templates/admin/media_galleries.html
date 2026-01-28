@@ -7,23 +7,29 @@
       <p class="hero-card__subtitle">Browse and manage media galleries and their items.</p>
     </div>
     <div class="hero-card__actions">
-      <a href="{{ url_for('admin.create_media_gallery') }}" class="btn btn--primary">Create Gallery</a>
+        <a href="{{ url_for('admin.create_media_gallery') }}" class="btn btn--primary">Create Gallery</a>
+        <a href="{{ url_for('admin.workstreams') }}" class="btn btn--secondary" style="margin-left:0.5rem;">Back to Workstreams</a>
     </div>
   </div>
 </div>
 
 <div class="table-container">
   <div class="table-header">
-    <h2 class="section-title">Galleries</h2>
+      <h2 class="section-title">Galleries</h2>
+      <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center;">
+        <label for="gallery-search" style="margin-right:0.5rem;color:var(--muted-color);">Search:</label>
+        <input id="gallery-search" type="search" placeholder="Filter galleries..." aria-label="Search galleries" style="flex:1; padding:0.5rem; border:1px solid var(--border-color); border-radius:6px;" />
+      </div>
   </div>
   <div class="card">
     <ul>
-    {% for g in galleries %}
-      <li style="padding:0.5rem 0; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color);">
-        <div>{{ g.title }}</div>
+      {% for g in galleries %}
+        <li class="gallery-item" data-title="{{ g.title|lower }}" style="padding:0.5rem 0; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color);">
+          <div class="gallery-title">{{ g.title }}</div>
         <div style="display:flex; gap:0.5rem;">
           <a href="{{ url_for('admin.edit_media_gallery', gallery_id=g.gallery_id) }}" class="btn btn--secondary">Edit</a>
           <form action="{{ url_for('admin.delete_media_gallery', gallery_id=g.gallery_id) }}" method="post" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button class="btn btn--secondary">Delete</button>
           </form>
         </div>
@@ -32,5 +38,21 @@
     </ul>
   </div>
 </div>
+ 
+  <script>
+  // Client-side search/filter for galleries
+  ;(function(){
+    const inp = document.getElementById('gallery-search');
+    if(!inp) return;
+    const list = Array.from(document.querySelectorAll('.gallery-item'));
+    inp.addEventListener('input', function(e){
+      const q = (e.target.value || '').trim().toLowerCase();
+      list.forEach(li => {
+        const title = li.getAttribute('data-title') || '';
+        li.style.display = q === '' || title.indexOf(q) !== -1 ? '' : 'none';
+      });
+    });
+  })();
+  </script>
 
 {% endblock %}
