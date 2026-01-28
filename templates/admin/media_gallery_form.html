@@ -2,27 +2,350 @@
 {% import 'admin/_admin_macros.html' as macros %}
 
 {% block content %}
-{{ macros.hero_header(gallery and 'Edit Media Gallery' or 'Create Media Gallery', 'Collections of images and videos used across pages') }}
+<div class="max-w-7xl mx-auto px-6 py-8">
 
-{{ macros.form_card_start() }}
-<form method="post">
-  <div class="form-group">
-    <label class="form-label">Title</label>
-    <input name="title" class="form-input" value="{{ gallery.title if gallery else '' }}" />
+  {# Page Header #}
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl font-black text-[#0B1E3B] tracking-tight">
+        {{ 'Edit Media Gallery' if gallery else 'Create Media Gallery' }}
+      </h1>
+      <p class="text-[#00838F] font-bold text-sm mt-1">
+        Manage collections of images and videos.
+      </p>
+    </div>
+    <div class="flex gap-3">
+      <a href="{{ url_for('admin.list_media_galleries') }}" class="px-5 py-2.5 rounded-xl text-sm font-bold text-[#00838F] bg-white border border-[#D6EAFC] hover:bg-[#ECF5FF] transition-colors">
+         Cancel
+       </a>
+       <button type="submit" form="galleryForm" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#00C2CB] hover:bg-[#0097A7] shadow-lg shadow-[#00C2CB]/20 transition-transform hover:-translate-y-0.5">
+         Save Gallery
+       </button>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label class="form-label">Description</label>
-    <textarea name="description" class="form-input">{{ gallery.description if gallery else '' }}</textarea>
-  </div>
+  <form method="post" enctype="multipart/form-data" id="galleryForm" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    
+    {# LEFT COLUMN: Metadata #}
+    <div class="lg:col-span-1 space-y-6">
+      <div class="bg-white p-6 rounded-[2rem] border border-[#D6EAFC] shadow-sm">
+        <h3 class="text-lg font-bold text-[#0B1E3B] mb-4 border-b border-[#D6EAFC] pb-2">Gallery Details</h3>
+        
+        <div class="space-y-4">
+          <div class="form-group">
+            <label class="block text-xs font-bold text-[#00838F] uppercase tracking-wider mb-2">Title</label>
+            <input 
+              name="title" 
+              class="w-full px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-bold outline-none transition-all placeholder-[#00838F]/40"
+              value="{{ gallery.title if gallery else '' }}" 
+              placeholder="e.g. Summer Campaign 2026"
+            />
+          </div>
 
-  <div class="form-group">
-    <label class="form-label">Media Items (JSON array)</label>
-    <textarea name="media_items" class="form-input">{{ gallery.media_items|tojson if gallery and gallery.media_items else '[]' }}</textarea>
-  </div>
+          <div class="form-group">
+            <label class="block text-xs font-bold text-[#00838F] uppercase tracking-wider mb-2">Description</label>
+            <textarea 
+              name="description" 
+              rows="4"
+              class="w-full px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-medium outline-none transition-all placeholder-[#00838F]/40 resize-none"
+              placeholder="Describe the contents of this gallery..."
+            >{{ gallery.description if gallery else '' }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  {{ macros.action_buttons('Save', url_for('admin.list_media_galleries')) }}
-</form>
-{{ macros.form_card_end() }}
+    {# RIGHT COLUMN: Media Manager #}
+    <div class="lg:col-span-2">
+      <div class="bg-white p-6 md:p-8 rounded-[2rem] border border-[#D6EAFC] shadow-sm">
+        
+        <div class="flex items-center justify-between mb-4">
+           <div class="flex flex-col">
+             <label class="text-lg font-bold text-[#0B1E3B]">Media Assets</label>
+             <span class="text-xs text-[#00838F]">Manage your gallery items</span>
+           </div>
+           <span class="badge-count" id="file-count">0 Items</span>
+        </div>
+
+        {# Error Container #}
+        <div id="error-container"></div>
+
+           {# DRAG & DROP ZONE (responsive) #}
+           <div id="drop-zone"
+             data-max-file-size="{{ max_file_size if max_file_size is defined else 10485760 }}"
+            class="w-full max-w-full relative group border-2 border-dashed border-[#D6EAFC] hover:border-[#00ACC1] bg-[#ECF5FF] hover:bg-[#D6EAFC] rounded-2xl px-6 py-8 sm:py-10 transition-all cursor-pointer text-center flex flex-col items-center justify-center space-y-3 min-h-[120px] md:min-h-[160px]">
+            
+            <div class="h-12 w-12 bg-white rounded-full flex items-center justify-center shadow-sm text-[#00ACC1]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </div>
+            
+            <div>
+                <p class="text-[#0B1E3B] font-bold text-sm">Drag & drop files here</p>
+                <button type="button" id="select-files" class="mt-2 text-[#00838F] font-bold text-xs bg-white border border-[#D6EAFC] px-3 py-1.5 rounded-lg hover:bg-[#ECF5FF] transition-colors">Select files</button>
+            </div>
+            
+            <p class="text-[#00838F]/60 text-xs">Max size: <span id="max-size-label">10 MB</span></p>
+        </div>
+        
+        <input id="file-input" type="file" name="media_files" accept="image/*,video/*" multiple class="hidden" />
+
+        {# PREVIEW GRID (responsive: auto-fit columns) #}
+        <div id="preview" class="grid gap-4 mt-6 min-h-[100px] grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 auto-rows-fr"></div>
+
+        {# Hidden textarea for syncing existing items #}
+        <textarea name="media_items" class="hidden" id="media_items">{{ gallery.media_items|tojson if gallery and gallery.media_items else '[]' }}</textarea>
+
+      </div>
+    </div>
+  </form>
+</div>
+
+
+<style>
+/* Scoped styles for dynamic elements */
+.badge-count { font-size: 12px; font-weight: bold; color: #00838F; background: #D6EAFC; padding: 2px 8px; border-radius: 99px; }
+.card { position: relative; background: #fff; border: 1px solid #E6F7F8; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s; }
+.card:hover { box-shadow: 0 4px 12px rgba(11, 30, 59, 0.05); }
+.card.deleted { border-color: #FECACA; background: #FEF2F2; opacity: 0.7; }
+.thumb-wrapper { width: 100%; background: #ECF5FF; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; aspect-ratio: 16/9; min-height: 88px; }
+.thumb { width: 100%; height: 100%; object-fit: cover; }
+.badge { position: absolute; top: 8px; left: 8px; font-size: 9px; font-weight: 800; padding: 4px 6px; border-radius: 4px; z-index: 10; letter-spacing: 0.05em; }
+.badge.saved { background: #D6EAFC; color: #006064; }
+.badge.new { background: #00C2CB; color: #fff; }
+.badge.deleted { background: #FEE2E2; color: #B91C1C; }
+.preview-meta { padding: 8px; font-size: 11px; font-weight: 600; color: #0B1E3B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-top: 1px solid #ECF5FF; }
+.preview-actions { position: absolute; top: 8px; right: 8px; z-index: 10; opacity: 0; transition: opacity 0.2s; }
+.card:hover .preview-actions { opacity: 1; }
+.preview-btn { background: rgba(255,255,255,0.9); border: 1px solid #E6F7F8; color: #DC2626; padding: 4px 6px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.preview-btn:hover { background: #FEF2F2; border-color: #FEE2E2; }
+.preview-btn.undo { color: #00838F; }
+</style>
+
+<script>
+;(function(){
+  // --- DOM ELEMENTS ---
+  const elements = {
+    fileInput: document.getElementById('file-input'),
+    selectBtn: document.getElementById('select-files'),
+    dropZone: document.getElementById('drop-zone'),
+    previewGrid: document.getElementById('preview'),
+    mediaItemsField: document.getElementById('media_items'),
+    countLabel: document.getElementById('file-count'),
+    errorContainer: document.getElementById('error-container'),
+    maxSizeLabel: document.getElementById('max-size-label')
+  };
+
+  // Defensive checks - if critical elements are missing, log and stop initialization
+  if (!elements.fileInput || !elements.selectBtn || !elements.dropZone || !elements.previewGrid) {
+    console.error('Media uploader: missing DOM elements', elements);
+    // avoid throwing so page can continue; nothing to init for uploader
+  } else {
+    // allow clicking the whole drop zone to open file picker (mobile friendly)
+    elements.dropZone.addEventListener('click', (e) => {
+      if (e.target && (e.target.tagName === 'BUTTON' || (e.target.closest && e.target.closest('button')))) return;
+      elements.fileInput.click();
+    });
+    // touch support for some mobile browsers
+    elements.dropZone.addEventListener('touchstart', () => elements.fileInput.click());
+  }
+
+  // --- CONFIG ---
+  const maxFileSize = parseInt(elements.dropZone.getAttribute('data-max-file-size') || '0', 10);
+  
+  // Set human readable max size label
+  if (maxFileSize > 0) {
+      elements.maxSizeLabel.textContent = humanSize(maxFileSize);
+  }
+
+  // --- STATE ---
+  let existingItems = [];
+  try { existingItems = JSON.parse(elements.mediaItemsField.value || '[]') || []; } catch(e) { existingItems = []; }
+  const dt = new DataTransfer();
+
+  // --- RENDERING ---
+  function render() {
+    elements.previewGrid.innerHTML = '';
+    
+    // 1. Render Existing
+    existingItems.forEach((it, idx) => {
+      const card = createCard({
+        title: it.title || it.filename || 'Untitled',
+        src: it.url,
+        type: it.type || (it.filename && it.filename.match(/\.(jpg|jpeg|png|gif)$/i) ? 'image' : 'file'),
+        status: it._deleted ? 'deleted' : 'saved',
+        onAction: () => toggleDelete(idx),
+        actionLabel: it._deleted ? 'Undo' : 'Delete'
+      });
+      elements.previewGrid.appendChild(card);
+    });
+
+    // 2. Render New
+    Array.from(dt.files).forEach((file, idx) => {
+      const card = createCard({
+        title: file.name,
+        fileObj: file,
+        type: file.type.startsWith('image/') ? 'image' : 'file',
+        status: 'new',
+        onAction: () => removeNewFile(idx),
+        actionLabel: 'Remove'
+      });
+      elements.previewGrid.appendChild(card);
+    });
+
+    updateCount();
+  }
+
+  function createCard({ title, src, fileObj, type, status, onAction, actionLabel }) {
+    const card = document.createElement('div');
+    card.className = `card ${status}`;
+
+    // Badge
+    const badge = document.createElement('div');
+    badge.className = `badge ${status}`;
+    badge.textContent = status === 'deleted' ? 'DELETED' : (status === 'new' ? 'NEW' : 'SAVED');
+    
+    // Action Button
+    const actions = document.createElement('div');
+    actions.className = 'preview-actions';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `preview-btn ${actionLabel === 'Undo' ? 'undo' : ''}`;
+    btn.innerHTML = actionLabel === 'Undo' ? 'UNDO' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+    btn.onclick = onAction;
+    actions.appendChild(btn);
+
+    // Thumbnail
+    const thumbWrap = document.createElement('div');
+    thumbWrap.className = 'thumb-wrapper';
+    
+    if (type === 'image') {
+      const img = document.createElement('img');
+      img.className = 'thumb';
+      if (fileObj) {
+        const reader = new FileReader();
+        reader.onload = e => img.src = e.target.result;
+        reader.readAsDataURL(fileObj);
+      } else {
+        img.src = src || '';
+      }
+      thumbWrap.appendChild(img);
+    } else {
+      const icon = document.createElement('div');
+      icon.className = 'text-[#00ACC1] font-bold text-xs';
+      icon.textContent = 'VIDEO / FILE';
+      thumbWrap.appendChild(icon);
+    }
+
+    // Meta
+    const meta = document.createElement('div');
+    meta.className = 'preview-meta';
+    meta.textContent = title;
+
+    card.appendChild(badge);
+    card.appendChild(actions);
+    card.appendChild(thumbWrap);
+    card.appendChild(meta);
+
+    return card;
+  }
+
+  // --- LOGIC ---
+  function showError(msg) {
+    const err = document.createElement('div');
+    err.className = 'bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-r text-sm font-bold flex items-center animate-pulse';
+    err.innerHTML = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> ${msg}`;
+    elements.errorContainer.innerHTML = '';
+    elements.errorContainer.appendChild(err);
+    setTimeout(() => err.remove(), 5000);
+  }
+
+  function humanSize(bytes){
+    if(bytes===0) return '0 B';
+    const units = ['B','KB','MB','GB'];
+    let i=0; let n = bytes;
+    while(n>=1024 && i<units.length-1){ n/=1024; i++; }
+    return `${n.toFixed(1)} ${units[i]}`;
+  }
+
+  function handleAddFiles(files) {
+    let hasError = false;
+    Array.from(files).forEach(f => {
+      if (maxFileSize > 0 && f.size > maxFileSize) {
+        showError(`File too large: ${f.name} (${humanSize(f.size)}). Max: ${humanSize(maxFileSize)}`);
+        hasError = true;
+        return;
+      }
+      dt.items.add(f);
+    });
+    
+    if (!hasError) {
+        elements.fileInput.files = dt.files;
+        render();
+    }
+  }
+
+  function removeNewFile(index) {
+    const files = Array.from(dt.files);
+    files.splice(index, 1);
+    dt.items.clear();
+    files.forEach(f => dt.items.add(f));
+    elements.fileInput.files = dt.files;
+    render();
+  }
+
+  function toggleDelete(index) {
+    existingItems[index]._deleted = !existingItems[index]._deleted;
+    syncHidden();
+    render();
+  }
+
+  function syncHidden() {
+    const kept = existingItems.filter(it => !it._deleted).map(it => {
+      const copy = { ...it };
+      delete copy._deleted;
+      return copy;
+    });
+    elements.mediaItemsField.value = JSON.stringify(kept);
+  }
+
+  function updateCount() {
+    const total = existingItems.filter(i => !i._deleted).length + dt.files.length;
+    elements.countLabel.textContent = `${total} Items`;
+  }
+
+  // --- EVENTS ---
+  elements.selectBtn.addEventListener('click', () => elements.fileInput.click());
+  elements.fileInput.addEventListener('change', (e) => handleAddFiles(e.target.files));
+
+  ['dragenter','dragover'].forEach(evt => {
+    elements.dropZone.addEventListener(evt, (e) => {
+      e.preventDefault(); 
+      elements.dropZone.classList.add('bg-[#D6EAFC]', 'border-[#00ACC1]');
+    });
+  });
+
+  ['dragleave','drop'].forEach(evt => {
+    elements.dropZone.addEventListener(evt, (e) => {
+      e.preventDefault(); 
+      elements.dropZone.classList.remove('bg-[#D6EAFC]', 'border-[#00ACC1]');
+    });
+  });
+
+  elements.dropZone.addEventListener('drop', (e) => {
+    if (e.dataTransfer && e.dataTransfer.files.length) {
+      handleAddFiles(e.dataTransfer.files);
+    }
+  });
+
+  // Init
+  syncHidden();
+  render();
+  const form = document.querySelector('form');
+  if (form) form.addEventListener('submit', syncHidden);
+
+})();
+</script>
 
 {% endblock %}
+

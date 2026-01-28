@@ -5,6 +5,7 @@
 
 {{ macros.form_card_start() }}
 <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="form-group">
     <label class="form-label">Title</label>
     <input name="title" class="form-input" value="{{ resource.title if resource else '' }}" />

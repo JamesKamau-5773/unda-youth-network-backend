@@ -91,6 +91,18 @@ def build_info():
     return jsonify(info)
 
 
+@dev.route('/whoami')
+@require_dev_key
+def whoami():
+    """Return current_user identity for debugging (developer-only route)."""
+    from flask_login import current_user
+    return jsonify({
+        'is_authenticated': bool(getattr(current_user, 'is_authenticated', False)),
+        'username': getattr(current_user, 'username', None),
+        'role': getattr(current_user, 'role', None)
+    })
+
+
 @dev.route('/dashboard')
 @require_dev_key
 def dashboard():

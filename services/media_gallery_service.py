@@ -2,6 +2,8 @@ import json
 from datetime import datetime, timezone
 from models import db, MediaGallery
 from services.file_utils import save_file
+from flask import current_app
+from tasks.media_tasks import generate_and_store_thumbnail
 
 
 def _parse_media_items(val):
@@ -23,13 +25,15 @@ def create_media_gallery(data: dict, creator_id: int) -> MediaGallery:
     description = data.get('description')
     media_items = data.get('media_items')
 
-    # If file objects provided, save them and produce media metadata list
+    # If file objects provided, save them and produce media metadata list.
+    # Thumbnail generation is queued to a background task to avoid blocking requests.
     if media_items and isinstance(media_items, (list, tuple)):
         parsed = []
         for m in media_items:
             if hasattr(m, 'filename') and hasattr(m, 'save'):
                 path = save_file(m, subdir='media_galleries')
-                parsed.append({'type': 'file', 'path': path, 'filename': m.filename})
+                # do not block: enqueue thumbnail generation and store empty thumbnail for now
+                parsed.append({'type': 'file', 'path': path, 'thumbnail': '', 'filename': m.filename})
             else:
                 parsed.append(m)
         media_items = parsed
@@ -63,7 +67,7 @@ def update_media_gallery(gallery_id: int, data: dict) -> MediaGallery:
             for m in media_items:
                 if hasattr(m, 'filename') and hasattr(m, 'save'):
                     path = save_file(m, subdir='media_galleries')
-                    parsed.append({'type': 'file', 'path': path, 'filename': m.filename})
+                    parsed.append({'type': 'file', 'path': path, 'thumbnail': '', 'filename': m.filename})
                 else:
                     parsed.append(m)
             gallery.media_items = parsed
@@ -71,6 +75,20 @@ def update_media_gallery(gallery_id: int, data: dict) -> MediaGallery:
             gallery.media_items = _parse_media_items(media_items)
     gallery.updated_at = datetime.now(timezone.utc)
     db.session.commit()
+    # Queue thumbnail generation for any newly saved image files
+    try:
+        items = gallery.media_items or []
+        for it in items:
+            if isinstance(it, dict) and it.get('type') == 'file' and not it.get('thumbnail'):
+                fn = it.get('filename','').lower()
+                if any(fn.endswith(ext) for ext in ('.png','.jpg','.jpeg','.gif')):
+                    try:
+                        generate_and_store_thumbnail.delay(gallery.id, it.get('path'))
+                    except Exception:
+                        current_app.logger.exception('Failed to enqueue thumbnail task')
+    except Exception:
+        current_app.logger.exception('Error scheduling thumbnail tasks')
+
     return gallery
 
 

@@ -1,128 +1,273 @@
-{% extends "base.html" %}
-
-{% block title %}Symbolic Items - Admin Dashboard{% endblock %}
-
-{% block content %}
-<div class="hero-card">
-    <div class="hero-card__inner">
-        <div>
-            <h1 class="hero-card__title">Symbolic Items</h1>
-            <p class="hero-card__subtitle">Manage badges, kits, and certificates inventory</p>
-        </div>
-        <div class="hero-card__actions">
-            <a href="{{ url_for('admin.symbolic_item_form') }}" class="btn btn--success">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                Add New Item
-            </a>
-            <a href="{{ url_for('admin.workstreams') }}" class="btn btn--secondary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-                Back
-            </a>
-        </div>
+{% extends "admin/base.html" %} {% block title %}Symbolic Items - Admin
+Dashboard{% endblock %} {% block content %}
+<div class="max-w-7xl mx-auto px-6 py-8">
+  {# Page Header #}
+  <div
+    class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8"
+  >
+    <div>
+      <h1 class="text-3xl font-black text-[#0B1E3B] tracking-tight">
+        Symbolic Items
+      </h1>
+      <p class="text-[#006064] font-bold text-sm mt-1">
+        Manage badges, kits, and certificates inventory.
+      </p>
     </div>
-</div>
 
-<!-- Filters -->
-<div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <form method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
-        <div style="flex: 1; min-width: 200px;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Item Type</label>
-            <select name="type" class="form-input">
-                <option value="">All Types</option>
-                {% for type in item_types %}
-                <option value="{{ type }}" {% if item_type_filter == type %}selected{% endif %}>{{ type }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: #374151;">
-                <input type="checkbox" name="active" value="true" {% if active_only %}checked{% endif %} style="width: 18px; height: 18px;">
-                Active Only
-            </label>
-        </div>
-        <button type="submit" class="btn btn--primary">Filter</button>
-        <a href="{{ url_for('admin.symbolic_items') }}" class="btn btn--secondary">Reset</a>
+    <div class="flex gap-3">
+      {# Back Button #}
+      <a
+        href="{{ url_for('admin.workstreams') }}"
+        class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-[#00838F] bg-white border border-[#D6EAFC] hover:bg-[#ECF5FF] transition-colors"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back
+      </a>
+
+      {# Add New Button #}
+      <a
+        href="{{ url_for('admin.symbolic_item_form') }}"
+        class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#00838F] hover:bg-[#006064] shadow-lg shadow-[#00838F]/20 transition-transform hover:-translate-y-0.5"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Add New Item
+      </a>
+    </div>
+  </div>
+
+  {# Filter Bar #}
+  <div
+    class="bg-white rounded-[2rem] border border-[#D6EAFC] p-6 mb-8 shadow-sm"
+  >
+    <form method="GET" class="flex flex-col md:flex-row gap-4 items-end">
+      <div class="w-full md:w-auto flex-1">
+        <label
+          class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2"
+          >Item Type</label
+        >
+        <select
+          name="type"
+          class="w-full px-4 py-2.5 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-bold outline-none transition-all"
+        >
+          <option value="">All Types</option>
+          {% for type in item_types %}
+          <option value="{{ type }}" {% if item_type_filter == type %}selected{% endif %}>
+            {{ type }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="flex items-center gap-3 pb-3">
+        <label class="inline-flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name="active"
+            value="true"
+            {%
+            if
+            active_only
+            %}checked{%
+            endif
+            %}
+            class="w-5 h-5 rounded border-[#D6EAFC] text-[#00838F] focus:ring-[#00ACC1]"
+          />
+          <span class="text-sm font-bold text-[#006064]">Active Only</span>
+        </label>
+      </div>
+
+      <div class="flex gap-2 w-full md:w-auto">
+        <button
+          type="submit"
+          class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#00838F] hover:bg-[#006064] flex-1 md:flex-none transition-colors"
+        >
+          Filter
+        </button>
+        <a
+          href="{{ url_for('admin.symbolic_items') }}"
+          class="px-6 py-2.5 rounded-xl text-sm font-bold text-[#00838F] bg-[#ECF5FF] border border-[#D6EAFC] hover:bg-[#D6EAFC] flex-1 md:flex-none text-center transition-colors"
+        >
+          Reset
+        </a>
+      </div>
     </form>
-</div>
+  </div>
 
-<!-- Items Grid -->
-{% if items %}
-<div class="grid" style="gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));">
-    {% for item in items %}
-    <div class="tile" style="border-left: 4px solid {% if item.is_active %}#2563eb{% else %}#ef4444{% endif %};">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-            <div>
-                <h3 style="margin: 0; font-size: 1.125rem; color: #111827;">{{ item.item_name }}</h3>
-                <p style="margin: 0.5rem 0 0 0; color: #6b7280; font-size: 0.875rem;">{{ item.item_type }}</p>
-            </div>
-            <div class="pill pill--{{ 'primary' if item.is_active else 'danger' }}">
-                {{ 'Active' if item.is_active else 'Inactive' }}
-            </div>
+  {# Items Grid #} {% if items %}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for item in items %} {% set available = item.total_quantity -
+    (item.distributed_quantity or 0) %} {% set percent = (available /
+    item.total_quantity * 100) if item.total_quantity > 0 else 0 %}
+
+    <div
+      class="group bg-white rounded-[2rem] border border-[#D6EAFC] p-6 hover:shadow-lg hover:shadow-[#00C2CB]/10 hover:border-[#D6EAFC] transition-all flex flex-col h-full"
+    >
+      {# Card Header #}
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-[#0B1E3B] leading-tight">
+            {{ item.item_name }}
+          </h3>
+          <p
+            class="text-xs font-bold text-[#00838F] uppercase mt-1 tracking-wide"
+          >
+            {{ item.item_type }}
+          </p>
+        </div>
+          <span
+          class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider
+            {{ 'bg-[#D6EAFC] text-[#006064]' if item.is_active else 'bg-red-50 text-red-600' }}"
+        >
+          {{ 'Active' if item.is_active else 'Inactive' }}
+        </span>
+      </div>
+
+      {# Description #} {% if item.description %}
+      <div
+        class="text-sm text-[#006064] font-medium leading-relaxed mb-6 line-clamp-2 flex-grow"
+      >
+        {{ item.description }}
+      </div>
+      {% endif %} {# Inventory Stats #}
+      <div class="bg-[#ECF5FF] rounded-2xl p-4 mb-6 border border-[#D6EAFC]">
+        <div class="flex justify-between items-end mb-2">
+          <div>
+            <span class="text-[10px] font-bold text-[#00838F] uppercase block"
+              >Available</span
+            >
+            <span
+              class="text-2xl font-black {{ 'text-red-500' if available <= 5 else 'text-[#0B1E3B]' }}"
+              >{{ available }}</span
+            >
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] font-bold text-[#00838F] uppercase block"
+              >Total</span
+            >
+            <span class="text-sm font-bold text-[#006064]"
+              >{{ item.total_quantity }}</span
+            >
+          </div>
         </div>
 
-        {% if item.description %}
-        <div style="margin-bottom: 1rem; padding: 0.75rem; background: #f3f4f6; border-radius: 6px; font-size: 0.875rem; color: #4b5563;">
-            {{ item.description }}
+        {# Progress Bar #}
+        <div
+          class="h-2 w-full bg-white rounded-full overflow-hidden border border-[#D6EAFC]"
+        >
+          <div
+            class="h-full rounded-full {{ 'bg-red-500' if available <= 5 else 'bg-[#00ACC1]' }}"
+            style="width: {{ percent }}%"
+          ></div>
         </div>
-        {% endif %}
+      </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
-            <div style="padding: 0.75rem; background: #eff6ff; border-radius: 6px; border-left: 3px solid #2563eb;">
-                <div style="font-size: 0.75rem; color: #1e40af; text-transform: uppercase; font-weight: 600;">Total</div>
-                <div style="font-size: 1.5rem; color: #2563eb; font-weight: 700;">{{ item.total_quantity }}</div>
-            </div>
-            {% set available = item.total_quantity - (item.distributed_quantity or 0) %}
-            <div style="padding: 0.75rem; background: {% if available <= 5 %}#fef2f2{% else %}#f0fdf4{% endif %}; border-radius: 6px; border-left: 3px solid {% if available <= 5 %}#ef4444{% else %}#10b981{% endif %};">
-                <div style="font-size: 0.75rem; {% if available <= 5 %}color: #991b1b{% else %}color: #065f46{% endif %}; text-transform: uppercase; font-weight: 600;">Available</div>
-                <div style="font-size: 1.5rem; {% if available <= 5 %}color: #ef4444{% else %}color: #10b981{% endif %}; font-weight: 700;">{{ available }}</div>
-            </div>
-        </div>
+      {# Training Link #} {% if item.linked_to_training_module %}
+      <div
+        class="flex items-center gap-2 mb-6 px-3 py-2 bg-[#ECF5FF] rounded-xl border border-[#D6EAFC]"
+      >
+        <svg
+          class="w-4 h-4 text-[#00ACC1]"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+          />
+        </svg>
+        <span class="text-xs font-bold text-[#006064] truncate"
+          >Linked: {{ item.linked_to_training_module }}</span
+        >
+      </div>
+      {% endif %} {# Actions #}
+      <div class="flex gap-3 mt-auto pt-4 border-t border-[#D6EAFC]">
+        <a
+          href="{{ url_for('admin.symbolic_item_edit', item_id=item.item_id) }}"
+          class="flex-1 py-2.5 rounded-xl text-center text-sm font-bold text-[#00838F] bg-white border border-[#D6EAFC] hover:bg-[#ECF5FF] hover:border-[#D6EAFC] transition-colors"
+        >
+          Edit
+        </a>
 
-        {% if item.linked_to_training_module %}
-        <div style="padding: 0.75rem; background: #f5f3ff; border-radius: 6px; margin-bottom: 1rem; font-size: 0.875rem;">
-            <strong style="color: #6e21a0;">Linked to:</strong> {{ item.linked_to_training_module }}
-        </div>
-        {% endif %}
-
-        <div style="display: flex; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-            <a href="{{ url_for('admin.symbolic_item_edit', item_id=item.item_id) }}" class="btn btn--primary btn--block" style="flex: 1;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-                Edit
-            </a>
-            <form method="POST" action="{{ url_for('admin.symbolic_item_delete', item_id=item.item_id) }}" style="flex: 1;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn--danger btn--block" onclick="return confirm('Delete this item?')">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>
-                    Delete
-                </button>
-            </form>
-        </div>
+        <form
+          method="POST"
+          action="{{ url_for('admin.symbolic_item_delete', item_id=item.item_id) }}"
+          class="flex-1"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button
+            type="submit"
+            class="w-full py-2.5 rounded-xl text-center text-sm font-bold text-red-500 bg-white border border-[#D6EAFC] hover:bg-red-50 hover:border-red-100 transition-colors"
+            onclick="return confirm('Delete this item?');"
+          >
+            Delete
+          </button>
+        </form>
+      </div>
     </div>
     {% endfor %}
-</div>
-{% else %}
-<div class="tile" style="text-align: center; padding: 3rem;">
-    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1" style="margin: 0 auto 1rem;">
+  </div>
+  {% else %} {# Empty State #}
+      <div
+    class="p-16 text-center flex flex-col items-center bg-white rounded-[2rem] border border-[#D6EAFC] shadow-sm"
+  >
+    <div
+      class="h-20 w-20 bg-[#ECF5FF] rounded-full flex items-center justify-center mb-4 border border-[#D6EAFC]"
+    >
+      <svg
+        width="40"
+        height="40"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#00838F"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="opacity-50"
+      >
         <circle cx="9" cy="21" r="1"></circle>
         <circle cx="20" cy="21" r="1"></circle>
-        <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"></path>
-    </svg>
-    <h3 style="color: #6b7280; margin-bottom: 0.5rem;">No Items</h3>
-    <p style="color: #9ca3af; margin: 0 0 1rem 0;">No symbolic items found. Create your first item!</p>
-    <a href="{{ url_for('admin.symbolic_item_form') }}" class="btn btn--success">Create Item</a>
+        <path
+          d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
+        ></path>
+      </svg>
+    </div>
+    <h3 class="text-[#0B1E3B] font-bold text-xl">Inventory Empty</h3>
+    <p class="text-[#006064] text-sm mt-2 mb-8 font-medium">
+      No symbolic items found matching your filters.
+    </p>
+    <a
+      href="{{ url_for('admin.symbolic_item_form') }}"
+      class="px-8 py-3 rounded-xl text-sm font-bold text-white bg-[#00838F] hover:bg-[#006064] shadow-lg shadow-[#00838F]/20 transition-transform hover:-translate-y-0.5"
+    >
+      Create First Item
+    </a>
+  </div>
+  {% endif %}
 </div>
-{% endif %}
-
 {% endblock %}

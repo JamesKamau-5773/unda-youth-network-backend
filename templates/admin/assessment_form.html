@@ -8,6 +8,7 @@
 
 {{ macros.form_card_start() }}
 <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="form-group">
     <label class="form-label">Champion Code *</label>
     <input name="champion_code" class="form-input" required />

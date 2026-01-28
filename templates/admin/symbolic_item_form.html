@@ -1,107 +1,265 @@
-{% extends "base.html" %}
-
-{% block title %}{% if action == 'Edit' %}Edit{% else %}Create{% endif %} Symbolic Item - Admin Dashboard{% endblock %}
-
-{% block content %}
-<div class="hero-card">
-    <div class="hero-card__inner">
-        <div>
-            <h1 class="hero-card__title">{% if action == 'Edit' %}Edit{% else %}Create{% endif %} Symbolic Item</h1>
-            <p class="hero-card__subtitle">{% if action == 'Edit' %}Update item details{% else %}Create a new symbolic item (badge, kit, or certificate){% endif %}</p>
-        </div>
-        <div class="hero-card__actions">
-            <a href="{{ url_for('admin.symbolic_items') }}" class="btn btn--secondary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-                Back to Items
-            </a>
-        </div>
+{% extends "base.html" %} {% block title %}{{ action }} Symbolic Item - Admin
+Dashboard{% endblock %} {% block content %}
+<div class="max-w-7xl mx-auto px-6 py-8">
+  {# Page Header #}
+  <div
+    class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8"
+  >
+    <div>
+      <h1 class="text-3xl font-black text-[#0B1E3B] tracking-tight">
+        {{ action }} Symbolic Item
+      </h1>
+      <p class="text-[#006064] font-bold text-sm mt-1">
+        {% if action == 'Edit' %}Update inventory details and stock levels.{%
+        else %}Add a new badge, kit, or certificate to inventory.{% endif %}
+      </p>
     </div>
-</div>
 
-<div class="tile" style="max-width: 800px;">
-    <form method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="form-group">
-            <label for="item_name" class="form-label">Item Name *</label>
-            <input type="text" id="item_name" name="item_name" class="form-input" required placeholder="e.g., Leadership Badge, Advocate Kit"
-                   value="{% if item %}{{ item.item_name }}{% endif %}">
+    <div class="flex gap-3">
+      {# Cancel Button #}
+      <a
+        href="{{ url_for('admin.symbolic_items') }}"
+        class="px-5 py-2.5 rounded-xl text-sm font-bold text-[#00838F] bg-white border border-[#D6EAFC] hover:bg-[#ECF5FF] transition-colors"
+      >
+        Cancel
+      </a>
+      {# Save Button #}
+      <button
+        type="submit"
+        form="symbolicForm"
+        class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#00838F] hover:bg-[#006064] shadow-lg shadow-[#00838F]/20 transition-transform hover:-translate-y-0.5"
+      >
+        {{ action }} Item
+      </button>
+    </div>
+  </div>
+
+  <form
+    method="POST"
+    id="symbolicForm"
+    class="grid grid-cols-1 lg:grid-cols-3 gap-8"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+    {# LEFT COLUMN: Identity & Tips #}
+    <div class="lg:col-span-1 space-y-6">
+      {# Identity Card #}
+      <div
+        class="bg-white p-6 rounded-[2rem] border border-[#D6EAFC] shadow-sm"
+      >
+        <h3
+          class="text-lg font-bold text-[#0B1E3B] mb-6 border-b border-[#D6EAFC] pb-2"
+        >
+          Item Identity
+        </h3>
+
+        <div class="space-y-6">
+          <div class="form-group">
+            <label
+              for="item_name"
+              class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2"
+              >Item Name</label
+            >
+            <input
+              type="text"
+              id="item_name"
+              name="item_name"
+              required
+              class="w-full px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-bold outline-none transition-all placeholder-[#00838F]/40"
+              placeholder="e.g. Leadership Badge"
+              value="{{ item.item_name if item else '' }}"
+            />
+          </div>
+
+          <div class="form-group">
+            <label
+              for="item_type"
+              class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2"
+              >Item Type</label
+            >
+            <input
+              type="text"
+              id="item_type"
+              name="item_type"
+              required
+              list="types_list"
+              class="w-full px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-bold outline-none transition-all placeholder-[#00838F]/40"
+              placeholder="Select or Type..."
+              value="{{ item.item_type if item else '' }}"
+            />
+            <datalist id="types_list">
+              <option value="Badge"></option>
+              <option value="Kit"></option>
+              <option value="Certificate"></option>
+              <option value="Award"></option>
+              <option value="Training Material"></option>
+            </datalist>
+          </div>
+
+          {% if action == 'Edit' %}
+          <div
+            class="flex items-center gap-3 p-4 bg-[#ECF5FF] rounded-xl border border-[#D6EAFC]"
+          >
+            <input
+              type="checkbox"
+              name="is_active"
+              id="is_active"
+              value="on"
+              {%
+              if
+              item
+              and
+              item.is_active
+              %}checked{%
+              endif
+              %}
+              class="w-5 h-5 rounded border-[#D6EAFC] text-[#00838F] focus:ring-[#00ACC1] cursor-pointer"
+            />
+            <label
+              for="is_active"
+              class="text-sm font-bold text-[#006064] cursor-pointer"
+              >Active Inventory</label
+            >
+          </div>
+          {% endif %}
         </div>
+      </div>
 
-        <div class="grid grid--2-col">
+          {# Helper Box (Replaced the yellow box with branded colors) #}
+      <div class="bg-[#ECF5FF] p-6 rounded-[2rem] border border-[#D6EAFC]">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="p-1.5 bg-white rounded-full text-[#00838F] shadow-sm">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </div>
+          <h4 class="text-sm font-bold text-[#0B1E3B]">Inventory Tips</h4>
+        </div>
+        <ul class="space-y-2 text-xs font-medium text-[#006064]">
+          <li class="flex gap-2">
+            <span class="text-[#00ACC1]">•</span> Set total quantity based on
+            current stock.
+          </li>
+          <li class="flex gap-2">
+            <span class="text-[#00ACC1]">•</span> Link items to modules to track
+            usage.
+          </li>
+          <li class="flex gap-2">
+            <span class="text-[#00ACC1]">•</span> Distribution is tracked
+            automatically.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    {# RIGHT COLUMN: Inventory & Details #}
+    <div class="lg:col-span-2 space-y-6">
+      <div
+        class="bg-white p-6 md:p-8 rounded-[2rem] border border-[#D6EAFC] shadow-sm h-full flex flex-col"
+      >
+        <h3
+          class="text-lg font-bold text-[#0B1E3B] mb-6 border-b border-[#D6EAFC] pb-2"
+        >
+          Inventory Details
+        </h3>
+
+        <div class="flex-1 space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="form-group">
-                <label for="item_type" class="form-label">Item Type *</label>
-                <input type="text" id="item_type" name="item_type" class="form-input" required placeholder="e.g., Badge, Kit, Certificate"
-                       list="types_list" value="{% if item %}{{ item.item_type }}{% endif %}">
-                <datalist id="types_list">
-                    <option value="Badge">
-                    <option value="Kit">
-                    <option value="Certificate">
-                    <option value="Award">
-                    <option value="Training Material">
-                </datalist>
+              <label
+                for="total_quantity"
+                class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2"
+                >Total Quantity</label
+              >
+              <input
+                type="number"
+                id="total_quantity"
+                name="total_quantity"
+                required
+                min="0"
+                class="w-full px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-bold outline-none transition-all placeholder-[#00838F]/40"
+                value="{{ item.total_quantity if item else 0 }}"
+              />
             </div>
 
             <div class="form-group">
-                <label for="total_quantity" class="form-label">Total Quantity *</label>
-                <input type="number" id="total_quantity" name="total_quantity" class="form-input" required min="0" 
-                       value="{% if item %}{{ item.total_quantity }}{% else %}0{% endif %}">
+              <label
+                for="linked_to_training_module"
+                class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2"
+                >Linked Module (Optional)</label
+              >
+              <input
+                type="text"
+                name="linked_to_training_module"
+                id="linked_to_training_module"
+                class="w-full px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-bold outline-none transition-all placeholder-[#00838F]/40"
+                placeholder="e.g. MHR-T Level 1"
+                value="{{ item.linked_to_training_module if item else '' }}"
+              />
             </div>
-        </div>
+          </div>
 
-        <div class="form-group">
-            <label for="description" class="form-label">Description</label>
-            <textarea id="description" name="description" class="form-input" rows="4" placeholder="Describe this item...">{% if item %}{{ item.description }}{% endif %}</textarea>
-        </div>
-
-        <div class="form-group">
-            <label for="linked_to_training_module" class="form-label">Linked to Training Module</label>
-            <input type="text" name="linked_to_training_module" class="form-input" placeholder="e.g., MHR-T Level 1, Safeguarding"
-                   value="{% if item %}{{ item.linked_to_training_module }}{% endif %}">
-            <small style="color: #6b7280; display: block; margin-top: 0.5rem;">Optional: Link to a specific training module</small>
-        </div>
-
-        {% if action == 'Edit' %}
-        <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: #334155; cursor: pointer;">
-                <input type="checkbox" name="is_active" value="on" {% if item and item.is_active %}checked{% endif %} style="width: 18px; height: 18px;">
-                <span>Active</span>
-            </label>
-        </div>
-
-        <div style="padding: 1rem; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 6px;">
-            <div style="font-size: 0.875rem; color: #065f46;">
-                <strong>Available Quantity:</strong> {{ (item.total_quantity - (item.distributed_quantity or 0)) if item else 0 }}<br>
-                <strong>Distributed:</strong> {{ item.distributed_quantity if item else 0 }}
+          {# Visual Stats for Edit Mode #} {% if action == 'Edit' and item %}
+          <div
+            class="grid grid-cols-3 gap-4 p-4 rounded-xl bg-[#ECF5FF] border border-[#D6EAFC]"
+          >
+            <div class="text-center">
+              <span class="block text-[10px] font-bold text-[#00838F] uppercase"
+                >Initial Stock</span
+              >
+              <span class="block text-xl font-black text-[#0B1E3B]"
+                >{{ item.total_quantity }}</span
+              >
             </div>
+            <div class="text-center border-x border-[#D6EAFC]">
+              <span class="block text-[10px] font-bold text-[#00838F] uppercase"
+                >Distributed</span
+              >
+              <span class="block text-xl font-black text-[#0B1E3B]"
+                >{{ item.distributed_quantity or 0 }}</span
+              >
+            </div>
+            <div class="text-center">
+              <span class="block text-[10px] font-bold text-[#00838F] uppercase"
+                >Current Stock</span
+              >
+              <span
+                class="block text-xl font-black {{ 'text-red-500' if (item.total_quantity - (item.distributed_quantity or 0)) < 10 else 'text-[#00ACC1]' }}"
+              >
+                {{ item.total_quantity - (item.distributed_quantity or 0) }}
+              </span>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="form-group flex-1 flex flex-col">
+            <label
+              for="description"
+              class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2"
+              >Description</label
+            >
+            <textarea
+              id="description"
+              name="description"
+              rows="6"
+              class="w-full flex-1 min-h-[150px] px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-medium outline-none transition-all placeholder-[#00838F]/40 resize-none leading-relaxed"
+              placeholder="Describe the purpose and contents of this item..."
+            >
+{{ item.description if item else '' }}</textarea
+            >
+          </div>
         </div>
-        {% endif %}
-
-        <div style="display: flex; gap: 0.75rem;">
-            <button type="submit" class="btn btn--success">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
-                {% if action == 'Edit' %}Update{% else %}Create{% endif %} Item
-            </button>
-            <a href="{{ url_for('admin.symbolic_items') }}" class="btn btn--secondary">Cancel</a>
-        </div>
-    </form>
+      </div>
+    </div>
+  </form>
 </div>
-
-<!-- Help Section -->
-<div style="margin-top: 2rem; padding: 1.5rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
-    <h3 style="margin: 0 0 0.5rem 0; color: #92400e;">Inventory Management Tips</h3>
-    <ul style="margin: 0; color: #a16207; font-size: 0.875rem; padding-left: 1.25rem;">
-        <li>Set total quantity based on your current stock</li>
-        <li>Link items to training modules for better tracking</li>
-        <li>System alerts when stock falls below 5 items</li>
-        <li>Distribution records track where items go</li>
-        <li>Use consistent naming for easy searching</li>
-    </ul>
-</div>
-
 {% endblock %}

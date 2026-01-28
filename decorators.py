@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import abort, redirect, url_for, flash, current_app
+from flask import abort, redirect, url_for, flash, current_app, request
 import os
 from flask_login import current_user
 
@@ -7,8 +7,19 @@ def roles_required(*roles):
   def wrapper(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+      try:
+        current_app.logger.info(
+          f"roles_required ENTRY: endpoint={getattr(request,'endpoint',None)} path={getattr(request,'path',None)} method={getattr(request,'method',None)} "
+          + f"current_user={getattr(current_user,'username',None)} role={getattr(current_user,'role',None)} allowed={roles} cookies={list(request.cookies.keys())}"
+        )
+      except Exception:
+        pass
       # Require authentication
       if not current_user.is_authenticated:
+        try:
+          current_app.logger.info(f"roles_required: unauthenticated request to {request.path}; cookies={list(request.cookies.keys())}")
+        except Exception:
+          pass
         flash('Please log in to access this page.', 'warning')
         return redirect(url_for('auth.login'))
 
@@ -21,6 +32,10 @@ def roles_required(*roles):
         user_role = 'Prevention Advocate'
 
       if user_role.lower() not in [r.lower() for r in allowed]:
+        try:
+          current_app.logger.info(f"roles_required: role mismatch - user_role={user_role} allowed={allowed} redirecting; endpoint={request.endpoint} path={request.path}")
+        except Exception:
+          pass
         flash('Access denied. You do not have the required permissions.', 'danger')
         # Redirect to user's appropriate dashboard instead of main.index
         if user_role.lower() == 'admin':
