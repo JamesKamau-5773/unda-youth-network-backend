@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#f8fafc">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Mental Health Assessments - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-navy': '#0f172a',
+                        'trust-blue': '#3b82f6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    
+    
+    <style>
+    /* Tooltip Styles */
+    .tooltip-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: help;
+        margin-left: 0.5rem;
+        position: relative;
+        vertical-align: middle;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    
+    .tooltip-trigger:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 400;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        pointer-events: none;
+        max-width: 250px;
+        white-space: normal;
+        text-align: left;
+        line-height: 1.4;
+    }
+    
+    .tooltip-trigger:hover::before {
+        content: '';
+        position: absolute;
+        bottom: calc(100% + 2px);
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: #1e293b;
+        z-index: 1001;
+    }
+    
+    /* Loading Spinner */
+    .btn-loading {
+        position: relative;
+        pointer-events: none;
+        opacity: 0.7;
+    }
+    
+    .btn-loading::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spinner 0.6s linear infinite;
+    }
+    
+    @keyframes spinner {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Empty State Styles */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #64748b;
+    }
+    
+    .empty-state-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1rem;
+        opacity: 0.8;
+        color: #3b82f6;
+    }
+    
+    .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .empty-state-text {
+        font-size: 0.9375rem;
+        margin-bottom: 1.5rem;
+        color: #64748b;
+    }
+    
+    .empty-state-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background-color: #2563eb;
+        color: white;
+        text-decoration: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: background-color 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+    
+    .empty-state-action:hover {
+        background-color: #1d4ed8;
+    }
+    
+
+    /* Password Strength Indicator */
+    .password-strength {
+        height: 4px;
+        background-color: #e2e8f0;
+        border-radius: 2px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .password-strength-bar {
+        height: 100%;
+        transition: width 0.3s, background-color 0.3s;
+        width: 0%;
+    }
+    
+    .password-strength-bar.weak { width: 33%; background-color: #ef4444; }
+    .password-strength-bar.medium { width: 66%; background-color: #f59e0b; }
+    .password-strength-bar.strong { width: 100%; background-color: #10b981; }
+    
+    .password-strength-text {
+        font-size: 0.8125rem;
+        margin-top: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .password-strength-text.weak { color: #ef4444; }
+    .password-strength-text.medium { color: #f59e0b; }
+    .password-strength-text.strong { color: #10b981; }
+    
+    /* Form Field Validation Indicators */
+    .form-field-wrapper {
+        position: relative;
+    }
+    
+    .form-field-wrapper .validation-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        display: none;
+    }
+    
+    .form-field-wrapper.valid .validation-icon.checkmark,
+    .form-field-wrapper.invalid .validation-icon.x-mark {
+        display: block;
+    }
+    
+    .validation-icon.checkmark {
+        color: #10b981;
+    }
+    
+    .validation-icon.x-mark {
+        color: #ef4444;
+    }
+    
+    .form-field-wrapper.valid input,
+    .form-field-wrapper.valid select,
+    .form-field-wrapper.valid textarea {
+        border-color: #10b981;
+        padding-right: 2.75rem;
+    }
+    
+    .form-field-wrapper.invalid input,
+    .form-field-wrapper.invalid select,
+    .form-field-wrapper.invalid textarea {
+        border-color: #ef4444;
+        padding-right: 2.75rem;
+    }
+    
+    .field-error-message {
+        display: none;
+        font-size: 0.8125rem;
+        color: #ef4444;
+        margin-top: 0.375rem;
+        font-weight: 500;
+    }
+    
+    .form-field-wrapper.invalid .field-error-message {
+        display: block;
+    }
+    
+    /* Toast Notification Styles */
+    .toast-container {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 9999;
+        max-width: 400px;
+        pointer-events: none;
+    }
+    
+    .toast {
+        background-color: rgba(30, 41, 59, 0.95);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        border-left: 4px solid;
+        pointer-events: auto;
+        animation: slideIn 0.3s ease-out;
+        max-width: 100%;
+        color: #f8fafc;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .toast.toast-success { border-left-color: #10b981; }
+    .toast.toast-error { border-left-color: #ef4444; }
+    .toast.toast-warning { border-left-color: #f59e0b; }
+    .toast.toast-info { border-left-color: #3b82f6; }
+    
+    .toast-icon {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+    }
+    
+    .toast-success .toast-icon { color: #10b981; }
+    .toast-error .toast-icon { color: #ef4444; }
+    .toast-warning .toast-icon { color: #f59e0b; }
+    .toast-info .toast-icon { color: #3b82f6; }
+    
+    .toast-content { flex: 1; }
+    
+    .toast-title {
+        font-weight: 600;
+        font-size: 0.9375rem;
+        color: #f8fafc;
+        margin-bottom: 0.25rem;
+    }
+    
+    .toast-message {
+        font-size: 0.875rem;
+        color: #cbd5e1;
+        line-height: 1.5;
+    }
+    
+    .toast-close {
+        flex-shrink: 0;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: color 0.2s;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .toast-close:hover {
+        color: #f8fafc;
+    }
+        flex-shrink: 0;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: color 0.2s;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .toast-close:hover {
+        color: #64748b;
+    }
+    .password-strength-bar.medium { width: 66%; background-color: #f59e0b; }
+    .password-strength-bar.strong { width: 100%; background-color: #10b981; }
+    
+    .password-strength-text {
+        font-size: 0.8125rem;
+        margin-top: 0.25rem;
+        font-weight: 500;
+    }
+    
+    .password-strength-text.weak { color: #ef4444; }
+    .password-strength-text.medium { color: #f59e0b; }
+    .password-strength-text.strong { color: #10b981; }
+    
+    /* Flash message animations and close button */
+    .flash-message {
+        position: relative;
+        animation: slideIn 0.3s ease-out;
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        padding-right: 3rem;
+    }
+    
+    .flash-message.fade-out {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .flash-close {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: currentColor;
+        cursor: pointer;
+        padding: 0.25rem;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+    
+    .flash-close:hover {
+        opacity: 1;
+    }
+    </style>
+    
+</head>
+<body class="selection:bg-pink-500 selection:text-white">
+    
+    <!-- Global Animated Background -->
+    <div class="global-animated-bg">
+        <div class="bg-blob-1 animate-float"></div>
+        <div class="bg-blob-2 animate-float-delayed"></div>
+        <div class="bg-blob-3 animate-float"></div>
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 fill=%22black%22/%3E%3C/svg%3E');"></div>
+    </div>
+    
+    <!-- Main Content Wrapper -->
+    <div class="relative z-10 h-full flex flex-col min-h-screen">
+    
+    
+    
+    <!-- Mobile Sidebar Toggle -->
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+    
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <div class="dashboard-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">Unda Youth Network</div>
+            <nav>
+                <ul class="sidebar-nav">
+                    
+                    <li class="sidebar-nav-item">
+                        <a href="/admin/dashboard" class="sidebar-nav-link ">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="/admin/users" class="sidebar-nav-link ">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
+                            </svg>
+                            Manage Users
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="/admin/users/create" class="sidebar-nav-link ">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                                <circle cx="8.5" cy="7" r="4"></circle>
+                                <line x1="20" y1="8" x2="20" y2="14"></line>
+                                <line x1="23" y1="11" x2="17" y2="11"></line>
+                            </svg>
+                            Create User
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="/admin/champions/create" class="sidebar-nav-link ">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                            Register Advocate
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="/admin/manage-assignments" class="sidebar-nav-link ">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"></path>
+                            </svg>
+                            Manage Assignments
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="/admin/workstreams" class="sidebar-nav-link ">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <g>
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                </g>
+                            </svg>
+                            Workstreams
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="/admin/settings" class="sidebar-nav-link ">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3m15.364-5.364l-4.243 4.243m-6.364 0L3.636 3.636m12.728 12.728l-4.243 4.243m-6.364 0l-4.243-4.243"></path>
+                            </svg>
+                            Settings
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a href="/admin/change-password" class="sidebar-nav-link ">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                            </svg>
+                            Change Password
+                        </a>
+                    </li>
+                    
+                </ul>
+            </nav>
+            
+            <div class="sidebar-user">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.125rem;">
+                        T
+                    </div>
+                    <div>
+                        <div style="color: white; font-weight: 600; font-size: 0.9375rem;">test_admin</div>
+                        <div class="sidebar-user-name">Admin</div>
+                    </div>
+                </div>
+                <a href="/auth/logout" class="sidebar-nav-link" style="margin-top: 0.5rem; background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.2);" onclick="return confirm('Are you sure you want to logout?');">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </a>
+            </div>
+        </aside>
+        <main class="main-content">
+            
+                
+            
+            
+<div class="hero-card">
+    <div class="hero-card__inner">
+        <div>
+            <h1 class="hero-card__title">Mental Health Assessments</h1>
+            <p class="hero-card__subtitle">View and monitor mental health screening results (PHQ-9, GAD-7, PHQ-2, GAD-2)</p>
+        </div>
+        <div class="hero-card__actions">
+            <a href="/admin/workstreams" class="btn btn--secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <form method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Assessment Type</label>
+            <select name="type" class="form-input">
+                <option value="">All Types</option>
+                
+                <option value="PHQ-9" >PHQ-9</option>
+                
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Severity Level</label>
+            <select name="severity" class="form-input">
+                <option value="">All Levels</option>
+                
+            </select>
+        </div>
+        <button type="submit" class="btn btn--primary">Filter</button>
+        <a href="/admin/assessments" class="btn btn--secondary">Reset</a>
+    </form>
+</div>
+
+<!-- Assessment Summary -->
+<div class="grid" style="gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
+    
+    
+    
+    
+    <div style="padding: 1rem; background: #f0f9ff; border-left: 4px solid #2563eb; border-radius: 6px;">
+        <div style="font-size: 0.875rem; color: #1e40af; text-transform: uppercase; font-weight: 600;">Total Assessments</div>
+        <div style="font-size: 2rem; color: #2563eb; font-weight: 700; margin-top: 0.5rem;">8</div>
+    </div>
+
+    <div style="padding: 1rem; background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px;">
+        <div style="font-size: 0.875rem; color: #991b1b; text-transform: uppercase; font-weight: 600;">Risk Flagged</div>
+        <div style="font-size: 2rem; color: #ef4444; font-weight: 700; margin-top: 0.5rem;">0</div>
+    </div>
+
+    <div style="padding: 1rem; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 6px;">
+        <div style="font-size: 0.875rem; color: #065f46; text-transform: uppercase; font-weight: 600;">Referrals Made</div>
+        <div style="font-size: 2rem; color: #10b981; font-weight: 700; margin-top: 0.5rem;">0</div>
+    </div>
+</div>
+
+<!-- Assessments List -->
+
+<div style="overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Prevention Advocate</th>
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Type</th>
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Score</th>
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Severity</th>
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Date</th>
+                <th style="padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Status</th>
+                <th style="padding: 1rem; text-align: center; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <tr style="border-bottom: 1px solid #e5e7eb; hover ">
+                <td style="padding: 1rem; color: #111827;">
+                    <strong>N/A</strong>
+                    <br><small style="color: #6b7280;"></small>
+                </td>
+                <td style="padding: 1rem; color: #111827; font-weight: 500;">PHQ-9</td>
+                <td style="padding: 1rem; color: #111827; font-weight: 600;"></td>
+                <td style="padding: 1rem;">
+                    
+                    <span class="pill pill--danger" style="font-size: 0.875rem;">
+                        Not Set
+                    </span>
+                </td>
+                <td style="padding: 1rem; color: #6b7280; font-size: 0.875rem;">
+                    Jan 28, 2026
+                </td>
+                <td style="padding: 1rem;">
+                    
+                    
+                    
+                </td>
+                <td style="padding: 1rem; text-align: center;">
+                    <a href="/admin/assessments/8" 
+                       class="btn btn--primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            
+            <tr style="border-bottom: 1px solid #e5e7eb; hover background: #f9fafb">
+                <td style="padding: 1rem; color: #111827;">
+                    <strong>N/A</strong>
+                    <br><small style="color: #6b7280;"></small>
+                </td>
+                <td style="padding: 1rem; color: #111827; font-weight: 500;">PHQ-9</td>
+                <td style="padding: 1rem; color: #111827; font-weight: 600;"></td>
+                <td style="padding: 1rem;">
+                    
+                    <span class="pill pill--danger" style="font-size: 0.875rem;">
+                        Not Set
+                    </span>
+                </td>
+                <td style="padding: 1rem; color: #6b7280; font-size: 0.875rem;">
+                    Jan 28, 2026
+                </td>
+                <td style="padding: 1rem;">
+                    
+                    
+                    
+                </td>
+                <td style="padding: 1rem; text-align: center;">
+                    <a href="/admin/assessments/7" 
+                       class="btn btn--primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            
+            <tr style="border-bottom: 1px solid #e5e7eb; hover ">
+                <td style="padding: 1rem; color: #111827;">
+                    <strong>N/A</strong>
+                    <br><small style="color: #6b7280;"></small>
+                </td>
+                <td style="padding: 1rem; color: #111827; font-weight: 500;">PHQ-9</td>
+                <td style="padding: 1rem; color: #111827; font-weight: 600;"></td>
+                <td style="padding: 1rem;">
+                    
+                    <span class="pill pill--danger" style="font-size: 0.875rem;">
+                        Not Set
+                    </span>
+                </td>
+                <td style="padding: 1rem; color: #6b7280; font-size: 0.875rem;">
+                    Jan 28, 2026
+                </td>
+                <td style="padding: 1rem;">
+                    
+                    
+                    
+                </td>
+                <td style="padding: 1rem; text-align: center;">
+                    <a href="/admin/assessments/6" 
+                       class="btn btn--primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            
+            <tr style="border-bottom: 1px solid #e5e7eb; hover background: #f9fafb">
+                <td style="padding: 1rem; color: #111827;">
+                    <strong>N/A</strong>
+                    <br><small style="color: #6b7280;"></small>
+                </td>
+                <td style="padding: 1rem; color: #111827; font-weight: 500;">PHQ-9</td>
+                <td style="padding: 1rem; color: #111827; font-weight: 600;"></td>
+                <td style="padding: 1rem;">
+                    
+                    <span class="pill pill--danger" style="font-size: 0.875rem;">
+                        Not Set
+                    </span>
+                </td>
+                <td style="padding: 1rem; color: #6b7280; font-size: 0.875rem;">
+                    Jan 28, 2026
+                </td>
+                <td style="padding: 1rem;">
+                    
+                    
+                    
+                </td>
+                <td style="padding: 1rem; text-align: center;">
+                    <a href="/admin/assessments/5" 
+                       class="btn btn--primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            
+            <tr style="border-bottom: 1px solid #e5e7eb; hover ">
+                <td style="padding: 1rem; color: #111827;">
+                    <strong>N/A</strong>
+                    <br><small style="color: #6b7280;"></small>
+                </td>
+                <td style="padding: 1rem; color: #111827; font-weight: 500;">PHQ-9</td>
+                <td style="padding: 1rem; color: #111827; font-weight: 600;"></td>
+                <td style="padding: 1rem;">
+                    
+                    <span class="pill pill--danger" style="font-size: 0.875rem;">
+                        Not Set
+                    </span>
+                </td>
+                <td style="padding: 1rem; color: #6b7280; font-size: 0.875rem;">
+                    Jan 28, 2026
+                </td>
+                <td style="padding: 1rem;">
+                    
+                    
+                    
+                </td>
+                <td style="padding: 1rem; text-align: center;">
+                    <a href="/admin/assessments/4" 
+                       class="btn btn--primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            
+            <tr style="border-bottom: 1px solid #e5e7eb; hover background: #f9fafb">
+                <td style="padding: 1rem; color: #111827;">
+                    <strong>N/A</strong>
+                    <br><small style="color: #6b7280;"></small>
+                </td>
+                <td style="padding: 1rem; color: #111827; font-weight: 500;">PHQ-9</td>
+                <td style="padding: 1rem; color: #111827; font-weight: 600;"></td>
+                <td style="padding: 1rem;">
+                    
+                    <span class="pill pill--danger" style="font-size: 0.875rem;">
+                        Not Set
+                    </span>
+                </td>
+                <td style="padding: 1rem; color: #6b7280; font-size: 0.875rem;">
+                    Jan 28, 2026
+                </td>
+                <td style="padding: 1rem;">
+                    
+                    
+                    
+                </td>
+                <td style="padding: 1rem; text-align: center;">
+                    <a href="/admin/assessments/3" 
+                       class="btn btn--primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            
+            <tr style="border-bottom: 1px solid #e5e7eb; hover ">
+                <td style="padding: 1rem; color: #111827;">
+                    <strong>N/A</strong>
+                    <br><small style="color: #6b7280;"></small>
+                </td>
+                <td style="padding: 1rem; color: #111827; font-weight: 500;">PHQ-9</td>
+                <td style="padding: 1rem; color: #111827; font-weight: 600;"></td>
+                <td style="padding: 1rem;">
+                    
+                    <span class="pill pill--danger" style="font-size: 0.875rem;">
+                        Not Set
+                    </span>
+                </td>
+                <td style="padding: 1rem; color: #6b7280; font-size: 0.875rem;">
+                    Jan 28, 2026
+                </td>
+                <td style="padding: 1rem;">
+                    
+                    
+                    
+                </td>
+                <td style="padding: 1rem; text-align: center;">
+                    <a href="/admin/assessments/2" 
+                       class="btn btn--primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            
+            <tr style="border-bottom: 1px solid #e5e7eb; hover background: #f9fafb">
+                <td style="padding: 1rem; color: #111827;">
+                    <strong>N/A</strong>
+                    <br><small style="color: #6b7280;"></small>
+                </td>
+                <td style="padding: 1rem; color: #111827; font-weight: 500;">PHQ-9</td>
+                <td style="padding: 1rem; color: #111827; font-weight: 600;"></td>
+                <td style="padding: 1rem;">
+                    
+                    <span class="pill pill--danger" style="font-size: 0.875rem;">
+                        Not Set
+                    </span>
+                </td>
+                <td style="padding: 1rem; color: #6b7280; font-size: 0.875rem;">
+                    Jan 28, 2026
+                </td>
+                <td style="padding: 1rem;">
+                    
+                    
+                    
+                </td>
+                <td style="padding: 1rem; text-align: center;">
+                    <a href="/admin/assessments/1" 
+                       class="btn btn--primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            
+        </tbody>
+    </table>
+</div>
+
+
+
+        </main>
+    </div>
+    
+    
+    <script>
+    // Auto-dismiss flash messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const flashMessages = document.querySelectorAll('.flash-message');
+        flashMessages.forEach(function(message) {
+            setTimeout(function() {
+                message.classList.add('fade-out');
+                setTimeout(function() {
+                    message.remove();
+                }, 300); // Wait for fade animation to complete
+            }, 5000); // 5 seconds before starting fade
+        });
+        
+        // Form submission loading state
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+                if (submitBtn && !submitBtn.classList.contains('btn-loading')) {
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.classList.add('btn-loading');
+                    submitBtn.innerHTML = 'Submitting...';
+                    
+                    // Reset if form validation fails
+                    setTimeout(() => {
+                        if (!form.checkValidity()) {
+                            submitBtn.classList.remove('btn-loading');
+                            submitBtn.innerHTML = originalText;
+                        }
+                    }, 100);
+                }
+            });
+        });
+        
+        // Toast Notification System
+        window.showToast = function(message, type = 'info', title = '') {
+            const container = document.getElementById('toastContainer');
+            if (!container) {
+                const newContainer = document.createElement('div');
+                newContainer.id = 'toastContainer';
+                newContainer.className = 'toast-container';
+                document.body.appendChild(newContainer);
+            }
+            
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icons = {
+                success: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+                error: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+                warning: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+                info: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+            };
+            
+            const titleHTML = title ? `<div class="toast-title">${title}</div>` : '';
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    ${titleHTML}
+                    <div class="toast-message">${message}</div>
+                </div>
+                <div class="toast-close">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            });
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        };
+        
+        // Form Validation Functions
+        window.validateUsername = function(username) {
+            if (!username || username.length < 3) {
+                return { valid: false, message: 'Username must be at least 3 characters' };
+            }
+            if (username.length > 50) {
+                return { valid: false, message: 'Username must be less than 50 characters' };
+            }
+            return { valid: true, message: '' };
+        };
+        
+        window.validateEmail = function(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) {
+                return { valid: false, message: 'Email is required' };
+            }
+            if (!emailRegex.test(email)) {
+                return { valid: false, message: 'Please enter a valid email address' };
+            }
+            return { valid: true, message: '' };
+        };
+        
+        window.validateRequired = function(value, fieldName) {
+            if (!value || value.trim() === '') {
+                return { valid: false, message: `${fieldName} is required` };
+            }
+            return { valid: true, message: '' };
+        };
+        
+        window.addValidationToField = function(inputElement, validationFn) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'form-field-wrapper';
+            inputElement.parentNode.insertBefore(wrapper, inputElement);
+            wrapper.appendChild(inputElement);
+            
+            const checkmark = document.createElement('div');
+            checkmark.className = 'validation-icon checkmark';
+            checkmark.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            wrapper.appendChild(checkmark);
+            
+            const xMark = document.createElement('div');
+            xMark.className = 'validation-icon x-mark';
+            xMark.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            wrapper.appendChild(xMark);
+            
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'field-error-message';
+            wrapper.appendChild(errorMsg);
+            
+            inputElement.addEventListener('input', () => {
+                const result = validationFn(inputElement.value);
+                if (inputElement.value.trim() === '') {
+                    wrapper.classList.remove('valid', 'invalid');
+                    errorMsg.textContent = '';
+                } else if (result.valid) {
+                    wrapper.classList.remove('invalid');
+                    wrapper.classList.add('valid');
+                    errorMsg.textContent = '';
+                } else {
+                    wrapper.classList.remove('valid');
+                    wrapper.classList.add('invalid');
+                    errorMsg.textContent = result.message;
+                }
+            });
+            
+            inputElement.addEventListener('blur', () => {
+                if (inputElement.value.trim() !== '') {
+                    const result = validationFn(inputElement.value);
+                    if (!result.valid) {
+                        wrapper.classList.add('invalid');
+                        errorMsg.textContent = result.message;
+                    }
+                }
+            });
+        };
+        
+        // Mobile Sidebar Toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        
+        if (sidebarToggle && sidebar && sidebarOverlay) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            });
+            
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            });
+            
+            // Close sidebar on navigation link click (mobile)
+            const navLinks = sidebar.querySelectorAll('.sidebar-nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('active');
+                        sidebarOverlay.classList.remove('active');
+                    }
+                });
+            });
+        }
+        
+        // Ensure all interactive elements are clickable on mobile (critical for touch devices)
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.style.pointerEvents = 'auto';
+        }
+        
+        // Force all buttons and links to be tappable, even if CSS tries to block them
+        const interactiveElements = document.querySelectorAll('a, button, input[type="submit"], input[type="button"], .btn');
+        interactiveElements.forEach(el => {
+            const computed = window.getComputedStyle(el);
+            if (computed.pointerEvents === 'none') {
+                el.style.pointerEvents = 'auto';
+                console.warn('Fixed blocked element:', el);
+            }
+            
+            // Add touch feedback for mobile
+            if ('ontouchstart' in window) {
+                el.addEventListener('touchstart', function(e) {
+                    this.style.opacity = '0.7';
+                });
+                el.addEventListener('touchend', function(e) {
+                    this.style.opacity = '1';
+                });
+            }
+        });
+    });
+    </script>
+    
+    </div> <!-- End Main Content Wrapper -->
+</body>
+</html>
