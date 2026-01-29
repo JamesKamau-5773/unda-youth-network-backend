@@ -3,31 +3,66 @@
 {% block title %}Daily Affirmations - Admin{% endblock %}
 
 {% block content %}
-<h1>Daily Affirmations</h1>
-<p><a class="btn btn--primary" href="{{ url_for('admin.create_affirmation') }}">Create Affirmation</a></p>
-<table class="table">
-  <thead>
-    <tr><th>ID</th><th>Scheduled</th><th>Theme</th><th>Content</th><th>Active</th><th>Actions</th></tr>
-  </thead>
-  <tbody>
+<div class="hero-card">
+  <div class="hero-card__inner">
+    <div>
+      <h1 class="hero-card__title">Daily Affirmations</h1>
+      <p class="hero-card__subtitle">Manage daily affirmations and motivational messages</p>
+    </div>
+    <div class="hero-card__actions">
+      <a href="{{ url_for('admin.create_affirmation') }}" class="btn btn--success" style="background:#00838F; border:none; color:white;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Create Affirmation
+      </a>
+      <a href="{{ url_for('admin.workstreams') }}" class="btn btn--secondary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </a>
+    </div>
+  </div>
+</div>
+
+{% if affirmations %}
+<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1rem; margin-top:1rem;">
   {% for a in affirmations %}
-    <tr>
-      <td>{{ a.affirmation_id }}</td>
-      <td>{{ a.scheduled_date or '-' }}</td>
-      <td>{{ a.theme or '-' }}</td>
-      <td>{{ a.content[:120] }}{% if a.content|length > 120 %}...{% endif %}</td>
-      <td>{{ 'Yes' if a.active else 'No' }}</td>
-      <td>
-        <a href="{{ url_for('admin.edit_affirmation', affirmation_id=a.affirmation_id) }}">Edit</a> |
-        <form action="{{ url_for('admin.delete_affirmation', affirmation_id=a.affirmation_id) }}" method="post" style="display:inline">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <button type="submit" class="link-like">Delete</button>
-        </form>
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="6">No affirmations found.</td></tr>
+  <div class="affirmation-card" style="background:#ffffff; border:1px solid #D6EAFC; border-radius:12px; padding:1rem; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+    <div style="display:flex; justify-content:space-between; gap:0.75rem;">
+      <div style="flex:1;">
+        <p style="margin:0; color:#0B1E3B; font-size:1rem; line-height:1.4; font-weight:700;">{{ a.content }}</p>
+        <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center;">
+          <span style="font-size:0.8rem; color:#00838F; background:#ECF5FF; padding:0.25rem 0.5rem; border-radius:999px; font-weight:700;">{{ a.theme or 'General' }}</span>
+          <span style="font-size:0.8rem; color:#00838F;">{% if a.scheduled_date %}{{ a.scheduled_date.strftime('%Y-%m-%d') }}{% else %}—{% endif %}</span>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem;">
+        {% if a.active %}
+        <span style="background:#e6fffa; color:#065f46; font-weight:700; padding:0.25rem 0.5rem; border-radius:999px; font-size:0.8rem;">Active</span>
+        {% else %}
+        <span style="background:#F3F4F6; color:#6B7280; font-weight:700; padding:0.25rem 0.5rem; border-radius:999px; font-size:0.8rem;">Inactive</span>
+        {% endif %}
+        <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+          <a href="{{ url_for('admin.edit_affirmation', affirmation_id=a.affirmation_id) }}" class="btn btn--link" style="font-weight:700; color:#0B1E3B;">Edit</a>
+          <form action="{{ url_for('admin.delete_affirmation', affirmation_id=a.affirmation_id) }}" method="post" style="display:inline-block; margin:0;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="btn btn--link" onclick="return confirm('Deactivate this affirmation?')" style="color:#3b82f6; font-weight:700;">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
   {% endfor %}
-  </tbody>
-</table>
+</div>
+{% else %}
+<div style="background:#ffffff; border:1px solid #D6EAFC; border-radius:12px; padding:2rem; text-align:left; margin-top:1rem;">
+  <h3 style="margin:0 0 0.5rem 0; color:#0B1E3B; font-weight:800;">No Affirmations</h3>
+  <p style="margin:0 0 1rem 0; color:#006064;">No affirmations found. Create your first affirmation.</p>
+  <a href="{{ url_for('admin.create_affirmation') }}" class="btn btn--success" style="background:#00838F; border:none; color:white;">Create Affirmation</a>
+</div>
+{% endif %}
+
 {% endblock %}

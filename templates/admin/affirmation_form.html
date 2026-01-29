@@ -21,7 +21,9 @@
 </div>
 
 <div class="tile" style="max-width: 800px;">
-    <form method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        {# styles moved to static/css/admin.css #}
+
+        <form method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label for="content" class="form-label">Content *</label>

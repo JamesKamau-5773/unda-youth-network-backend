@@ -28,6 +28,8 @@
 </div>
 
 <!-- Filters -->
+{# styles moved to static/css/admin.css #}
+
 <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
     <form method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
         <div style="flex: 1; min-width: 200px;">
@@ -50,45 +52,49 @@
     </form>
 </div>
 
-<!-- Affirmations List (compact table) -->
+<!-- Affirmations List — modern card grid -->
 {% if affirmations %}
-<div class="card" style="padding:1rem;">
-    <table class="affirmations-table" style="width:100%; border-collapse:collapse;">
-        <thead>
-            <tr>
-                <th style="text-align:left; padding:0.75rem 1rem; color:var(--text-secondary);">ID</th>
-                <th style="text-align:left; padding:0.75rem 1rem; color:var(--text-secondary);">Scheduled</th>
-                <th style="text-align:left; padding:0.75rem 1rem; color:var(--text-secondary);">Theme</th>
-                <th style="text-align:left; padding:0.75rem 1rem; color:var(--text-secondary);">Content</th>
-                <th style="text-align:left; padding:0.75rem 1rem; color:var(--text-secondary);">Active</th>
-                <th style="padding:0.75rem 1rem; color:var(--text-secondary);">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for aff in affirmations %}
-            <tr>
-                <td style="padding:0.5rem 1rem; vertical-align:middle;">{{ aff.affirmation_id }}</td>
-                <td style="padding:0.5rem 1rem; vertical-align:middle;">{% if aff.scheduled_date %}{{ aff.scheduled_date.strftime('%Y-%m-%d') }}{% else %}—{% endif %}</td>
-                <td style="padding:0.5rem 1rem; vertical-align:middle;">{{ aff.theme or 'General' }}</td>
-                <td style="padding:0.5rem 1rem; vertical-align:middle; color:var(--text-primary);">{{ aff.content }}</td>
-                <td style="padding:0.5rem 1rem; vertical-align:middle;">{{ 'Yes' if aff.active else 'No' }}</td>
-                <td style="padding:0.5rem 1rem; vertical-align:middle;">
-                    <a href="{{ url_for('admin.affirmation_edit', affirmation_id=aff.affirmation_id) }}" class="btn btn--link">Edit</a>
-                    <form method="POST" action="{{ url_for('admin.affirmation_delete', affirmation_id=aff.affirmation_id) }}" style="display:inline-block; margin-left:0.5rem;">
+<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1rem;">
+    {% for aff in affirmations %}
+    <div class="affirmation-card" style="background:#ffffff; border:1px solid #D6EAFC; border-radius:12px; padding:1rem; box-shadow:0 1px 3px rgba(0,0,0,0.04); transition:transform 160ms ease, box-shadow 160ms ease;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem;">
+            <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <div style="flex:1;">
+                        <p style="margin:0; color:#0B1E3B; font-size:1.05rem; line-height:1.4; font-weight:700;">{{ aff.content }}</p>
+                        <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center;">
+                            <span style="font-size:0.8rem; color:#00838F; background:#ECF5FF; padding:0.25rem 0.5rem; border-radius:999px; font-weight:700;">{{ aff.theme or 'General' }}</span>
+                            <span style="font-size:0.8rem; color:#00838F;">{% if aff.scheduled_date %}{{ aff.scheduled_date.strftime('%Y-%m-%d') }}{% else %}—{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem;">
+                {% if aff.active %}
+                <span style="background:#e6fffa; color:#065f46; font-weight:700; padding:0.25rem 0.5rem; border-radius:999px; font-size:0.8rem;">Active</span>
+                {% else %}
+                <span style="background:#F3F4F6; color:#6B7280; font-weight:700; padding:0.25rem 0.5rem; border-radius:999px; font-size:0.8rem;">Inactive</span>
+                {% endif %}
+                <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                    <a href="{{ url_for('admin.affirmation_edit', affirmation_id=aff.affirmation_id) }}" class="btn btn--link" style="font-weight:700; color:#0B1E3B;">Edit</a>
+                    <form method="POST" action="{{ url_for('admin.affirmation_delete', affirmation_id=aff.affirmation_id) }}" style="display:inline-block; margin:0;">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="btn btn--link" onclick="return confirm('Deactivate this affirmation?')">Delete</button>
+                        <button type="submit" class="btn btn--link" onclick="return confirm('Deactivate this affirmation?')" style="color:#3b82f6; font-weight:700;">Delete</button>
                     </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
+<style>
+    .affirmation-card:hover { transform: translateY(-6px); box-shadow: 0 6px 18px rgba(13, 38, 59, 0.08); }
+</style>
 {% else %}
-<div class="card" style="padding:2rem; text-align:left;">
-    <h3 style="margin:0 0 0.5rem 0; color:var(--text-primary);">No Affirmations</h3>
-    <p style="margin:0 0 1rem 0; color:var(--text-secondary);">No affirmations found. Create your first affirmation.</p>
-    <a href="{{ url_for('admin.affirmation_form') }}" class="btn btn--success">Create Affirmation</a>
+<div style="background:#ffffff; border:1px solid #D6EAFC; border-radius:12px; padding:2rem; text-align:left;">
+    <h3 style="margin:0 0 0.5rem 0; color:#0B1E3B; font-weight:800;">No Affirmations</h3>
+    <p style="margin:0 0 1rem 0; color:#006064;">No affirmations found. Create your first affirmation.</p>
+    <a href="{{ url_for('admin.affirmation_form') }}" class="btn btn--success" style="background:#00838F; border:none; color:white;">Create Affirmation</a>
 </div>
 {% endif %}
 

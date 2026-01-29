@@ -6,7 +6,8 @@
       <h1 class="hero-card__title">Resources</h1>
       <p class="hero-card__subtitle">Manage resource items available to users.</p>
     </div>
-    <div class="hero-card__actions">
+    <div class="hero-card__actions" style="display:flex; gap:0.5rem;">
+      <a href="{{ url_for('admin.workstreams') }}" class="btn btn--secondary">← Back to Workstreams</a>
       <a href="{{ url_for('admin.create_resource') }}" class="btn btn--primary">Create Resource</a>
     </div>
   </div>
