@@ -512,6 +512,25 @@ def create_app(test_config=None):
     csrf.exempt(seed_funding_bp)
     csrf.exempt(api_status_bp)
 
+    # Defensive: if the specific API checkin view functions exist as endpoints,
+    # ensure they're exempted from CSRF so bearer-token or machine clients
+    # posting JSON are not rejected by CSRFProtect with a redirect/400.
+    try:
+        submit_view = app.view_functions.get('api.submit_checkin')
+        if submit_view:
+            csrf.exempt(submit_view)
+            app.logger.info('CSRF exempted for endpoint api.submit_checkin')
+    except Exception:
+        app.logger.exception('Failed to exempt api.submit_checkin')
+
+    try:
+        token_submit = app.view_functions.get('api_token.token_submit_checkin')
+        if token_submit:
+            csrf.exempt(token_submit)
+            app.logger.info('CSRF exempted for endpoint api_token.token_submit_checkin')
+    except Exception:
+        app.logger.exception('Failed to exempt api_token.token_submit_checkin')
+
     # Conditionally exempt the API blueprint from CSRF in non-production when an API token is configured
     api_token = os.environ.get('API_SMOKE_TOKEN')
     if api_token and os.environ.get('FLASK_ENV') != 'production':
