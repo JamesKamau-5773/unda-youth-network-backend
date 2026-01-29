@@ -2083,22 +2083,26 @@ def affirmations():
     """List all daily affirmations"""
     theme_filter = request.args.get('theme', '')
     active_only = request.args.get('active', 'true').lower() == 'true'
-    
     query = DailyAffirmation.query
-    
-    if theme_filter:
-        query = query.filter_by(theme=theme_filter)
-    if active_only:
-        query = query.filter_by(active=True)
-    
-    affirmations = query.order_by(DailyAffirmation.scheduled_date.desc()).all()
-    themes = db.session.query(DailyAffirmation.theme).distinct().filter(DailyAffirmation.theme.isnot(None)).all()
-    
-    return render_template('admin/affirmations_list.html',
-                         affirmations=affirmations,
-                         themes=[t[0] for t in themes],
-                         theme_filter=theme_filter,
-                         active_only=active_only)
+    try:
+        if theme_filter:
+            query = query.filter_by(theme=theme_filter)
+        if active_only:
+            query = query.filter_by(active=True)
+
+        affirmations = query.order_by(DailyAffirmation.scheduled_date.desc()).all()
+        themes = db.session.query(DailyAffirmation.theme).distinct().filter(DailyAffirmation.theme.isnot(None)).all()
+
+        return render_template('admin/affirmations_list.html',
+                             affirmations=affirmations,
+                             themes=[t[0] for t in themes],
+                             theme_filter=theme_filter,
+                             active_only=active_only)
+    except Exception as e:
+        # Prevent an uncaught exception from returning a 500 to the user.
+        current_app.logger.exception('Error loading affirmations list')
+        flash('Could not load affirmations right now. Please try again shortly.', 'warning')
+        return redirect(url_for('admin.dashboard'))
 
 
 @admin_bp.route('/affirmations/create', methods=['GET', 'POST'])

@@ -1,35 +1,207 @@
-/* Shared admin styles for readability and Unda brand */
-:root{
-  --unda-navy: #0B1E3B;
-  --unda-blue: #3b82f6;
-  --unda-blue-2: #6366f1;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+  /* Size reduction to py-2 px-4 equivalent */
+  padding: 0.5rem 1rem;
+  min-height: 32px;
+  border-radius: 0.875rem; /* softer curve for buttons */
+  border: 1px solid transparent;
+  color: var(--unda-navy);
+  background: transparent;
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--umv-accent) 8%, rgba(11,30,59,0.04));
+  transition: transform .14s cubic-bezier(.2,.9,.2,1), box-shadow .14s cubic-bezier(.2,.9,.2,1), background-color .12s ease, opacity .12s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px color-mix(in srgb, var(--umv-accent) 18%, rgba(11,30,59,0.06));
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--umv-accent) 12%, transparent);
+}
+:root{
+  --portal-surface: #FFFFFF;
+
+  /* Misc */
+  --body-background: #F9FAFB;
+
+  /* Gradients / overlays */
+  --gradient-energy: linear-gradient(90deg, #00C2CB 0%, #0090C0 100%);
+  --gradient-editorial: linear-gradient(to bottom right, #00E5FF, #00C2CB, #008ba3);
+  --hero-overlay-start: rgba(11, 30, 59, 0.45);
+  --hero-overlay-end: rgba(0, 194, 203, 0.08);
+
+  /* Backwards-compatibility aliases used in existing styles */
+  --unda-navy: var(--umv-primary);
+  --unda-blue: var(--umv-accent); /* gradient start alias */
+  --unda-blue-2: #0090C0; /* gradient end alias */
+  /* Elevated surface to reduce harsh white — use throughout components */
+  --surface-elevated: var(--umv-surface);
+
+  /* Shapes */
+  --card-radius: 1rem; /* rounded-xl (~16px) */
+  --button-radius: 0.5rem; /* rounded-lg (~8px) */
+
+  /* Typography */
+  --text-strong: #1E293B; /* dark slate for readable text */
+}
+
+
 .hero-card__title { color: var(--unda-navy); font-weight:800; font-size:2rem; }
-.hero-card__subtitle { color: #1F2937; opacity:0.95; }
-.btn { font-weight:700; }
-.btn--success { background: linear-gradient(90deg,var(--unda-blue),var(--unda-blue-2)); color:#fff; border:none; }
-.btn--primary { background: linear-gradient(90deg,var(--unda-blue),var(--unda-blue-2)); color:#fff; border:none; }
-.btn--secondary { background: transparent; color: var(--unda-navy); border: 1px solid rgba(11,30,59,0.06); }
-.form-input, input[type="text"], textarea, select { color: var(--unda-navy); background: #ffffff; border: 1px solid #E6F0FB; padding: 0.65rem 0.75rem; border-radius: 8px; }
+.hero-card__subtitle { color: var(--text-strong); opacity:0.95; }
+
+.btn--primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  /* Slight diagonal gradient (to bottom-right) to add depth and shift toward blue-cyan */
+  background: linear-gradient(135deg, color-mix(in srgb, var(--unda-blue) 86%, #007bff 14%), var(--unda-blue-2));
+  color: #fff;
+  border: none;
+  border-radius: 0.875rem;
+  /* subtle text shadow to boost legibility */
+  text-shadow: 0 1px 0 rgba(0,0,0,0.12);
+  /* colored glow matching button color */
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--umv-accent) 16%, rgba(11,30,59,0.06));
+}
+
+.btn--primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 48px color-mix(in srgb, var(--umv-accent) 24%, rgba(11,30,59,0.06));
+}
+
+.btn--success {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--unda-blue) 86%, #007bff 14%), var(--unda-blue-2));
+  color: #fff;
+  border: none;
+  border-radius: 0.875rem;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.12);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--umv-accent) 14%, rgba(11,30,59,0.06));
+}
+
+.btn--success:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 48px color-mix(in srgb, var(--umv-accent) 22%, rgba(11,30,59,0.06));
+}
+
+.btn--secondary {
+  background: transparent;
+  color: var(--unda-navy);
+  border: 1px solid rgba(11,30,59,0.12); /* slightly darker border for action buttons */
+  border-radius: 0.875rem;
+}
+
+.btn--secondary:hover {
+  background: color-mix(in srgb, var(--surface-elevated) 86%, transparent);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(11,30,59,0.03);
+}
+.form-input, input[type="text"], textarea, select { color: var(--unda-navy); background: var(--surface-elevated); border: 1px solid #E6F0FB; padding: 0.65rem 0.75rem; border-radius: 8px; }
 .form-input::placeholder { color: #94a3b8; }
 .affirmation-card p { color: var(--unda-navy); font-size: 1.06rem; line-height:1.45; }
 .affirmation-card .meta, .affirmation-card span { color: #006064; }
-.affirmation-card { background: #fff; }
+.affirmation-card { background: var(--umv-surface-pale); border-radius: var(--card-radius); }
 .no-affirmations h3 { color: var(--unda-navy); }
 .no-affirmations p { color: #0B7177; }
-a:focus, button:focus, input:focus, textarea:focus { outline: 3px solid rgba(59,130,246,0.18); outline-offset: 2px; }
-.form-label { display: block; color: var(--unda-navy); font-weight: 800; font-size: 0.95rem; letter-spacing: 0.01em; margin-bottom: 0.5rem; }
+a:focus, button:focus, input:focus, textarea:focus { outline: 3px solid color-mix(in srgb, var(--umv-accent) 18%, transparent); outline-offset: 2px; }
+.form-label { display: block; color: var(--text-strong); font-weight: 800; font-size: 0.95rem; letter-spacing: 0.01em; margin-bottom: 0.5rem; }
 .form-group small { color: #475569; }
 .grid--2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 @media (max-width: 780px) { .grid--2-col { grid-template-columns: 1fr; } }
 
 /* Card hover */
-.affirmation-card:hover { transform: translateY(-6px); box-shadow: 0 6px 18px rgba(13, 38, 59, 0.08); }
+.affirmation-card:hover { transform: translateY(-6px); box-shadow: 0 6px 18px rgba(11, 30, 59, 0.08); }
 
 /* Stronger visual hierarchy for form labels and spacing */
 .form-group { margin-bottom: 1rem; }
 .form-label { text-transform: uppercase; font-size: 1rem; letter-spacing: 0.03em; margin-bottom: 0.6rem; }
 .form-input, input[type="text"], textarea, select { padding: 0.75rem 0.9rem; font-size: 0.98rem; }
-.btn { padding: 0.6rem 0.9rem; border-radius: 8px; }
+
+
+
+/* Helper utility classes (fallback for Tailwind utilities) */
+/* Use these when Tailwind JIT isn't available yet — mirror common utilities used by new templates */
+.bg-umv-primary { background-color: var(--umv-primary) !important; }
+.text-umv-primary { color: var(--umv-primary) !important; }
+.bg-umv-accent { background-color: var(--umv-accent) !important; }
+.text-umv-accent { color: var(--umv-accent) !important; }
+.bg-umv-surface { background-color: var(--umv-surface) !important; }
+.bg-portal-ice { background-color: var(--portal-ice) !important; }
+.text-portal-muted { color: var(--portal-muted) !important; }
+.text-portal-navy { color: var(--portal-navy) !important; }
+.bg-energy-gradient { background: var(--gradient-energy) !important; }
+.bg-editorial-gradient { background: var(--gradient-editorial) !important; }
+.hero-overlay-start { background: var(--hero-overlay-start) !important; }
+.hero-overlay-end { background: var(--hero-overlay-end) !important; }
+.border-umv-primary { border-color: var(--umv-primary) !important; }
+.shadow-unda { box-shadow: 0 6px 18px rgba(11, 30, 59, 0.08) !important; }
+
+/* Shell (base) styles to apply Unda Professional design system safely */
+.unda-shell {
+  background: var(--body-background);
+  color: var(--text-strong);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.unda-shell .sidebar {
+  background: var(--umv-primary);
+  color: var(--portal-ice);
+  min-height: 100vh;
+  padding: 1.25rem 0.75rem;
+}
+
+.unda-shell .sidebar-logo {
+  color: var(--portal-ice);
+  font-weight: 800;
+  font-size: 1.125rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.unda-shell .sidebar-nav-link {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  color: rgba(255,255,255,0.95);
+  border-radius: 0.5rem;
+}
+
+.unda-shell .sidebar-nav-link.active {
+  background: color-mix(in srgb, var(--umv-accent) 10%, transparent);
+  border-left: 3px solid var(--umv-accent);
+  padding-left: 0.6rem;
+}
+
+.unda-shell .sidebar-user { color: rgba(255,255,255,0.9); padding: 0.75rem; }
+
+.unda-shell .main-content {
+  padding: 1.5rem;
+  background: transparent;
+  color: var(--text-strong);
+}
+
+/* Make hero sections use energy gradient safely */
+.unda-shell .hero {
+  background: var(--gradient-energy);
+  color: white;
+  border-radius: var(--card-radius);
+  padding: 1.25rem;
+}
+
+/* Ensure buttons using the primary accent are visible */
+.unda-shell .btn--primary { background: linear-gradient(90deg,var(--unda-blue),var(--unda-blue-2)); color: #fff; }
 

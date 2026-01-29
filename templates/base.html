@@ -14,6 +14,29 @@
                     colors: {
                         'deep-navy': '#0f172a',
                         'trust-blue': '#3b82f6',
+                        umv: {
+                            primary: '#0B1E3B',
+                            accent: '#00C2CB',
+                            surface: '#F8FAFC',
+                            dark: '#008ba3'
+                        },
+                        portal: {
+                            navy: '#0B1E3B',
+                            navyInk: '#1E293B',
+                            ice: '#F0F7FF',
+                            teal: '#00C2CB',
+                            tealDark: '#0090C0',
+                            muted: '#475569',
+                            subtitle: '#E0F2FE',
+                            surface: '#FFFFFF'
+                        },
+                        misc: {
+                            bodyBackground: '#F9FAFB'
+                        }
+                    },
+                    backgroundImage: {
+                        'energy-gradient': 'linear-gradient(90deg, #00C2CB 0%, #0090C0 100%)',
+                        'editorial-gradient': 'linear-gradient(to bottom right, #00E5FF, #00C2CB, #008ba3)'
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -25,10 +48,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-    {% if current_app is defined and current_app.config['ENABLE_NEW_THEME']|default(false) %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_variables.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.build.css') }}">
+    {% if current_app is defined and current_app.config['ENABLE_NEW_THEME']|default(false) %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
     {% endif %}
     {% block extra_css %}{% endblock %}
@@ -490,7 +513,7 @@
     <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
     {% endif %}
 </head>
-<body class="selection:bg-pink-500 selection:text-white">
+<body class="selection:bg-umv-accent selection:text-white unda-shell">
     {% if current_app is defined and current_app.config['ENABLE_NEW_THEME']|default(false) %}
     <div class="theme-toggle" aria-hidden="true">
         <button type="button" onclick="undaToggleTheme()" title="Toggle theme">Theme</button>

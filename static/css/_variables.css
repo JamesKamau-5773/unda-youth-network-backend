@@ -1,3 +1,83 @@
+/* Global UNDA / UMV CSS variables and fallback utilities
+   This file exposes color tokens project-wide so non-Tailwind CSS
+   and templates can use the same design system. */
+:root{
+  --umv-primary: #0B1E3B;
+  --umv-accent: #00C2CB;
+  --umv-surface: #F8FAFC;
+  --umv-dark: #008ba3;
+
+  --portal-navy: #0B1E3B;
+  --portal-navy-ink: #1E293B;
+  --portal-ice: #F0F7FF;
+  --portal-teal: #00C2CB;
+  --portal-teal-dark: #0090C0;
+  --portal-muted: #475569;
+  --portal-subtitle: #E0F2FE;
+  --portal-surface: #FFFFFF;
+
+  --body-background: #F9FAFB;
+
+  --gradient-energy: linear-gradient(90deg, #00C2CB 0%, #0090C0 100%);
+  --gradient-editorial: linear-gradient(to bottom right, #00E5FF, #00C2CB, #008ba3);
+  --hero-overlay-start: rgba(11, 30, 59, 0.45);
+  --hero-overlay-end: rgba(0, 194, 203, 0.08);
+
+  /* Backwards compatibility */
+  --unda-navy: var(--umv-primary);
+  --unda-blue: #00C2CB;
+  --unda-blue-2: #0090C0;
+}
+
+/* Global helper utilities (safe fallbacks) */
+.bg-umv-primary { background-color: var(--umv-primary) !important; }
+.text-umv-primary { color: var(--umv-primary) !important; }
+.bg-umv-accent { background-color: var(--umv-accent) !important; }
+.text-umv-accent { color: var(--umv-accent) !important; }
+.bg-umv-surface { background-color: var(--umv-surface) !important; }
+.bg-portal-ice { background-color: var(--portal-ice) !important; }
+.text-portal-muted { color: var(--portal-muted) !important; }
+.text-portal-navy { color: var(--portal-navy) !important; }
+.bg-energy-gradient { background: var(--gradient-energy) !important; }
+.bg-editorial-gradient { background: var(--gradient-editorial) !important; }
+.hero-overlay-start { background: var(--hero-overlay-start) !important; }
+.hero-overlay-end { background: var(--hero-overlay-end) !important; }
+.border-umv-primary { border-color: var(--umv-primary) !important; }
+.shadow-unda { box-shadow: 0 6px 18px rgba(13, 38, 59, 0.08) !important; }
+
+/* Fallbacks for Tailwind arbitrary color utility class names used in templates */
+.bg-\[\#00838F\] { background-color: #00838F !important; }
+.text-\[\#00838F\] { color: #00838F !important; }
+.bg-\[\#D6EAFC\] { background-color: #D6EAFC !important; }
+.border-\[\#D6EAFC\] { border-color: #D6EAFC !important; }
+.bg-\[\#ECF5FF\] { background-color: #ECF5FF !important; }
+.text-\[\#00ACC1\] { color: #00ACC1 !important; }
+.bg-\[\#00C2CB\] { background-color: #00C2CB !important; }
+.bg-\[\#0097A7\] { background-color: #0097A7 !important; }
+.bg-\[\#006064\] { background-color: #006064 !important; }
+.text-\[\#0B1E3B\] { color: #0B1E3B !important; }
+.text-\[\#006064\] { color: #006064 !important; }
+.text-\[\#0B7177\] { color: #0B7177 !important; }
+.bg-\[\#F0FDF4\] { background-color: #F0FDF4 !important; }
+.text-\[\#16A34A\] { color: #16A34A !important; }
+.text-\[\#EF4444\] { color: #EF4444 !important; }
+.bg-\[\#3b82f6\] { background-color: #3b82f6 !important; }
+.bg-\[\#7c3aed\] { background-color: #7c3aed !important; }
+
+/* Shadow fallbacks for colored shadows used in templates */
+.shadow-\[\#00838F\]\/20 { box-shadow: 0 10px 25px rgba(0,131,143,0.2) !important; }
+.hover\:shadow-\[\#00C2CB\]\/10:hover { box-shadow: 0 6px 18px rgba(0,194,203,0.1) !important; }
+.shadow-\[\#00C2CB\]\/20 { box-shadow: 0 10px 25px rgba(0,194,203,0.2) !important; }
+
+/* Utility fallbacks used repeatedly */
+.rounded-\[2rem\] { border-radius: 2rem !important; }
+.rounded-2xl { border-radius: 1rem !important; }
+.shadow-sm { box-shadow: 0 1px 2px rgba(13, 38, 59, 0.04) !important; }
+.shadow-xl { box-shadow: 0 20px 25px rgba(15, 23, 42, 0.1) !important; }
+.hover\:bg-\[\#ECF5FF\]:hover { background-color: #ECF5FF !important; }
+.hover\:bg-\[\#D6EAFC\]:hover { background-color: #D6EAFC !important; }
+.hover\:bg-\[\#006064\]:hover { background-color: #006064 !important; }
+
 :root {
   /* Colors */
   --color-bg: #f8fafc;
@@ -35,3 +115,28 @@
   --color-text: #e6eef8;
   --color-inverse-text: #0b1220;
 }
+
+/* Layout & component fallbacks discovered in templates */
+.grid { display: grid !important; gap: 1rem !important; }
+.grid--3-col { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 1rem !important; }
+.metrics-grid { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; gap: 1rem !important; }
+.hero-card__inner { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:1rem !important; padding:1.25rem !important; border-radius:1rem !important; }
+.affirmation-card { border:1px solid var(--portal-ice) !important; border-radius:12px !important; overflow:hidden !important; background:var(--portal-surface) !important; display:flex !important; flex-direction:column !important; }
+.data-card { background:var(--portal-surface) !important; border:1px solid var(--portal-ice) !important; border-radius:12px !important; padding:2rem !important; }
+.alert-card { padding:1rem !important; border-radius:8px !important; }
+.dashboard-header { margin-bottom: 1rem !important; }
+.dashboard-title { font-size:1.5rem !important; margin:0 !important; }
+.dashboard-subtitle { color:var(--portal-muted) !important; margin-top:0.25rem !important; }
+
+/* simple utility fallbacks */
+.flex { display:flex !important; }
+.items-center { align-items:center !important; }
+.justify-between { justify-content:space-between !important; }
+.gap-1 { gap: 0.25rem !important; }
+.gap-2 { gap: 0.5rem !important; }
+.p-4 { padding: 1rem !important; }
+.m-0 { margin: 0 !important; }
+.text-center { text-align: center !important; }
+.text-left { text-align: left !important; }
+.uppercase { text-transform: uppercase !important; }
+
