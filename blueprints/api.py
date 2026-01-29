@@ -403,13 +403,15 @@ def submit_checkin():
         except Exception:
             return jsonify({'error': 'Invalid reporting_period format. Use YYYY-MM-DD'}), 400
 
+    # Token-based checkins are handled by the token-only blueprint (api_token_bp)
+    # which enforces stricter token + JSON checks. For authenticated session users
+    # we keep the ability to submit via the same URL but only if logged in.
     try:
-        # Find existing or create new record
+        # Find existing or create new record (session-auth flow)
         report = YouthSupport.query.filter_by(champion_id=champion.champion_id, reporting_period=reporting_period).first()
         if not report:
             report = YouthSupport(champion_id=champion.champion_id, reporting_period=reporting_period)
 
-        # Update fields
         if 'number_of_youth_under_support' in data:
             report.number_of_youth_under_support = int(data.get('number_of_youth_under_support') or 0)
         if 'weekly_check_in_completion_rate' in data:
@@ -421,7 +423,7 @@ def submit_checkin():
         if 'flags_and_concerns_logged' in data:
             report.flags_and_concerns_logged = data.get('flags_and_concerns_logged')
 
-        # Simple red-flag logic: set flag if completion rate below 50% or concerns logged
+        # Red-flag logic remains the same
         try:
             if report.weekly_check_in_completion_rate is not None and float(report.weekly_check_in_completion_rate) < 50:
                 report.flag_timestamp = datetime.now(timezone.utc)
