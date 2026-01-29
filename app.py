@@ -451,6 +451,12 @@ def create_app(test_config=None):
     app.register_blueprint(blog_bp)
     from blueprints.api import api_bp
     app.register_blueprint(api_bp)
+    # Register token-only API blueprint (exempted from CSRF)
+    try:
+        from blueprints.api_token import api_token_bp
+        app.register_blueprint(api_token_bp)
+    except Exception:
+        app.logger.info('api_token blueprint not available')
     
     # Mental Health Feature Blueprints
     from blueprints.assessments import assessments_bp
@@ -491,6 +497,18 @@ def create_app(test_config=None):
     csrf.exempt(podcasts_bp)
     csrf.exempt(events_bp)
     csrf.exempt(participation_bp)
+    # Instead of exempting the whole API blueprint (broad and unsafe), only
+    # exempt specific token-only view functions that must accept bearer-token
+    # JSON POSTs from non-browser clients (e.g. /api/checkin).
+    try:
+        # Exempt the token-only blueprint from CSRF protection so machine clients
+        # can POST JSON without CSRF tokens. Only the token blueprint is exempt.
+        from blueprints.api_token import api_token_bp as _api_token_bp
+        csrf.exempt(_api_token_bp)
+        app.logger.info('CSRF exempted for api_token blueprint')
+    except Exception:
+        # Non-fatal if blueprint isn't present (e.g., during partial deploy)
+        app.logger.info('api_token blueprint not found; skipping CSRF exemption')
     csrf.exempt(seed_funding_bp)
     csrf.exempt(api_status_bp)
 
