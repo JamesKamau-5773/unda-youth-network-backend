@@ -388,6 +388,102 @@
     .flash-close:hover {
         opacity: 1;
     }
+    /* Form accessibility and readability improvements */
+    /* Ensures labels, inputs, textareas, selects and buttons are high-contrast,
+       reasonably large, and have clear focus outlines for keyboard users. */
+    .form-accessibility-label, form label {
+        color: #0f172a; /* deep navy */
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: block;
+        margin-bottom: 0.375rem;
+        line-height: 1.4;
+    }
+
+    input, textarea, select, .form-control {
+        font-size: 1rem; /* 16px */
+        line-height: 1.6;
+        color: #0f172a;
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1; /* light gray */
+        border-radius: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    textarea { min-height: 8rem; }
+
+    input::placeholder, textarea::placeholder {
+        color: #6b7280; /* gray-500 */
+        opacity: 1;
+    }
+
+    input[type="file"] { color: #0f172a; }
+
+    button, .btn {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #ffffff;
+        background-color: #2563eb;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+    }
+
+    button.secondary, .btn-secondary {
+        background-color: #e2e8f0;
+        color: #0f172a;
+        border: 1px solid #cbd5e1;
+    }
+
+    /* Focus states for keyboard users */
+    input:focus, textarea:focus, select:focus, button:focus,
+    input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37,99,235,0.22);
+    }
+
+    /* Stronger focus for keyboard users and high-contrast preference */
+    input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible {
+        box-shadow: 0 0 0 5px rgba(37,99,235,0.32);
+        transition: box-shadow 120ms ease-in-out;
+    }
+
+    /* Support dark/theme variants if present */
+    .dark input, .theme-dark input,
+    .dark textarea, .theme-dark textarea,
+    .dark select, .theme-dark select,
+    .dark .form-control, .theme-dark .form-control {
+        background-color: #0b1220;
+        color: #e6eef8;
+        border-color: #273449;
+    }
+
+    .dark button, .theme-dark button, .dark .btn, .theme-dark .btn {
+        color: #ffffff;
+    }
+
+    .dark input:focus-visible, .theme-dark input:focus-visible,
+    .dark textarea:focus-visible, .theme-dark textarea:focus-visible,
+    .dark select:focus-visible, .theme-dark select:focus-visible,
+    .dark button:focus-visible, .theme-dark button:focus-visible {
+        box-shadow: 0 0 0 4px rgba(96,165,250,0.18);
+        border-color: rgba(96,165,250,0.9);
+    }
+
+    /* Increase contrast when user requests high contrast */
+    @media (prefers-contrast: more) {
+        input, textarea, select, .form-control { border-width: 2px; }
+        .form-accessibility-label, form label { font-weight: 700; }
+        input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible {
+            box-shadow: 0 0 0 6px rgba(255,255,255,0.18);
+            border-width: 2px;
+        }
+    }
+
     </style>
     {% if current_app is defined and current_app.config['ENABLE_NEW_THEME']|default(false) %}
     <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>

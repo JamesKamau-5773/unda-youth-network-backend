@@ -2,6 +2,10 @@
 
 {% block title %}Admin - {% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="admin-container">
     {% block admin_content %}{% endblock %}

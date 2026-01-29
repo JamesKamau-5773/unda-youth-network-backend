@@ -1,0 +1,28 @@
+/* Shared admin styles for readability and Unda brand */
+:root{
+  --unda-navy: #0B1E3B;
+  --unda-blue: #3b82f6;
+  --unda-blue-2: #6366f1;
+}
+
+.hero-card__title { color: var(--unda-navy); font-weight:800; font-size:2rem; }
+.hero-card__subtitle { color: #1F2937; opacity:0.95; }
+.btn { font-weight:700; }
+.btn--success { background: linear-gradient(90deg,var(--unda-blue),var(--unda-blue-2)); color:#fff; border:none; }
+.btn--primary { background: linear-gradient(90deg,var(--unda-blue),var(--unda-blue-2)); color:#fff; border:none; }
+.btn--secondary { background: transparent; color: var(--unda-navy); border: 1px solid rgba(11,30,59,0.06); }
+.form-input, input[type="text"], textarea, select { color: var(--unda-navy); background: #ffffff; border: 1px solid #E6F0FB; padding: 0.65rem 0.75rem; border-radius: 8px; }
+.form-input::placeholder { color: #94a3b8; }
+.affirmation-card p { color: var(--unda-navy); font-size: 1.06rem; line-height:1.45; }
+.affirmation-card .meta, .affirmation-card span { color: #006064; }
+.affirmation-card { background: #fff; }
+.no-affirmations h3 { color: var(--unda-navy); }
+.no-affirmations p { color: #0B7177; }
+a:focus, button:focus, input:focus, textarea:focus { outline: 3px solid rgba(59,130,246,0.18); outline-offset: 2px; }
+.form-label { display: block; color: var(--unda-navy); font-weight: 800; font-size: 0.95rem; letter-spacing: 0.01em; margin-bottom: 0.5rem; }
+.form-group small { color: #475569; }
+.grid--2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 780px) { .grid--2-col { grid-template-columns: 1fr; } }
+
+/* Card hover */
+.affirmation-card:hover { transform: translateY(-6px); box-shadow: 0 6px 18px rgba(13, 38, 59, 0.08); }

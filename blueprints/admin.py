@@ -475,75 +475,8 @@ def assign_champion(champion_id):
     return redirect(url_for('admin.manage_assignments'))
 
 
-# -----------------------------
-# Daily Affirmations CRUD
-# -----------------------------
-@admin_bp.route('/affirmations')
-@login_required
-@admin_required
-def list_affirmations():
-    affirmations = affirmation_service.list_affirmations()
-    return render_template('admin/affirmations.html', affirmations=affirmations)
-
-
-@admin_bp.route('/affirmations/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def create_affirmation():
-    if request.method == 'POST':
-        try:
-            data = {
-                'content': request.form.get('content', '').strip(),
-                'theme': request.form.get('theme', '').strip(),
-                'scheduled_date': request.form.get('scheduled_date') or None,
-            }
-            affirmation = affirmation_service.create_affirmation(data, creator_id=current_user.user_id)
-            flash('Affirmation created', 'success')
-            return redirect(url_for('admin.list_affirmations'))
-        except ValueError as e:
-            flash(str(e), 'danger')
-            return render_template('admin/affirmation_form.html')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error creating affirmation: {str(e)}', 'danger')
-            return render_template('admin/affirmation_form.html')
-
-    return render_template('admin/affirmation_form.html')
-
-
-@admin_bp.route('/affirmations/<int:affirmation_id>/edit', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def edit_affirmation(affirmation_id):
-    affirmation = db.session.get(DailyAffirmation, affirmation_id)
-    if not affirmation:
-        abort(404)
-    if request.method == 'POST':
-        try:
-            data = {
-                'content': request.form.get('content', affirmation.content),
-                'theme': request.form.get('theme', affirmation.theme),
-                'scheduled_date': request.form.get('scheduled_date') or affirmation.scheduled_date,
-            }
-            affirmation_service.update_affirmation(affirmation_id, data)
-            flash('Affirmation updated', 'success')
-            return redirect(url_for('admin.list_affirmations'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error updating affirmation: {str(e)}', 'danger')
-    return render_template('admin/affirmation_form.html', affirmation=affirmation)
-
-
-@admin_bp.route('/affirmations/<int:affirmation_id>/delete', methods=['POST'])
-@login_required
-def delete_affirmation(affirmation_id):
-    try:
-        affirmation_service.delete_affirmation(affirmation_id)
-        flash('Affirmation deleted', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error deleting affirmation: {str(e)}', 'danger')
-    return redirect(url_for('admin.list_affirmations'))
+# Daily Affirmations routes consolidated below (see handlers rendering
+# `admin/affirmations_list.html` and `admin/affirmation_form.html`).
 
 
 # -----------------------------
