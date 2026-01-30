@@ -137,3 +137,11 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5433/unda_test
         run: |
           python3 tools/admin_smoke_test.py
+
+      - name: Upload smoke test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: affirmations-output
+          path: tools/affirmations_output.html
+          if-no-files-found: warn
