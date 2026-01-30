@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request, g, current_app
+from flask import make_response
 from models import db, Champion, YouthSupport, User, RefferalPathway, TrainingRecord, Event, BlogPost
 from sqlalchemy import func
 from datetime import datetime, date, timezone
@@ -16,18 +17,35 @@ except Exception:
 
 import os
 from functools import wraps
+import os
+import jwt
+import hashlib
+import secrets
+from datetime import datetime, timezone, timedelta
+from models import RefreshToken
 
 
 def _check_api_token():
     """Return True if request provides a valid API token via Authorization header."""
-    api_token = os.environ.get('API_SMOKE_TOKEN')
-    if not api_token:
-        return False
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return False
     token = auth.split(' ', 1)[1]
-    return token == api_token
+    # First allow a simple smoke token configured in env for legacy scripts
+    api_token = os.environ.get('API_SMOKE_TOKEN')
+    if api_token and token == api_token:
+        return True
+
+    # Otherwise try to validate as JWT access token
+    try:
+        import jwt
+        secret = os.environ.get('SECRET_KEY') or current_app.config.get('SECRET_KEY')
+        payload = jwt.decode(token, secret, algorithms=['HS256'])
+        # Attach payload to request context for downstream handlers
+        g.jwt_payload = payload
+        return True
+    except Exception:
+        return False
 
 
 def api_auth_optional(f):
@@ -46,6 +64,49 @@ def api_auth_optional(f):
     return wrapper
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
+
+
+@api_bp.route('/auth/login', methods=['POST'])
+def api_auth_login():
+    if not request.is_json:
+        return jsonify({'error': 'Expected application/json'}), 400
+    data = request.get_json() or {}
+    username = data.get('username')
+    password = data.get('password')
+    if not username or not password:
+        return jsonify({'error': 'username and password required'}), 400
+    user = User.query.filter_by(username=username).first()
+    if not user or not user.check_password(password):
+        return jsonify({'error': 'Invalid credentials'}), 401
+
+    now = datetime.now(timezone.utc)
+    access_ttl = int(os.environ.get('ACCESS_TOKEN_TTL_SECONDS', 900))
+    refresh_ttl_days = int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30))
+    payload_jwt = {
+        'sub': str(user.user_id),
+        'iat': int(now.timestamp()),
+        'exp': int((now + timedelta(seconds=access_ttl)).timestamp()),
+        'role': user.role
+    }
+    token = jwt.encode(payload_jwt, os.environ.get('SECRET_KEY') or current_app.config.get('SECRET_KEY'), algorithm='HS256')
+
+    raw_refresh = secrets.token_urlsafe(64)
+    refresh_hash = hashlib.sha256(raw_refresh.encode('utf-8')).hexdigest()
+    expires_at = now + timedelta(days=refresh_ttl_days)
+    rt = RefreshToken(user_id=user.user_id, token_hash=refresh_hash, expires_at=expires_at)
+    db.session.add(rt)
+    db.session.commit()
+
+    response = make_response(jsonify({'access_token': token, 'user': {
+        'user_id': user.user_id,
+        'username': user.username,
+        'email': user.email,
+        'role': user.role,
+        'champion_id': user.champion_id
+    }}))
+    secure_flag = os.environ.get('FLASK_ENV') == 'production'
+    response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600)
+    return response
 
 
 @api_bp.route('/impact-stats', methods=['GET'])

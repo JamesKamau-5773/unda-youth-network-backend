@@ -1,11 +1,18 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from models import db, User, Champion, MemberRegistration
+from models import RefreshToken
 from decorators import admin_required, supervisor_required, champion_required
 from extensions import limiter
 from password_validator import validate_password_strength
 from datetime import datetime, timezone
 from metrics import track_login_attempt
+import os
+import jwt
+import hashlib
+import secrets
+from datetime import timedelta
+from flask import jsonify, make_response
 
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
 
@@ -93,8 +100,14 @@ def login():
             # Don't return here - let it fall through to show login form
 
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        # Support both form-based login (HTML) and JSON API login
+        if request.is_json:
+            payload = request.get_json() or {}
+            username = payload.get('username')
+            password = payload.get('password')
+        else:
+            username = request.form.get('username')
+            password = request.form.get('password')
 
         user = User.query.filter_by(username=username).first()
 
@@ -106,17 +119,53 @@ def login():
                     from datetime import timezone as _tz
                     locked_until = locked_until.replace(tzinfo=_tz.utc)
                 remaining_time = int((locked_until - datetime.now(timezone.utc)).total_seconds() / 60)
+                if request.is_json:
+                    return jsonify({'error': 'Account locked', 'minutes': remaining_time}), 403
                 flash(f'Account is locked due to too many failed login attempts. Please try again in {remaining_time} minutes.', 'danger')
                 return render_template('auth/login.html')
-            
+
             # Check password
             if user.check_password(password):
                 # Successful login - reset failed attempts
                 user.reset_failed_logins()
                 login_user(user, remember=True)
                 track_login_attempt(success=True)  # Track successful login
+
+                # If JSON request, return access token + set refresh cookie
+                if request.is_json:
+                    access_ttl = int(os.environ.get('ACCESS_TOKEN_TTL_SECONDS', 900))  # default 15 min
+                    refresh_ttl_days = int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30))
+                    now = datetime.now(timezone.utc)
+                    payload_jwt = {
+                        'sub': str(user.user_id),
+                        'iat': int(now.timestamp()),
+                        'exp': int((now + timedelta(seconds=access_ttl)).timestamp()),
+                        'role': user.role
+                    }
+                    token = jwt.encode(payload_jwt, os.environ.get('SECRET_KEY') or current_app.config.get('SECRET_KEY'), algorithm='HS256')
+
+                    # Create refresh token (rotate-able). Store SHA256 hash in DB.
+                    raw_refresh = secrets.token_urlsafe(64)
+                    refresh_hash = hashlib.sha256(raw_refresh.encode('utf-8')).hexdigest()
+                    expires_at = now + timedelta(days=refresh_ttl_days)
+                    rt = RefreshToken(user_id=user.user_id, token_hash=refresh_hash, expires_at=expires_at)
+                    db.session.add(rt)
+                    db.session.commit()
+
+                    response = make_response(jsonify({'access_token': token, 'user': {
+                        'user_id': user.user_id,
+                        'username': user.username,
+                        'email': user.email,
+                        'role': user.role,
+                        'champion_id': user.champion_id
+                    }}))
+                    # Set HttpOnly secure cookie for refresh token. SameSite=None for cross-site usage.
+                    secure_flag = os.environ.get('FLASK_ENV') == 'production'
+                    response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600)
+                    return response
+
+                # Else form login: flash and redirect as before
                 flash('Logged in successfully', 'success')
-                # Redirect directly to role-specific dashboard
                 role = user.role or ''
                 if role == 'Admin':
                     return redirect(url_for('admin.dashboard'))
@@ -131,6 +180,8 @@ def login():
                 user.record_failed_login()
                 track_login_attempt(success=False)  # Track failed login
                 remaining_attempts = 7 - (user.failed_login_attempts or 0)
+                if request.is_json:
+                    return jsonify({'error': 'Invalid credentials', 'remaining_attempts': remaining_attempts}), 401
                 if remaining_attempts > 0:
                     flash(f'Invalid username or password. {remaining_attempts} attempts remaining before account lockout.', 'danger')
                 else:
@@ -138,6 +189,8 @@ def login():
         else:
             # Username not found - don't reveal this info
             track_login_attempt(success=False)  # Track failed login
+            if request.is_json:
+                return jsonify({'error': 'Invalid credentials'}), 401
             flash('Invalid username or password', 'danger')
 
     return render_template('auth/login.html')
@@ -155,6 +208,76 @@ def logout():
     response.headers['Expires'] = '0'
     # Force cookie deletion
     response.set_cookie('session', '', expires=0)
+    # Also clear refresh token cookie if present
+    response.set_cookie('refresh_token', '', expires=0, path='/')
+    return response
+
+
+@auth_bp.route('/api/auth/refresh', methods=['POST', 'OPTIONS'])
+def refresh_token():
+    # Read refresh token from cookie
+    raw = request.cookies.get('refresh_token')
+    if not raw:
+        return jsonify({'error': 'Missing refresh token'}), 401
+
+    hashed = hashlib.sha256(raw.encode('utf-8')).hexdigest()
+    rt = RefreshToken.query.filter_by(token_hash=hashed, revoked=False).first()
+    if not rt:
+        return jsonify({'error': 'Invalid refresh token'}), 401
+    if rt.expires_at and rt.expires_at < datetime.now(timezone.utc):
+        return jsonify({'error': 'Refresh token expired'}), 401
+
+    # Rotate: mark old token revoked and issue new one
+    try:
+        rt.revoked = True
+        db.session.add(rt)
+
+        new_raw = secrets.token_urlsafe(64)
+        new_hash = hashlib.sha256(new_raw.encode('utf-8')).hexdigest()
+        expires_at = datetime.now(timezone.utc) + timedelta(days=int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30)))
+        new_rt = RefreshToken(user_id=rt.user_id, token_hash=new_hash, expires_at=expires_at)
+        db.session.add(new_rt)
+        db.session.commit()
+
+        # Issue new access token
+        user = db.session.get(User, rt.user_id)
+        now = datetime.now(timezone.utc)
+        access_ttl = int(os.environ.get('ACCESS_TOKEN_TTL_SECONDS', 900))
+        payload_jwt = {
+            'sub': str(user.user_id),
+            'iat': int(now.timestamp()),
+            'exp': int((now + timedelta(seconds=access_ttl)).timestamp()),
+            'role': user.role
+        }
+        token = jwt.encode(payload_jwt, os.environ.get('SECRET_KEY') or current_app.config.get('SECRET_KEY'), algorithm='HS256')
+
+        response = make_response(jsonify({'access_token': token}))
+        secure_flag = os.environ.get('FLASK_ENV') == 'production'
+        response.set_cookie('refresh_token', new_raw, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30))*24*3600)
+        return response
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to rotate refresh token'}), 500
+
+
+@auth_bp.route('/api/auth/logout', methods=['POST'])
+def api_logout():
+    # Revoke refresh token supplied in cookie and clear cookie
+    raw = request.cookies.get('refresh_token')
+    if raw:
+        hashed = hashlib.sha256(raw.encode('utf-8')).hexdigest()
+        rt = RefreshToken.query.filter_by(token_hash=hashed).first()
+        if rt:
+            rt.revoked = True
+            try:
+                db.session.add(rt)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+    response = make_response(jsonify({'success': True}))
+    response.set_cookie('refresh_token', '', expires=0, path='/')
+    # Also clear session cookie
+    response.set_cookie('session', '', expires=0, path='/')
     return response
 
 

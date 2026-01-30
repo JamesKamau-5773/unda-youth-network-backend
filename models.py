@@ -190,6 +190,23 @@ class User(db.Model, UserMixin):
       db.session.commit()
     except Exception:
       db.session.rollback()
+
+
+class RefreshToken(db.Model):
+  """Store hashed refresh tokens for rotation and revocation.
+
+  Storing the hash allows revocation without keeping raw tokens in the DB.
+  """
+  __tablename__ = 'refresh_tokens'
+  id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False)
+  token_hash = db.Column(db.String(128), nullable=False, unique=True)
+  jti = db.Column(db.String(100), nullable=True, index=True)
+  created_at = db.Column(db.DateTime, default=datetime.utcnow)
+  expires_at = db.Column(db.DateTime)
+  revoked = db.Column(db.Boolean, default=False)
+
+  user = db.relationship('User', backref='refresh_tokens')
   
 class Champion(db.Model):
   __tablename__ = 'champions'
