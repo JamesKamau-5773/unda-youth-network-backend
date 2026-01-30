@@ -56,6 +56,15 @@ jobs:
             pg_isready -h localhost -p 5432 -U postgres && break || sleep 1
           done
 
+      - name: Run DB migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/unda_test
+          FLASK_APP: app.py
+          DISABLE_EMAIL_IN_BUILD: 'True'
+        run: |
+          chmod +x scripts/run_migrations.sh
+          ./scripts/run_migrations.sh
+
       - name: Run tests against Postgres
         env:
           SQLALCHEMY_DATABASE_URI: postgresql://postgres:postgres@localhost:5432/unda_test
