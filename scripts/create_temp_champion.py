@@ -22,12 +22,21 @@ if __name__ == '__main__':
         sys.exit(2)
 
     # Import app factory and models
-    from app import create_app
+    # Import factory; `create_app()` may return (app, limiter) so handle both cases
+    from app import create_app, flask_app_factory
     from models import db, User, Champion
     from datetime import date
     import secrets
 
-    app = create_app()
+    try:
+        # Prefer the flask_app_factory which returns the Flask app instance
+        app = flask_app_factory()
+    except Exception:
+        app_tuple = create_app()
+        if isinstance(app_tuple, tuple):
+            app = app_tuple[0]
+        else:
+            app = app_tuple
 
     with app.app_context():
         username = args.username
