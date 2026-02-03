@@ -314,7 +314,7 @@ def create_app(test_config=None):
             "origins": cors_origins_param,
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "X-CSRFToken"],
-            "expose_headers": ["Content-Type"],
+            "expose_headers": ["Content-Type", "Authorization"],
             "supports_credentials": cors_supports_credentials,
             "max_age": 3600
         }
