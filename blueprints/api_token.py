@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 from datetime import datetime, date, timezone
-from models import db, Champion, YouthSupport
+from models import db, Champion, YouthSupport, User
 from blueprints.api import _check_api_token
 
 api_token_bp = Blueprint('api_token', __name__, url_prefix='/api')
@@ -23,6 +23,25 @@ def token_submit_checkin():
     data = request.get_json() or {}
 
     cid = data.get('champion_id')
+    # If no champion_id supplied, try to infer from JWT payload or user record
+    if not cid:
+        try:
+            from flask import g
+            payload = getattr(g, 'jwt_payload', {}) or {}
+            # token may include champion_id directly
+            cid = payload.get('champion_id')
+            if not cid and payload.get('sub'):
+                # sub is user_id
+                try:
+                    uid = int(payload.get('sub'))
+                    user = db.session.get(User, uid)
+                    if user:
+                        cid = user.champion_id
+                except Exception:
+                    cid = None
+        except Exception:
+            cid = None
+
     if not cid:
         return jsonify({'error': 'Missing champion_id for token-authenticated request'}), 400
 
