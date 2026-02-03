@@ -493,6 +493,70 @@ except Exception:
     pass
 
 
+# Token-based login endpoint for API clients (returns JWT access_token)
+@public_auth_bp.route('/api/auth/login-token', methods=['POST'])
+def api_login_token():
+    """Return a JWT access token for API clients when given JSON credentials.
+
+    This endpoint is intentionally CSRF-exempt and designed for SPAs or
+    other cross-origin API clients that cannot rely on cookie-based sessions.
+    """
+    try:
+        from flask import current_app
+        import os, jwt, secrets, hashlib
+        from datetime import datetime, timezone, timedelta
+
+        current_app.logger.info('Token login attempt headers: Origin=%s Accept=%s Content-Type=%s Path=%s',
+                                request.headers.get('Origin'),
+                                request.headers.get('Accept'),
+                                request.headers.get('Content-Type'),
+                                request.path)
+
+        data = request.get_json() or {}
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return jsonify({'error': 'Missing username or password'}), 400
+
+        user = User.query.filter_by(username=username).first()
+        if not user or not user.check_password(password):
+            return jsonify({'error': 'Invalid credentials'}), 401
+
+        # Build JWT access token
+        now = datetime.now(timezone.utc)
+        access_ttl = int(os.environ.get('ACCESS_TOKEN_TTL_SECONDS', 900))
+        payload_jwt = {
+            'sub': str(user.user_id),
+            'iat': int(now.timestamp()),
+            'exp': int((now + timedelta(seconds=access_ttl)).timestamp()),
+            'role': user.role
+        }
+        secret = os.environ.get('SECRET_KEY') or current_app.config.get('SECRET_KEY')
+        token = jwt.encode(payload_jwt, secret, algorithm='HS256')
+
+        return jsonify({'access_token': token, 'user': {
+            'user_id': user.user_id,
+            'username': user.username,
+            'email': getattr(user, 'email', None),
+            'role': user.role,
+            'champion_id': getattr(user, 'champion_id', None)
+        }}), 200
+
+    except Exception:
+        from flask import current_app
+        current_app.logger.exception('api_login_token: unexpected error')
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+try:
+    api_login_token.csrf_exempt = True
+    api_login_token.exempt = True
+    api_login_token._csrf_exempt = True
+except Exception:
+    pass
+
+
 @public_auth_bp.route('/api/champion/apply', methods=['POST'])
 @login_required
 def apply_champion():
