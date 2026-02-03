@@ -3,7 +3,8 @@ API Status and Health Check Endpoints
 For frontend integration testing
 """
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
+import os
 from flask_login import login_required, current_user
 from models import db, User, Champion, MentalHealthAssessment
 from datetime import datetime, timezone
@@ -135,3 +136,26 @@ def cors_test():
         'origin': request.headers.get('Origin', 'No origin header'),
         'timestamp': datetime.now(timezone.utc).isoformat()
     }), 200
+
+
+@api_status_bp.route('/debug/deploy-info', methods=['GET'])
+def deploy_info():
+    """Diagnostic endpoint returning deployed commit, CORS config and CSRF exemption status."""
+    try:
+        info = {
+            'git_commit': os.environ.get('GIT_COMMIT') or os.environ.get('SOURCE_COMMIT') or None,
+            'cors_origins': os.environ.get('CORS_ORIGINS'),
+            'csrf_exempt_for_api_login': None,
+            'api_login_present': False
+        }
+
+        # Check if the public_auth.api_login view exists and whether it's marked
+        # as CSRF-exempt (many CSRF implementations look for `csrf_exempt` attr).
+        vf = current_app.view_functions.get('public_auth.api_login')
+        if vf:
+            info['api_login_present'] = True
+            info['csrf_exempt_for_api_login'] = bool(getattr(vf, 'csrf_exempt', False))
+
+        return jsonify(info), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
