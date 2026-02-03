@@ -109,6 +109,73 @@ def api_auth_login():
     return response
 
 
+@api_bp.route('/auth/refresh', methods=['POST'])
+def api_auth_refresh():
+    raw = request.cookies.get('refresh_token')
+    if not raw:
+        return jsonify({'error': 'Missing refresh token'}), 401
+
+    hashed = hashlib.sha256(raw.encode('utf-8')).hexdigest()
+    rt = RefreshToken.query.filter_by(token_hash=hashed, revoked=False).first()
+    if not rt:
+        return jsonify({'error': 'Invalid refresh token'}), 401
+    if rt.expires_at:
+        exp_at = rt.expires_at
+        if exp_at.tzinfo is None:
+            exp_at = exp_at.replace(tzinfo=timezone.utc)
+        if exp_at < datetime.now(timezone.utc):
+            return jsonify({'error': 'Refresh token expired'}), 401
+
+    try:
+        rt.revoked = True
+        db.session.add(rt)
+
+        new_raw = secrets.token_urlsafe(64)
+        new_hash = hashlib.sha256(new_raw.encode('utf-8')).hexdigest()
+        expires_at = datetime.now(timezone.utc) + timedelta(days=int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30)))
+        new_rt = RefreshToken(user_id=rt.user_id, token_hash=new_hash, expires_at=expires_at)
+        db.session.add(new_rt)
+        db.session.commit()
+
+        user = db.session.get(User, rt.user_id)
+        now = datetime.now(timezone.utc)
+        access_ttl = int(os.environ.get('ACCESS_TOKEN_TTL_SECONDS', 900))
+        payload_jwt = {
+            'sub': str(user.user_id),
+            'iat': int(now.timestamp()),
+            'exp': int((now + timedelta(seconds=access_ttl)).timestamp()),
+            'role': user.role
+        }
+        token = jwt.encode(payload_jwt, os.environ.get('SECRET_KEY') or current_app.config.get('SECRET_KEY'), algorithm='HS256')
+
+        response = make_response(jsonify({'access_token': token}))
+        secure_flag = os.environ.get('FLASK_ENV') == 'production'
+        response.set_cookie('refresh_token', new_raw, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30))*24*3600)
+        return response
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to rotate refresh token'}), 500
+
+
+@api_bp.route('/auth/logout', methods=['POST'])
+def api_auth_logout():
+    raw = request.cookies.get('refresh_token')
+    if raw:
+        hashed = hashlib.sha256(raw.encode('utf-8')).hexdigest()
+        rt = RefreshToken.query.filter_by(token_hash=hashed).first()
+        if rt:
+            rt.revoked = True
+            try:
+                db.session.add(rt)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+    response = make_response(jsonify({'success': True}))
+    response.set_cookie('refresh_token', '', expires=0, path='/')
+    response.set_cookie('session', '', expires=0, path='/')
+    return response
+
+
 @api_bp.route('/impact-stats', methods=['GET'])
 def impact_stats():
     """
