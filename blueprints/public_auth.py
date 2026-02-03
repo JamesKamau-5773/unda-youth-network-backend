@@ -7,6 +7,8 @@ from datetime import datetime, date, timezone
 import re
 import sqlalchemy as sa
 import uuid
+import os
+import secrets
 try:
     import phonenumbers
 except Exception:
@@ -873,6 +875,79 @@ def reject_champion_application(application_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+
+
+@public_auth_bp.route('/api/admin/create-temp-champion/<int:user_id>', methods=['POST'])
+def create_temp_champion(user_id):
+    """Admin-only: create a minimal temporary Champion profile for the given user.
+
+    Authorization:
+    - If the caller is an authenticated admin (`current_user` with Admin role), allowed.
+    - Otherwise, the caller may provide header `X-Admin-Secret` matching the
+      `ADMIN_TEMP_SECRET` environment variable to permit one-off creation.
+    """
+    try:
+        from flask import current_app
+        # Authorization check
+        allowed = False
+        secret_hdr = request.headers.get('X-Admin-Secret')
+        env_secret = os.environ.get('ADMIN_TEMP_SECRET')
+        if secret_hdr and env_secret and secret_hdr == env_secret:
+            allowed = True
+        # Accept if current_user is admin
+        try:
+            if current_user and getattr(current_user, 'is_authenticated', False) and current_user.is_role('Admin'):
+                allowed = True
+        except Exception:
+            pass
+
+        if not allowed:
+            return jsonify({'error': 'Forbidden: admin credentials required'}), 403
+
+        user = db.session.get(User, user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if getattr(user, 'champion_id', None):
+            return jsonify({'error': 'User already has a champion profile', 'champion_id': user.champion_id}), 400
+
+        # Create minimal champion record
+        assigned_code = f"TMP{user.user_id}{secrets.token_hex(2)}"
+        phone_placeholder = f"+999{100000 + (user.user_id or 0)}"
+        champion = Champion(
+            user_id=user.user_id,
+            full_name=(getattr(user, 'username') or f'user{user.user_id}'),
+            gender='Other',
+            phone_number=phone_placeholder,
+            email=getattr(user, 'email', None),
+            assigned_champion_code=assigned_code,
+            application_status='Recruited',
+            champion_status='Active',
+            date_of_application=date.today()
+        )
+        db.session.add(champion)
+        db.session.flush()
+
+        # Link back to user
+        user.champion_id = champion.champion_id
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify({'message': 'Temporary champion created', 'champion_id': champion.champion_id, 'assigned_champion_code': assigned_code}), 201
+
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception('create_temp_champion failed')
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+try:
+    create_temp_champion.csrf_exempt = True
+    create_temp_champion.exempt = True
+    create_temp_champion._csrf_exempt = True
+except Exception:
+    pass
 
 
 @public_auth_bp.route('/api/affirmations', methods=['GET'])
