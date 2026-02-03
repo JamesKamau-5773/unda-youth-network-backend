@@ -422,6 +422,12 @@ try:
     api_login.csrf_exempt = True
 except Exception:
     pass
+try:
+    # Some CSRF libraries or older versions may check different attribute names.
+    api_login.exempt = True
+    api_login._csrf_exempt = True
+except Exception:
+    pass
 
 
 @public_auth_bp.route('/api/champion/apply', methods=['POST'])
