@@ -414,6 +414,16 @@ def api_login():
         return jsonify({'error': 'Internal server error'}), 500
 
 
+# Ensure this view is exempt from CSRF checks by CSRFProtect which looks for
+# a `csrf_exempt` attribute on the view function. Setting the attribute here
+# avoids import-order issues and guarantees the blueprint handler is exempt
+# even if factory-level exemptions are missed during deployment.
+try:
+    api_login.csrf_exempt = True
+except Exception:
+    pass
+
+
 @public_auth_bp.route('/api/champion/apply', methods=['POST'])
 @login_required
 def apply_champion():
