@@ -453,6 +453,21 @@ def create_app(test_config=None):
         # Prevent redirect loops - directly redirect to login without using url_for in request context
         return redirect('/auth/login')
 
+    # Diagnostic: log the endpoint and whether the view function is marked
+    # as CSRF-exempt. This will help identify why CSRFProtect still blocks
+    # certain API requests in deployed environments.
+    @app.before_request
+    def log_endpoint_csrf_status():
+        try:
+            endpoint = request.endpoint
+            vf = app.view_functions.get(endpoint) if endpoint else None
+            csrf_flag = False
+            if vf:
+                csrf_flag = bool(getattr(vf, 'csrf_exempt', False) or getattr(vf, 'exempt', False) or getattr(vf, '_csrf_exempt', False))
+            app.logger.info('Request debug: path=%s endpoint=%s csrf_exempt=%s', request.path, endpoint, csrf_flag)
+        except Exception:
+            app.logger.exception('Failed to log endpoint CSRF status')
+
     # Flask-Limiter setup (using Redis for persistent rate limits)
     limiter.init_app(app)
     
