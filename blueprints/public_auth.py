@@ -889,7 +889,8 @@ def create_temp_champion(user_id):
     """
     try:
         from flask import current_app
-        # Authorization check
+        # Authorization check: allow if caller provides the ADMIN_TEMP_SECRET header,
+        # or if the current_user is an Admin, or if a valid Admin JWT was used.
         allowed = False
         secret_hdr = request.headers.get('X-Admin-Secret')
         env_secret = os.environ.get('ADMIN_TEMP_SECRET')
@@ -898,6 +899,14 @@ def create_temp_champion(user_id):
         # Accept if current_user is admin
         try:
             if current_user and getattr(current_user, 'is_authenticated', False) and current_user.is_role('Admin'):
+                allowed = True
+        except Exception:
+            pass
+        # Accept if a JWT access token with role Admin was presented (g.jwt_payload set by _check_api_token)
+        try:
+            from flask import g
+            jwt_payload = getattr(g, 'jwt_payload', None) or {}
+            if jwt_payload and jwt_payload.get('role') and 'admin' in jwt_payload.get('role').lower():
                 allowed = True
         except Exception:
             pass
