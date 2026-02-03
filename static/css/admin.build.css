@@ -1,4 +1,4 @@
-/*! tailwindcss v4.1.18 | MIT License | https://tailwindcss.com */
+curl -sS https://unda-youth-network-backend.onrender.com/api/debug/deploy-info | jq ./*! tailwindcss v4.1.18 | MIT License | https://tailwindcss.com */
 @layer properties;
 .pointer-events-none {
   pointer-events: none;
