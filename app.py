@@ -515,6 +515,18 @@ def create_app(test_config=None):
     # Public Authentication & Applications
     from blueprints.public_auth import public_auth_bp
     app.register_blueprint(public_auth_bp)
+
+    # Defensive: ensure the specific JSON API login endpoint is exempted from CSRF
+    # protection. In some deployment setups the blueprint-level exemption may be
+    # missed due to import/register ordering or proxy rewrites, so explicitly
+    # exempt the view function if present.
+    try:
+        login_view = app.view_functions.get('public_auth.api_login')
+        if login_view:
+            csrf.exempt(login_view)
+            app.logger.info('CSRF exempted for public_auth.api_login')
+    except Exception:
+        app.logger.exception('Failed to explicitly exempt public_auth.api_login from CSRF')
     
     # Podcast Management
     from blueprints.podcasts import podcasts_bp
