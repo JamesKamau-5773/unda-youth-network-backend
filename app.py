@@ -264,28 +264,58 @@ def create_app(test_config=None):
         init_mail(app)
     
     # CORS Configuration - Allow API access from different origins
-    cors_origins = os.environ.get('CORS_ORIGINS', '*')  # Allow all origins for now
-    
+    cors_origins = os.environ.get('CORS_ORIGINS', '*')  # Use '*' by default
+
     # Custom origin validation for Netlify preview URLs
     def is_valid_origin(origin):
         if cors_origins == '*':
             return True
-        allowed = cors_origins.split(',')
-        # Allow any Netlify subdomain
+        allowed = [o.strip() for o in cors_origins.split(',') if o.strip()]
+        # Allow any Netlify subdomain and localhost origins for developer convenience
         if origin and ('netlify.app' in origin or 'localhost' in origin):
             return True
         return origin in allowed
-    
+
+    # If the configured origins is a wildcard, do NOT enable credentialed responses
+    # (browsers will reject Access-Control-Allow-Credentials with a wildcard origin).
+    # When specific origins are provided via CORS_ORIGINS, enable credentials and
+    # set session cookie SameSite=None to allow cross-site cookie usage.
+    if cors_origins == '*':
+        cors_origins_param = '*'
+        cors_supports_credentials = False
+    else:
+        # Build an explicit list of allowed origins from the env variable.
+        # Avoid passing a callable into flask-cors to prevent unexpected
+        # iteration behavior in some flask-cors versions.
+        allowed = [o.strip() for o in cors_origins.split(',') if o.strip()]
+        # Add common local dev origins to ease developer workflows when not
+        # explicitly specified in CORS_ORIGINS.
+        for dev_origin in ('http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5000'):
+            if dev_origin not in allowed:
+                allowed.append(dev_origin)
+
+        cors_origins_param = allowed
+        cors_supports_credentials = True
+        # Allow cross-site cookies when credentialed CORS is enabled
+        try:
+            # Only set SameSite=None when credentials are explicitly enabled
+            app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+            # Ensure secure flag is enabled in non-testing environments
+            if os.environ.get('FLASK_ENV') == 'production':
+                app.config['SESSION_COOKIE_SECURE'] = True
+        except Exception:
+            pass
+
     # Enable CORS for API and auth endpoints (and other public routes).
-    # Use a broad resource pattern so preflight requests for `/auth/*`
-    # and other non-`/api/*` endpoints also receive CORS headers.
+    # Use a broad resource pattern so preflight requests for `/auth/*` and other
+    # non-`/api/*` endpoints also receive CORS headers.
     CORS(app, resources={
         r"/*": {
-            "origins": is_valid_origin if cors_origins != '*' else '*',
+            "origins": cors_origins_param,
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"],
+            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "X-CSRFToken"],
             "expose_headers": ["Content-Type"],
-            "supports_credentials": True,
+            "supports_credentials": cors_supports_credentials,
             "max_age": 3600
         }
     })
@@ -297,7 +327,17 @@ def create_app(test_config=None):
     @app.errorhandler(400)
     def handle_csrf_error(e):
         error_msg = str(e)
+        # If this looks like a CSRF-related 400 and the request appears to be
+        # from an API client (JSON/XHR), return a concise, user-friendly JSON
+        # response instead of an HTML redirect. This prevents the client from
+        # receiving an opaque redirect page and makes the error actionable.
         if 'CSRF' in error_msg or 'csrf' in error_msg.lower():
+            if is_api_request():
+                return jsonify({
+                    'error': 'Session expired or security token invalid.',
+                    'message': 'Please refresh the page and sign in again. If this keeps happening, contact support.'
+                }), 400
+            # For normal browser navigations, preserve the existing flash+redirect UX
             flash('Security token expired or invalid. Please try again.', 'danger')
             return redirect(request.url if request.referrer else url_for('admin.dashboard')), 400
         return e

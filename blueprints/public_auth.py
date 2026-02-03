@@ -365,6 +365,14 @@ def verify_certificate():
 def api_login():
     """API endpoint for member/admin login using JSON. Returns JSON and sets session cookie."""
     try:
+        # Log incoming request headers to help debug API vs web redirect flows
+        from flask import current_app
+        current_app.logger.info('Login attempt headers: Origin=%s Accept=%s Content-Type=%s Path=%s',
+                                request.headers.get('Origin'),
+                                request.headers.get('Accept'),
+                                request.headers.get('Content-Type'),
+                                request.path)
+
         data = request.get_json() or {}
         username = data.get('username')
         password = data.get('password')
@@ -400,7 +408,10 @@ def api_login():
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        from flask import current_app
+        current_app.logger.exception('api_login: unexpected error')
+        # Return a generic JSON error to avoid leaking internal details
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 @public_auth_bp.route('/api/champion/apply', methods=['POST'])
