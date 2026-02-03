@@ -430,6 +430,69 @@ except Exception:
     pass
 
 
+# Public login endpoint that is explicitly CSRF-exempt. This is a dedicated
+# API route for credentialed XHR clients and avoids any CSRF protection that
+# may be applied to browser-form flows. Frontends should POST to
+# `/api/auth/login-public` when performing API logins from separate origins.
+@public_auth_bp.route('/api/auth/login-public', methods=['POST'])
+def api_login_public():
+    try:
+        from flask import current_app
+        current_app.logger.info('Public API login attempt (login-public) headers: Origin=%s Accept=%s Content-Type=%s Path=%s',
+                                request.headers.get('Origin'),
+                                request.headers.get('Accept'),
+                                request.headers.get('Content-Type'),
+                                request.path)
+
+        # Reuse the same logic as api_login
+        data = request.get_json() or {}
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return jsonify({'error': 'Missing username or password'}), 400
+
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            return jsonify({'error': 'Invalid credentials'}), 401
+
+        # Account lockout handling
+        if user.is_locked():
+            return jsonify({'error': 'Account locked. Try again later.'}), 403
+
+        if not user.check_password(password):
+            user.record_failed_login()
+            return jsonify({'error': 'Invalid credentials'}), 401
+
+        # Successful login
+        from flask_login import login_user
+        user.reset_failed_logins()
+        login_user(user, remember=True)
+
+        return jsonify({
+            'message': 'Logged in successfully',
+            'user': {
+                'user_id': user.user_id,
+                'username': user.username,
+                'role': user.role
+            }
+        }), 200
+
+    except Exception:
+        db.session.rollback()
+        from flask import current_app
+        current_app.logger.exception('api_login_public: unexpected error')
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+try:
+    api_login_public.csrf_exempt = True
+    api_login_public.exempt = True
+    api_login_public._csrf_exempt = True
+except Exception:
+    pass
+
+
 @public_auth_bp.route('/api/champion/apply', methods=['POST'])
 @login_required
 def apply_champion():
