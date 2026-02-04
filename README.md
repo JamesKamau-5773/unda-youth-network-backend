@@ -116,6 +116,22 @@ Unda Youth Network is a professional platform designed to support youth mental h
 - Redis (for rate limiting)
 - pip (Python package manager)
 
+## Production startup checks
+
+The application performs a production-only database connectivity check during
+startup to avoid silently falling back to SQLite (which would cause data loss
+on redeploy). Ensure you set `DATABASE_URL` to your Postgres instance and do
+not enable `FALLBACK_TO_SQLITE` in production.
+
+- In `FLASK_ENV=production` the app executes a trivial `SELECT 1` at startup
+   and will abort startup if the check fails.
+- If `FALLBACK_TO_SQLITE=True` is set outside of development, the app will
+   log a warning (and refuse to start in production).
+
+If you encounter startup failures after deployment, check application logs for
+`Database connectivity check failed at startup` and verify the `DATABASE_URL`
+environment variable.
+
 ### Setup Instructions
 
 1. **Clone the repository**
