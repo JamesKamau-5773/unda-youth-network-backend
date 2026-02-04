@@ -560,6 +560,26 @@ def create_app(test_config=None):
             app.logger.info('CSRF exempted for public_auth.api_login')
     except Exception:
         app.logger.exception('Failed to explicitly exempt public_auth.api_login from CSRF')
+
+    # Also explicitly exempt the API refresh and API login endpoints which are
+    # called from single-page applications using refresh cookies. These POST
+    # endpoints are intended to use the `refresh_token` cookie for auth and
+    # should not be blocked by CSRF checks for API clients.
+    try:
+        api_refresh = app.view_functions.get('api.api_auth_refresh')
+        if api_refresh:
+            csrf.exempt(api_refresh)
+            app.logger.info('CSRF exempted for api.api_auth_refresh')
+    except Exception:
+        app.logger.exception('Failed to explicitly exempt api.api_auth_refresh from CSRF')
+
+    try:
+        api_login = app.view_functions.get('api.api_auth_login')
+        if api_login:
+            csrf.exempt(api_login)
+            app.logger.info('CSRF exempted for api.api_auth_login')
+    except Exception:
+        app.logger.exception('Failed to explicitly exempt api.api_auth_login from CSRF')
     
     # Podcast Management
     from blueprints.podcasts import podcasts_bp
