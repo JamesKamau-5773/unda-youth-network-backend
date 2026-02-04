@@ -4,7 +4,8 @@ This document shows how to call the backend endpoints that rely on the server-ma
 
 Backend requirements
 
-- Set `FRONTEND_ORIGIN=https://undayouth.org` in production (or add it to `CORS_ORIGINS`).
+- Prefer setting `SESSION_COOKIE_DOMAIN` explicitly in production (recommended). Example: `SESSION_COOKIE_DOMAIN=.undayouth.org`.
+- Optionally set `FRONTEND_ORIGIN=https://undayouth.org` (or add the origin to `CORS_ORIGINS`) to enable CORS for that origin. Do NOT rely on the app to auto-derive the cookie domain from `FRONTEND_ORIGIN`.
 - Ensure your deployment uses `flask` with the updated `app.py` so CORS `supports_credentials` is enabled for that origin.
 
 Fetch example (login)
