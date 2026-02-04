@@ -527,6 +527,25 @@ def create_app(test_config=None):
         except Exception:
             app.logger.exception('Failed to log endpoint CSRF status')
 
+    @app.before_request
+    def debug_auth_state_for_api():
+        # Lightweight diagnostics for API auth issues. Logs only presence of
+        # cookies (names) and whether Flask-Login has an authenticated user.
+        try:
+            if request.path.startswith('/api'):
+                cookie_keys = list(request.cookies.keys())
+                auth_hdr = bool(request.headers.get('Authorization'))
+                is_auth = False
+                try:
+                    from flask_login import current_user
+                    is_auth = bool(current_user and current_user.is_authenticated)
+                except Exception:
+                    is_auth = False
+                app.logger.info('Auth debug: path=%s is_api=True authenticated=%s auth_header=%s cookies=%s',
+                                request.path, is_auth, auth_hdr, cookie_keys)
+        except Exception:
+            app.logger.exception('Failed to log auth debug info')
+
     # Flask-Limiter setup (using Redis for persistent rate limits)
     limiter.init_app(app)
     
