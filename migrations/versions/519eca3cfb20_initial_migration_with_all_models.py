@@ -67,14 +67,12 @@ def upgrade():
     # Add foreign key constraints after both tables exist (idempotent, NOT VALID + VALIDATE)
     conn = op.get_bind()
     try:
-        # Drop legacy names if present (best-effort)
+        # Drop legacy names if present (best-effort). Use IF EXISTS to avoid
+        # errors when running on a fresh database where these constraints
+        # are absent.
         try:
-            with op.batch_alter_table('champions', schema=None) as batch_op:
-                for legacy in ('fk_champions_supervisor', 'fk_champions_user'):
-                    try:
-                        batch_op.drop_constraint(legacy, type_='foreignkey')
-                    except Exception:
-                        pass
+            conn.execute(sa.text("ALTER TABLE IF EXISTS champions DROP CONSTRAINT IF EXISTS fk_champions_supervisor"))
+            conn.execute(sa.text("ALTER TABLE IF EXISTS champions DROP CONSTRAINT IF EXISTS fk_champions_user"))
         except Exception:
             logging.exception('Failed to drop legacy champion constraints during initial migration')
 
