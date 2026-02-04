@@ -29,6 +29,74 @@ def mock_save_file(monkeypatch, tmp_path):
     yield
 
 
+# Provide transactional test isolation via nested savepoints. This lets the
+# session-scoped schema and any seed data created at session setup remain
+# visible to tests while ensuring changes made inside each test are rolled
+# back afterwards.
+@pytest.fixture(autouse=True)
+def db_transaction(app):
+    import sqlalchemy as sa
+    from sqlalchemy import event
+
+    # Use the application context when creating engine connections and
+    # sessions so Flask-SQLAlchemy can resolve the current app config.
+    with app.app_context():
+        # Create a new connection and begin an outer transaction for the test
+        connection = _db.engine.connect()
+        outer_transaction = connection.begin()
+
+        # Bind a scoped session to the connection using SQLAlchemy primitives
+        from sqlalchemy.orm import sessionmaker, scoped_session
+
+        original_session = _db.session
+        # Prevent objects from being expired on commit so tests can safely
+        # access attributes off instances after commits without triggering
+        # lazy-loads against a now-detached session.
+        session_factory = sessionmaker(bind=connection, expire_on_commit=False)
+        Session = scoped_session(session_factory)
+        _db.session = Session
+
+        # Start a nested transaction (SAVEPOINT) for test-level rollback
+        nested = _db.session().begin_nested()
+
+        # Ensure a clean slate for tests: remove any leftover registrations
+        # that might have been created outside the proxied session in previous runs.
+        try:
+            connection.execute(sa.text('DELETE FROM member_registrations'))
+        except Exception:
+            # If table doesn't exist yet or deletion fails, ignore and continue.
+            pass
+
+        # Ensure SAVEPOINT is restarted when the session issues a new transaction
+        @event.listens_for(_db.session(), "after_transaction_end")
+        def restart_savepoint(sess, trans):
+            if trans.nested and not sess.is_active:
+                sess.begin_nested()
+
+        try:
+            yield _db.session
+        finally:
+            # Teardown must also occur within app context
+            try:
+                # Remove the scoped session created for this test
+                _db.session.remove()
+            except Exception:
+                pass
+            try:
+                # Only rollback if still active to avoid SAWarning about
+                # already-dissociated transactions on some DB backends.
+                if outer_transaction.is_active:
+                    outer_transaction.rollback()
+            except Exception:
+                pass
+            try:
+                connection.close()
+            except Exception:
+                pass
+            # Restore the original session factory
+            _db.session = original_session
+
+
 # Provide a Flask `app` fixture configured for testing with an in-memory SQLite DB
 @pytest.fixture(scope='session')
 def app():
@@ -45,14 +113,15 @@ def app():
     # Create DB schema for the test session
     with app.app_context():
         _db.create_all()
-        # (connect listener removed) debug instrumentation was temporary
     yield app
 
-    # Teardown - drop all tables
+    # Teardown - drop all tables for the session
     with app.app_context():
-        _db.session.remove()
         try:
-            # Close any pooled DB connections to avoid ResourceWarnings
+            _db.session.remove()
+        except Exception:
+            pass
+        try:
             _db.engine.dispose()
         except Exception:
             pass

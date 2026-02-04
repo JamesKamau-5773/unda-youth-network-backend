@@ -46,6 +46,16 @@ def test_my_submissions_returns_recent(client, app):
     from models import User
 
     # Login as previously created advocate
+    # Ensure advocate1 exists (some test runs isolate state differently)
+    with app.app_context():
+        if not User.query.filter_by(username='advocate1').first():
+            u = User(username='advocate1')
+            u.set_password('Adv0cate!')
+            u.set_role('Prevention Advocate')
+            from models import db
+            db.session.add(u)
+            db.session.commit()
+
     resp = client.post('/api/auth/login', json={'username': 'advocate1', 'password': 'Adv0cate!'})
     assert resp.status_code == 200
 

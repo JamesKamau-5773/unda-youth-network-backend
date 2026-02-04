@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime, date, timezone
 from bcrypt import hashpw, gensalt, checkpw
+import re
 
 
 db = SQLAlchemy()
@@ -33,6 +34,10 @@ class User(db.Model, UserMixin):
   password_hash = db.Column(db.String(255), nullable=False)
   role = db.Column(db.String(50), nullable=False, default='Prevention Advocate')
   email = db.Column(db.String(100), unique=True, nullable=True)  # Email for password recovery and notifications
+  # Optional profile fields
+  date_of_birth = db.Column(db.Date)
+  gender = db.Column(db.String(20))
+  county_sub_county = db.Column(db.String(100))
 
   champion_id = db.Column(
     db.Integer,
@@ -1029,6 +1034,9 @@ class MemberRegistration(db.Model):
   
   def set_password(self, password):
     self.password_hash = hash_password(password)
+
+
+
 
 
 class Certificate(db.Model):
