@@ -238,6 +238,27 @@ flask db current
 
 ---
 
+## ⚠️ Database connectivity & startup checks
+
+The application now performs a production-only startup connectivity check to
+avoid silently falling back to an ephemeral SQLite database (which would
+cause data loss on redeploys).
+
+- Ensure `DATABASE_URL` is set and points to your managed Postgres instance.
+- Do NOT set `FALLBACK_TO_SQLITE=True` in non-development environments.
+
+Behavior summary:
+- In `FLASK_ENV=production` the app will run a `SELECT 1` at startup; if
+   this check fails the process will abort and log the failure. This prevents
+   the app from starting with an unintended SQLite database.
+- If `FALLBACK_TO_SQLITE=True` is detected while not in `development`, the
+   app will log a warning (and refuse to start in `production`).
+
+If you see startup failures after deploying, check the app logs for messages
+like `Database connectivity check failed at startup` and verify the
+`DATABASE_URL` value in your deployment environment.
+
+
 ## ⚙️ Gunicorn Configuration
 
 ### Basic Command
