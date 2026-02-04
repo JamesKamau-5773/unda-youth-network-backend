@@ -456,7 +456,17 @@ def api_login():
             'champion_id': getattr(user, 'champion_id', None)
         }}), 200)
         secure_flag = os.environ.get('FLASK_ENV') == 'production'
-        response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600, domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
+        cookie_domain = current_app.config.get('SESSION_COOKIE_DOMAIN')
+        host = request.host.split(':')[0] if request.host else ''
+        use_domain = None
+        if cookie_domain:
+            norm = cookie_domain[1:] if cookie_domain.startswith('.') else cookie_domain
+            if host == norm or host.endswith('.' + norm):
+                use_domain = cookie_domain
+        if use_domain:
+            response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600, domain=use_domain)
+        else:
+            response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600)
         return response
 
     except Exception as e:
