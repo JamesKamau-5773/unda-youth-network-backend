@@ -199,6 +199,36 @@ def create_app(test_config=None):
     except Exception:
         force_sqlite_local = False
 
+    # Warn if a developer has enabled the SQLite fallback in non-development
+    # environments. Using an ephemeral SQLite file in production will cause
+    # data loss on redeploys — surface a clear warning so operators can fix env.
+    try:
+        fallback_flag = os.environ.get('FALLBACK_TO_SQLITE', 'False') == 'True'
+    except Exception:
+        fallback_flag = False
+
+    if fallback_flag and os.environ.get('FLASK_ENV') != 'development':
+        app.logger.warning('FALLBACK_TO_SQLITE is enabled while FLASK_ENV=%s. This may cause data loss across redeploys.', os.environ.get('FLASK_ENV'))
+
+    # In production, fail-fast if we cannot reach the configured Postgres
+    # database. This prevents the application from silently using an
+    # ephemeral SQLite DB and losing data on restart.
+    if not app.config.get('TESTING') and os.environ.get('FLASK_ENV') == 'production':
+        if force_sqlite_local:
+            app.logger.error('Configured DATABASE_URL resolves to SQLite in production — aborting startup to avoid data loss.')
+            raise RuntimeError('Refusing to start with SQLite fallback in production')
+        else:
+            try:
+                # Run a trivial query to verify connectivity and credentials.
+                with app.app_context():
+                    from sqlalchemy import text
+                    db.session.execute(text('SELECT 1'))
+                    db.session.commit()
+                    app.logger.info('Database connectivity check passed')
+            except Exception as exc:
+                app.logger.exception('Database connectivity check failed at startup: %s', str(exc))
+                raise RuntimeError('Database connectivity check failed during startup') from exc
+
     if (not app.config.get('TESTING') and force_sqlite_local
             and os.environ.get('CLEAN_BREAK_MODE') == 'skip_migrations'):
         try:
