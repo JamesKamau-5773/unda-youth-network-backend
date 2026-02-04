@@ -161,7 +161,17 @@ def login():
                     }}))
                     # Set HttpOnly secure cookie for refresh token. SameSite=None for cross-site usage.
                     secure_flag = os.environ.get('FLASK_ENV') == 'production'
-                    response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600, domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
+                    cookie_domain = current_app.config.get('SESSION_COOKIE_DOMAIN')
+                    host = request.host.split(':')[0] if request.host else ''
+                    use_domain = None
+                    if cookie_domain:
+                        norm = cookie_domain[1:] if cookie_domain.startswith('.') else cookie_domain
+                        if host == norm or host.endswith('.' + norm):
+                            use_domain = cookie_domain
+                    if use_domain:
+                        response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600, domain=use_domain)
+                    else:
+                        response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600)
                     return response
 
                 # Else form login: flash and redirect as before
@@ -207,9 +217,20 @@ def logout():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     # Force cookie deletion
-    response.set_cookie('session', '', expires=0, domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
-    # Also clear refresh token cookie if present
-    response.set_cookie('refresh_token', '', expires=0, path='/', domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
+    cookie_domain = current_app.config.get('SESSION_COOKIE_DOMAIN')
+    host = request.host.split(':')[0] if request.host else ''
+    use_domain = None
+    if cookie_domain:
+        norm = cookie_domain[1:] if cookie_domain.startswith('.') else cookie_domain
+        if host == norm or host.endswith('.' + norm):
+            use_domain = cookie_domain
+    if use_domain:
+        response.set_cookie('session', '', expires=0, domain=use_domain)
+        # Also clear refresh token cookie if present
+        response.set_cookie('refresh_token', '', expires=0, path='/', domain=use_domain)
+    else:
+        response.set_cookie('session', '', expires=0)
+        response.set_cookie('refresh_token', '', expires=0, path='/')
     return response
     return response
 

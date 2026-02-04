@@ -105,7 +105,18 @@ def api_auth_login():
         'champion_id': user.champion_id
     }}))
     secure_flag = os.environ.get('FLASK_ENV') == 'production'
-    response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600, domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
+    # Only set cookie domain when it actually applies to the current host
+    cookie_domain = current_app.config.get('SESSION_COOKIE_DOMAIN')
+    host = request.host.split(':')[0] if request.host else ''
+    use_domain = None
+    if cookie_domain:
+        norm = cookie_domain[1:] if cookie_domain.startswith('.') else cookie_domain
+        if host == norm or host.endswith('.' + norm):
+            use_domain = cookie_domain
+    if use_domain:
+        response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600, domain=use_domain)
+    else:
+        response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600)
     return response
 
 
@@ -150,7 +161,17 @@ def api_auth_refresh():
 
         response = make_response(jsonify({'access_token': token}))
         secure_flag = os.environ.get('FLASK_ENV') == 'production'
-        response.set_cookie('refresh_token', new_raw, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30))*24*3600, domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
+        cookie_domain = current_app.config.get('SESSION_COOKIE_DOMAIN')
+        host = request.host.split(':')[0] if request.host else ''
+        use_domain = None
+        if cookie_domain:
+            norm = cookie_domain[1:] if cookie_domain.startswith('.') else cookie_domain
+            if host == norm or host.endswith('.' + norm):
+                use_domain = cookie_domain
+        if use_domain:
+            response.set_cookie('refresh_token', new_raw, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30))*24*3600, domain=use_domain)
+        else:
+            response.set_cookie('refresh_token', new_raw, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30))*24*3600)
         return response
     except Exception:
         db.session.rollback()
@@ -171,8 +192,19 @@ def api_auth_logout():
             except Exception:
                 db.session.rollback()
     response = make_response(jsonify({'success': True}))
-    response.set_cookie('refresh_token', '', expires=0, path='/', domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
-    response.set_cookie('session', '', expires=0, path='/', domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
+    cookie_domain = current_app.config.get('SESSION_COOKIE_DOMAIN')
+    host = request.host.split(':')[0] if request.host else ''
+    use_domain = None
+    if cookie_domain:
+        norm = cookie_domain[1:] if cookie_domain.startswith('.') else cookie_domain
+        if host == norm or host.endswith('.' + norm):
+            use_domain = cookie_domain
+    if use_domain:
+        response.set_cookie('refresh_token', '', expires=0, path='/', domain=use_domain)
+        response.set_cookie('session', '', expires=0, path='/', domain=use_domain)
+    else:
+        response.set_cookie('refresh_token', '', expires=0, path='/')
+        response.set_cookie('session', '', expires=0, path='/')
     return response
 
 
