@@ -311,6 +311,18 @@ def create_app(test_config=None):
             cors_origins = frontend_origin
         elif frontend_origin not in [o.strip() for o in cors_origins.split(',') if o.strip()]:
             cors_origins = cors_origins + ',' + frontend_origin
+        # If a frontend origin is provided, derive a cookie domain so session
+        # and refresh cookies can be sent across subdomains (e.g. api. & app.).
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(frontend_origin)
+            host = parsed.hostname
+            if host:
+                # Use a leading dot to allow subdomain cookies
+                cookie_domain = f".{host}" if not host.startswith('.') else host
+                app.config['SESSION_COOKIE_DOMAIN'] = cookie_domain
+        except Exception:
+            pass
 
     # Custom origin validation for Netlify preview URLs
     def is_valid_origin(origin):

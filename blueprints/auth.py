@@ -161,7 +161,7 @@ def login():
                     }}))
                     # Set HttpOnly secure cookie for refresh token. SameSite=None for cross-site usage.
                     secure_flag = os.environ.get('FLASK_ENV') == 'production'
-                    response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600)
+                    response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600, domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
                     return response
 
                 # Else form login: flash and redirect as before
@@ -207,9 +207,9 @@ def logout():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     # Force cookie deletion
-    response.set_cookie('session', '', expires=0)
+    response.set_cookie('session', '', expires=0, domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
     # Also clear refresh token cookie if present
-    response.set_cookie('refresh_token', '', expires=0, path='/')
+    response.set_cookie('refresh_token', '', expires=0, path='/', domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
     return response
     return response
 

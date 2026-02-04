@@ -105,7 +105,7 @@ def api_auth_login():
         'champion_id': user.champion_id
     }}))
     secure_flag = os.environ.get('FLASK_ENV') == 'production'
-    response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600)
+    response.set_cookie('refresh_token', raw_refresh, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=refresh_ttl_days*24*3600, domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
     return response
 
 
@@ -150,7 +150,7 @@ def api_auth_refresh():
 
         response = make_response(jsonify({'access_token': token}))
         secure_flag = os.environ.get('FLASK_ENV') == 'production'
-        response.set_cookie('refresh_token', new_raw, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30))*24*3600)
+        response.set_cookie('refresh_token', new_raw, httponly=True, secure=secure_flag, samesite='None', path='/', max_age=int(os.environ.get('REFRESH_TOKEN_TTL_DAYS', 30))*24*3600, domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
         return response
     except Exception:
         db.session.rollback()
@@ -171,8 +171,8 @@ def api_auth_logout():
             except Exception:
                 db.session.rollback()
     response = make_response(jsonify({'success': True}))
-    response.set_cookie('refresh_token', '', expires=0, path='/')
-    response.set_cookie('session', '', expires=0, path='/')
+    response.set_cookie('refresh_token', '', expires=0, path='/', domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
+    response.set_cookie('session', '', expires=0, path='/', domain=current_app.config.get('SESSION_COOKIE_DOMAIN'))
     return response
 
 
