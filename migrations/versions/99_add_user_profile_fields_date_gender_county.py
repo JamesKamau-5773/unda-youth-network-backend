@@ -1,3 +1,5 @@
+depends_on = None
+def downgrade():
 """Add profile fields to users table: date_of_birth, gender, county_sub_county
 
 Revision ID: 99_add_user_profile_fields
@@ -15,12 +17,16 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column('users', sa.Column('date_of_birth', sa.Date(), nullable=True))
-    op.add_column('users', sa.Column('gender', sa.String(length=20), nullable=True))
-    op.add_column('users', sa.Column('county_sub_county', sa.String(length=100), nullable=True))
+    bind = op.get_bind()
+    # Use batch_alter_table for SQLite compatibility
+    with op.batch_alter_table('users', schema=None) as batch_op:
+        batch_op.add_column(sa.Column('date_of_birth', sa.Date(), nullable=True))
+        batch_op.add_column(sa.Column('gender', sa.String(length=20), nullable=True))
+        batch_op.add_column(sa.Column('county_sub_county', sa.String(length=100), nullable=True))
 
 
 def downgrade():
-    op.drop_column('users', 'county_sub_county')
-    op.drop_column('users', 'gender')
-    op.drop_column('users', 'date_of_birth')
+    with op.batch_alter_table('users', schema=None) as batch_op:
+        batch_op.drop_column('county_sub_county')
+        batch_op.drop_column('gender')
+        batch_op.drop_column('date_of_birth')
