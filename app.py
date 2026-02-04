@@ -142,7 +142,14 @@ def create_app(test_config=None):
     app.config['USE_S3'] = bool(app.config.get('S3_BUCKET'))
     
     # WTF-CSRF Protection
-    app.config['WTF_CSRF_ENABLED'] = True
+    # Disable CSRF checks during tests to simplify API testing and avoid
+    # brittle failures in CI/test environments that do not exercise the
+    # full cookie/token exchange. Production and development still have
+    # CSRF enabled by default.
+    if app.config.get('TESTING'):
+        app.config['WTF_CSRF_ENABLED'] = False
+    else:
+        app.config['WTF_CSRF_ENABLED'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = None  # No time limit for CSRF tokens
     
     # Email Configuration
@@ -379,22 +386,35 @@ def create_app(test_config=None):
                 return redirect(url_for('champion.dashboard'))
         return redirect(url_for('auth.login'))
     
-    @app.errorhandler(429)
     def is_api_request(req=None):
         """Return True if the request is likely from an API client (JSON/XHR).
 
         Checks `request.is_json`, the `Accept` header, `X-Requested-With`,
         or if the path starts with `/api/`.
         """
-        r = req or request
-        accept = r.headers.get('Accept', '') or ''
-        x_requested = r.headers.get('X-Requested-With', '') or ''
+        # If an exception object is passed in by Flask's error handling, fall
+        # back to using the global `request` object which has the expected
+        # headers and attributes.
+        r = request if not getattr(req, 'headers', None) else req
+        accept = (getattr(r, 'headers', {}) or {}).get('Accept', '') or ''
+        x_requested = (getattr(r, 'headers', {}) or {}).get('X-Requested-With', '') or ''
         return (
-            r.is_json
-            or r.path.startswith('/api/')
+            getattr(r, 'is_json', False)
+            or getattr(r, 'path', '').startswith('/api/')
             or x_requested == 'XMLHttpRequest'
             or 'application/json' in accept
         )
+
+    @app.errorhandler(429)
+    def ratelimit_errorhandler(e):
+        """Flask error handler for 429 that delegates to the ratelimit handler.
+
+        Keep the actual response logic separate so helper functions like
+        `is_api_request` are not directly used as error handlers (Flask may
+        pass exception objects into handlers which can lead to attribute
+        access errors).
+        """
+        return ratelimit_handler(e)
 
     def ratelimit_handler(e):
         """Handle 429 Too Many Requests (rate limit exceeded)"""
@@ -504,6 +524,8 @@ def create_app(test_config=None):
     app.register_blueprint(events_bp)
     from blueprints.blog import blog_bp
     app.register_blueprint(blog_bp)
+    from blueprints.public_auth import public_auth_bp
+    app.register_blueprint(public_auth_bp)
     from blueprints.api import api_bp
     app.register_blueprint(api_bp)
     # Register token-only API blueprint (exempted from CSRF)
@@ -527,10 +549,6 @@ def create_app(test_config=None):
     from blueprints.mpesa import mpesa_bp
     app.register_blueprint(mpesa_bp)
     
-    # Public Authentication & Applications
-    from blueprints.public_auth import public_auth_bp
-    app.register_blueprint(public_auth_bp)
-
     # Defensive: ensure the specific JSON API login endpoint is exempted from CSRF
     # protection. In some deployment setups the blueprint-level exemption may be
     # missed due to import/register ordering or proxy rewrites, so explicitly

@@ -507,7 +507,10 @@ def create_media_gallery():
     if request.method == 'POST':
         try:
             # collect files from file input and existing media_items JSON, merge into a list
+            # Accept both `media_files` and `media_items` as file input keys for
+            # compatibility with different frontends/tests that may use either.
             uploaded = request.files.getlist('media_files') or []
+            uploaded += request.files.getlist('media_items') or []
             form_media = request.form.get('media_items')
             try:
                 existing = json.loads(form_media) if form_media else []
