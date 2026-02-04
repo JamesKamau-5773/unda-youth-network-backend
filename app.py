@@ -305,24 +305,25 @@ def create_app(test_config=None):
     # Optionally include a single frontend origin (recommended for production)
     # Set FRONTEND_ORIGIN=https://undayouth.org in production to enable
     # credentialed CORS responses for that origin.
+    # Prefer an explicit SESSION_COOKIE_DOMAIN env var for cookie domain
+    # behaviour. Do NOT auto-derive cookie domain from FRONTEND_ORIGIN; that
+    # caused sessions/CSRF to break when admin UI was hosted on a different
+    # host. Set SESSION_COOKIE_DOMAIN explicitly in production (e.g.
+    # ".undayouth.org").
+    session_cookie_domain = os.environ.get('SESSION_COOKIE_DOMAIN')
     frontend_origin = os.environ.get('FRONTEND_ORIGIN')
     if frontend_origin:
         if cors_origins == '*':
             cors_origins = frontend_origin
         elif frontend_origin not in [o.strip() for o in cors_origins.split(',') if o.strip()]:
             cors_origins = cors_origins + ',' + frontend_origin
-        # If a frontend origin is provided, derive a cookie domain so session
-        # and refresh cookies can be sent across subdomains (e.g. api. & app.).
-        try:
-            from urllib.parse import urlparse
-            parsed = urlparse(frontend_origin)
-            host = parsed.hostname
-            if host:
-                # Use a leading dot to allow subdomain cookies
-                cookie_domain = f".{host}" if not host.startswith('.') else host
-                app.config['SESSION_COOKIE_DOMAIN'] = cookie_domain
-        except Exception:
-            pass
+
+    if session_cookie_domain:
+        app.config['SESSION_COOKIE_DOMAIN'] = session_cookie_domain
+    else:
+        # Avoid silently deriving a cookie domain which may break web UI.
+        if frontend_origin:
+            app.logger.info('FRONTEND_ORIGIN set but SESSION_COOKIE_DOMAIN not set; not deriving cookie domain automatically. Set SESSION_COOKIE_DOMAIN to enable cross-subdomain cookies.')
 
     # Custom origin validation for Netlify preview URLs
     def is_valid_origin(origin):
@@ -557,6 +558,27 @@ def create_app(test_config=None):
                                 request.path, is_auth, auth_hdr, cookie_keys)
         except Exception:
             app.logger.exception('Failed to log auth debug info')
+
+    # One-time cookie-domain mismatch warning: if `SESSION_COOKIE_DOMAIN` is
+    # configured but doesn't appear to cover the incoming request host, log a
+    # warning to help triage CSRF/session issues caused by cross-domain cookies.
+    @app.before_request
+    def warn_cookie_domain_mismatch():
+        try:
+            cfg = app.config.get('SESSION_COOKIE_DOMAIN')
+            if not cfg:
+                return
+            # Only log once per process startup
+            if app.config.get('_COOKIE_DOMAIN_MISMATCH_LOGGED'):
+                return
+            host = request.host.split(':')[0] if request.host else ''
+            # Normalise leading dot
+            norm = cfg[1:] if cfg.startswith('.') else cfg
+            if host and not (host == norm or host.endswith('.' + norm)):
+                app.logger.warning('SESSION_COOKIE_DOMAIN is set to "%s" but request host is "%s" - this may prevent browsers from sending session cookies and cause CSRF/401 errors.', cfg, host)
+                app.config['_COOKIE_DOMAIN_MISMATCH_LOGGED'] = True
+        except Exception:
+            pass
 
     # Flask-Limiter setup (using Redis for persistent rate limits)
     limiter.init_app(app)
