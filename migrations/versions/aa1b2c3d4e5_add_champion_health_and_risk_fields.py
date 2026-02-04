@@ -18,19 +18,33 @@ depends_on = None
 
 
 def upgrade():
+    conn = op.get_bind()
+    existing = set(r[0] for r in conn.execute(sa.text("SELECT column_name FROM information_schema.columns WHERE table_name='champions'")))
     with op.batch_alter_table('champions', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('medical_conditions', sa.Text(), nullable=True))
-        batch_op.add_column(sa.Column('allergies', sa.Text(), nullable=True))
-        batch_op.add_column(sa.Column('mental_health_support', sa.Text(), nullable=True))
-        batch_op.add_column(sa.Column('disabilities', sa.Text(), nullable=True))
-        batch_op.add_column(sa.Column('medication_required', sa.Text(), nullable=True))
-        batch_op.add_column(sa.Column('dietary_requirements', sa.Text(), nullable=True))
-        batch_op.add_column(sa.Column('health_notes', sa.Text(), nullable=True))
-        batch_op.add_column(sa.Column('risk_level', sa.String(length=20), nullable=True, server_default='Low'))
-        batch_op.add_column(sa.Column('risk_assessment_date', sa.Date(), nullable=True))
-        batch_op.add_column(sa.Column('risk_notes', sa.Text(), nullable=True))
-        batch_op.add_column(sa.Column('last_contact_date', sa.Date(), nullable=True))
-        batch_op.add_column(sa.Column('next_review_date', sa.Date(), nullable=True))
+        if 'medical_conditions' not in existing:
+            batch_op.add_column(sa.Column('medical_conditions', sa.Text(), nullable=True))
+        if 'allergies' not in existing:
+            batch_op.add_column(sa.Column('allergies', sa.Text(), nullable=True))
+        if 'mental_health_support' not in existing:
+            batch_op.add_column(sa.Column('mental_health_support', sa.Text(), nullable=True))
+        if 'disabilities' not in existing:
+            batch_op.add_column(sa.Column('disabilities', sa.Text(), nullable=True))
+        if 'medication_required' not in existing:
+            batch_op.add_column(sa.Column('medication_required', sa.Text(), nullable=True))
+        if 'dietary_requirements' not in existing:
+            batch_op.add_column(sa.Column('dietary_requirements', sa.Text(), nullable=True))
+        if 'health_notes' not in existing:
+            batch_op.add_column(sa.Column('health_notes', sa.Text(), nullable=True))
+        if 'risk_level' not in existing:
+            batch_op.add_column(sa.Column('risk_level', sa.String(length=20), nullable=True, server_default='Low'))
+        if 'risk_assessment_date' not in existing:
+            batch_op.add_column(sa.Column('risk_assessment_date', sa.Date(), nullable=True))
+        if 'risk_notes' not in existing:
+            batch_op.add_column(sa.Column('risk_notes', sa.Text(), nullable=True))
+        if 'last_contact_date' not in existing:
+            batch_op.add_column(sa.Column('last_contact_date', sa.Date(), nullable=True))
+        if 'next_review_date' not in existing:
+            batch_op.add_column(sa.Column('next_review_date', sa.Date(), nullable=True))
 
 
 def downgrade():
