@@ -302,6 +302,15 @@ def create_app(test_config=None):
     
     # CORS Configuration - Allow API access from different origins
     cors_origins = os.environ.get('CORS_ORIGINS', '*')  # Use '*' by default
+    # Optionally include a single frontend origin (recommended for production)
+    # Set FRONTEND_ORIGIN=https://undayouth.org in production to enable
+    # credentialed CORS responses for that origin.
+    frontend_origin = os.environ.get('FRONTEND_ORIGIN')
+    if frontend_origin:
+        if cors_origins == '*':
+            cors_origins = frontend_origin
+        elif frontend_origin not in [o.strip() for o in cors_origins.split(',') if o.strip()]:
+            cors_origins = cors_origins + ',' + frontend_origin
 
     # Custom origin validation for Netlify preview URLs
     def is_valid_origin(origin):
