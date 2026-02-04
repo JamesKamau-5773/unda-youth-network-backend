@@ -102,6 +102,9 @@ Register as a new member (no authentication required).
 - Username must be unique
 - Email must not already exist in Prevention Advocate records
 
+Notes:
+- The API accepts `date_of_birth`, `gender`, and `county_sub_county` on registration. Dates must be ISO YYYY-MM-DD. Phone numbers are normalized to E.164 when possible.
+
 ### 2. Apply to Become Prevention Advocate
 
 **POST** `/api/prevention advocate/apply`

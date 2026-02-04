@@ -107,6 +107,13 @@ def normalize_phone(phone, default_region='KE'):
         return None
 
 
+def validate_phone(phone, default_region='KE'):
+    """Simple validator wrapper that returns True when `normalize_phone` can
+    produce an E.164-style value for storage/uniqueness checks.
+    """
+    return normalize_phone(phone, default_region) is not None
+
+
 @public_auth_bp.route('/api/auth/complete-invite', methods=['POST'])
 def complete_invite():
     """Complete an invite/set-password flow using a token sent to the user's email.
@@ -205,44 +212,19 @@ def register_member():
         if Champion.query.filter_by(phone_number=normalized_phone).first():
             return _error_response('Phone number already registered', field='phone_number', status=409)
 
-        # Look for prior registrations. To avoid unintended cross-test
-        # interference (many tests reuse placeholder phone numbers), we apply
-        # a conservative duplicate policy for registrations: block when the
-        # username matches, or when the email matches, or when the phone
-        # matches AND either the username or email also matches. This keeps
-        # the strictness needed to prevent accidental duplicates while being
-        # tolerant of unrelated tests that reuse generic phone numbers.
-        from datetime import datetime, timedelta
-        window = int(os.environ.get('REGISTRATION_DUPLICATE_WINDOW_SECONDS', 300))
-        cutoff = datetime.utcnow() - timedelta(seconds=window)
-
-        def recent(q):
-            if current_app.config.get('TESTING'):
-                return q.filter(MemberRegistration.submitted_at >= cutoff)
-            return q
-
-        # Username match blocks immediately
-        q_user = recent(MemberRegistration.query.filter_by(username=data['username']))
-        for reg in q_user.all():
-            if getattr(reg, 'status', None) and reg.status.lower() in blocking_statuses:
-                return _error_response(f'Existing registration (id={reg.registration_id}) with status "{reg.status}" is already in progress', field='registration', status=409)
-
-        # Email match blocks if provided
+        # Look for prior registrations matching username, phone or email
+        filters = [MemberRegistration.username == data['username'], MemberRegistration.phone_number == normalized_phone]
         if data.get('email'):
-            q_email = recent(MemberRegistration.query.filter_by(email=data['email']))
-            for reg in q_email.all():
-                if getattr(reg, 'status', None) and reg.status.lower() in blocking_statuses:
-                    return _error_response(f'Existing registration (id={reg.registration_id}) with status "{reg.status}" is already in progress', field='registration', status=409)
+            filters.append(MemberRegistration.email == data['email'])
 
-        # Phone match blocks only when paired with matching username or email
-        q_phone = recent(MemberRegistration.query.filter_by(phone_number=normalized_phone))
-        for reg in q_phone.all():
-            if not getattr(reg, 'status', None) or reg.status.lower() not in blocking_statuses:
-                continue
-            if reg.username == data['username']:
-                return _error_response(f'Existing registration (id={reg.registration_id}) with status "{reg.status}" is already in progress', field='registration', status=409)
-            if data.get('email') and reg.email == data['email']:
-                return _error_response(f'Existing registration (id={reg.registration_id}) with status "{reg.status}" is already in progress', field='registration', status=409)
+        existing_regs = MemberRegistration.query.filter(sa.or_(*filters)).all()
+        for reg in existing_regs:
+            if reg and getattr(reg, 'status', None) and reg.status.lower() in blocking_statuses:
+                return _error_response(
+                    f'Existing registration (id={reg.registration_id}) with status "{reg.status}" is already in progress',
+                    field='registration',
+                    status=409
+                )
 
         # Parse date of birth if provided
         date_of_birth = None
@@ -647,7 +629,7 @@ def apply_champion():
         if existing_app:
             return jsonify({'error': 'You already have a pending champion application'}), 400
         
-        data = request.get_json()
+        data = normalize_input(request.get_json() or {})
         
         # Validate required fields (email is optional)
         required_fields = ['full_name', 'phone_number', 'gender', 'date_of_birth']
@@ -680,7 +662,7 @@ def apply_champion():
             user_id=current_user.user_id,
             full_name=data['full_name'],
             email=data.get('email'),
-            phone_number=data['phone_number'],
+            phone_number=normalized_phone,
             alternative_phone_number=data.get('alternative_phone_number'),
             gender=data['gender'],
             date_of_birth=date_of_birth,
@@ -756,6 +738,15 @@ def approve_registration(registration_id):
         user = User(username=registration.username)
         user.set_role(User.ROLE_PREVENTION_ADVOCATE)  # Default role for new members
         user.password_hash = registration.password_hash  # Use the hashed password from registration
+        # Preserve profile fields from the registration request when approving
+        user.email = registration.email
+        try:
+            user.date_of_birth = registration.date_of_birth
+            user.gender = registration.gender
+            user.county_sub_county = registration.county_sub_county
+        except Exception:
+            # In case models don't include these fields (older DBs), ignore
+            pass
         
         db.session.add(user)
         db.session.flush()  # Get user_id
@@ -1174,7 +1165,7 @@ def register_champion():
     Does NOT create User account - champions register first, then can create account later.
     """
     try:
-        data = request.get_json()
+        data = normalize_input(request.get_json() or {})
         
         # Validate required fields
         required_fields = [
@@ -1203,15 +1194,16 @@ def register_champion():
                     'error': 'Invalid email format'
                 }), 400
         
-        # Validate phone number
-        if not validate_phone(data['phone_number']):
+        # Validate and normalize phone number
+        normalized_phone = normalize_phone(data['phone_number'], default_region='KE')
+        if not normalized_phone:
             return jsonify({
                 'success': False,
-                'error': 'Invalid phone number format. Use 254XXXXXXXXX or 07XXXXXXXX'
+                'error': 'Invalid phone number format. Use +2547XXXXXXXX or +2547XXXXXXXX'
             }), 400
         
         # Check for duplicate phone (always) and email (only if provided)
-        filters = [Champion.phone_number == data['phone_number']]
+        filters = [Champion.phone_number == normalized_phone]
         if data.get('email'):
             filters.append(Champion.email == data['email'])
 
@@ -1240,7 +1232,7 @@ def register_champion():
             full_name=data['full_name'],
             gender=data['gender'],
             date_of_birth=dob,
-            phone_number=data['phone_number'],
+            phone_number=normalized_phone,
             alternative_phone_number=data.get('alternative_phone_number'),
             email=data.get('email'),
             county_sub_county=data['county_sub_county'],

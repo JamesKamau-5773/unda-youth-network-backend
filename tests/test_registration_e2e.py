@@ -25,12 +25,12 @@ def test_public_signup_approve_and_login(client, app):
         db.session.commit()
         admin_id = admin.user_id
 
-    # Set flask-login session directly to impersonate admin
-    with client.session_transaction() as sess:
-        sess['_user_id'] = str(admin_id)
+        # Authenticate as admin via API login to ensure proper session state
+        login_resp = client.post('/api/auth/login', json={'username': 'e2e_admin', 'password': 'AdminPass1!'})
+        assert login_resp.status_code == 200
 
-    # Approve registration via admin API
-    rv = client.post(f'/api/admin/registrations/{reg_id}/approve')
+        # Approve registration via admin API
+        rv = client.post(f'/api/admin/registrations/{reg_id}/approve')
     assert rv.status_code == 200
     resp = rv.get_json()
     assert resp.get('message') == 'Registration approved successfully'
