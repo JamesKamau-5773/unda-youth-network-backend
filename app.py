@@ -783,33 +783,21 @@ def create_app(test_config=None):
 
     @main_bp.route('/')
     def index():
-        # If this process is serving the API subdomain, avoid performing
-        # browser redirects to the frontend dashboards. Browsers may send
-        # site-wide session cookies to api.* subdomains which would make
-        # the app think the user is authenticated and cause unwanted
-        # redirects. When running in API-only mode (API_ONLY=true) or when
-        # the request host is an api subdomain, return a neutral JSON
-        # response instead.
-        host = request.host.split(':')[0] if request.host else ''
-        if host.startswith('api.') or os.environ.get('API_ONLY', 'False') == 'True':
-            return jsonify({'message': 'API root'}), 200
-
+        # Backend root redirects to login page for staff access
+        # If user is already authenticated as Admin/Supervisor, redirect to their dashboard
+        # Otherwise, redirect to login page
         if current_user.is_authenticated:
-            # Redirect directly to role-specific dashboard (case-insensitive)
             role_lower = (current_user.role or '').lower()
             if role_lower == 'admin':
                 return redirect(url_for('admin.dashboard'))
             elif role_lower == 'supervisor':
                 return redirect(url_for('supervisor.dashboard'))
-            elif role_lower in ['champion', 'prevention advocate']:
-                if os.environ.get('USE_MEMBER_PORTAL_FOR_ADVOCATES', 'False') == 'True':
-                    return redirect(os.environ.get('MEMBER_PORTAL_URL', '/member-portal'))
-                return redirect(url_for('champion.dashboard'))
             else:
-                # Unknown role - logout and redirect to login
+                # Prevention Advocates and others should use frontend
+                # Clear session and redirect to login
                 from flask_login import logout_user
                 logout_user()
-                flash('Your account has an invalid role. Please contact an administrator.', 'danger')
+                session.clear()
                 return redirect(url_for('auth.login'))
         else:
             return redirect(url_for('auth.login'))
