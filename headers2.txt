@@ -1,0 +1,42 @@
+HTTP/2 302 
+date: Wed, 04 Feb 2026 21:38:07 GMT
+content-type: text/html; charset=utf-8
+cf-ray: 9c8d50247a6c1b5a-NBO
+access-control-allow-credentials: true
+access-control-allow-origin: http://127.0.0.1:5000
+access-control-expose-headers: Authorization, Content-Type
+content-security-policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data: https:;
+location: /auth/login
+rndr-id: 32d3c29c-a8dc-4adf
+strict-transport-security: max-age=31536000; includeSubDomains
+vary: Origin, Cookie
+vary: Accept-Encoding
+x-content-type-options: nosniff
+x-frame-options: SAMEORIGIN
+x-render-origin-server: gunicorn
+x-xss-protection: 1; mode=block
+cf-cache-status: DYNAMIC
+server: cloudflare
+alt-svc: h3=":443"; ma=86400
+
+HTTP/2 200 
+date: Wed, 04 Feb 2026 21:38:07 GMT
+content-type: text/html; charset=utf-8
+cf-ray: 9c8d502c3c6b1b5a-NBO
+access-control-allow-credentials: true
+access-control-allow-origin: http://127.0.0.1:5000
+access-control-expose-headers: Authorization, Content-Type
+content-security-policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data: https:;
+rndr-id: 5d9be6cf-4a04-4466
+set-cookie: session=eyJjc3JmX3Rva2VuIjoiYTE3ZWJlM2EyM2YwM2Y3NDUyNmQ5NDQ4ZTI2NWI3NTIyODdkZTllZCJ9.aYO8Pw.1WQRjaK9PCgE076PtwG677Qu8-0; Domain=undayouth.org; Secure; HttpOnly; Path=/; SameSite=None
+strict-transport-security: max-age=31536000; includeSubDomains
+vary: Origin, Cookie
+vary: Accept-Encoding
+x-content-type-options: nosniff
+x-frame-options: SAMEORIGIN
+x-render-origin-server: gunicorn
+x-xss-protection: 1; mode=block
+cf-cache-status: DYNAMIC
+server: cloudflare
+alt-svc: h3=":443"; ma=86400
+

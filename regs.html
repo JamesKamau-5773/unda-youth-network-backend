@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#f8fafc">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Login - Unda Youth Network</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-navy': '#0f172a',
+                        'trust-blue': '#3b82f6',
+                        umv: {
+                            primary: '#0B1E3B',
+                            accent: '#00C2CB',
+                            surface: '#F8FAFC',
+                            dark: '#008ba3'
+                        },
+                        portal: {
+                            navy: '#0B1E3B',
+                            navyInk: '#1E293B',
+                            ice: '#F0F7FF',
+                            teal: '#00C2CB',
+                            tealDark: '#0090C0',
+                            muted: '#475569',
+                            subtitle: '#E0F2FE',
+                            surface: '#FFFFFF'
+                        },
+                        misc: {
+                            bodyBackground: '#F9FAFB'
+                        }
+                    },
+                    backgroundImage: {
+                        'energy-gradient': 'linear-gradient(90deg, #00C2CB 0%, #0090C0 100%)',
+                        'editorial-gradient': 'linear-gradient(to bottom right, #00E5FF, #00C2CB, #008ba3)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/_variables.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/admin.build.css">
+    
+    
+<style>
+    /* Custom animations for the background blobs */
+    @keyframes float {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    
+    @keyframes float-delayed {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(-30px, 50px) scale(0.9); }
+        66% { transform: translate(20px, -20px) scale(1.1); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+
+    .animate-float {
+        animation: float 12s infinite ease-in-out;
+    }
+    
+    .animate-float-delayed {
+        animation: float-delayed 15s infinite ease-in-out;
+    }
+    
+    .glass-card {
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    }
+    
+    .glass-input {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        color: #0f172a;
+    }
+    
+    .glass-input:focus {
+        background: white;
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Autofill fix */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active{
+        -webkit-box-shadow: 0 0 0 30px #f8fafc inset !important;
+        -webkit-text-fill-color: #0f172a !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+</style>
+
+    <style>
+    /* Tooltip Styles */
+    .tooltip-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: help;
+        margin-left: 0.5rem;
+        position: relative;
+        vertical-align: middle;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    
+    .tooltip-trigger:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 400;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        pointer-events: none;
+        max-width: 250px;
+        white-space: normal;
+        text-align: left;
+        line-height: 1.4;
+    }
+    
+    .tooltip-trigger:hover::before {
+        content: '';
+        position: absolute;
+        bottom: calc(100% + 2px);
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: #1e293b;
+        z-index: 1001;
+    }
+    
+    /* Loading Spinner */
+    .btn-loading {
+        position: relative;
+        pointer-events: none;
+        opacity: 0.7;
+    }
+    
+    .btn-loading::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spinner 0.6s linear infinite;
+    }
+    
+    @keyframes spinner {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Empty State Styles */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #64748b;
+    }
+    
+    .empty-state-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1rem;
+        opacity: 0.8;
+        color: #3b82f6;
+    }
+    
+    .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .empty-state-text {
+        font-size: 0.9375rem;
+        margin-bottom: 1.5rem;
+        color: #64748b;
+    }
+    
+    .empty-state-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background-color: #2563eb;
+        color: white;
+        text-decoration: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: background-color 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+    
+    .empty-state-action:hover {
+        background-color: #1d4ed8;
+    }
+    
+
+    /* Password Strength Indicator */
+    .password-strength {
+        height: 4px;
+        background-color: #e2e8f0;
+        border-radius: 2px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .password-strength-bar {
+        height: 100%;
+        transition: width 0.3s, background-color 0.3s;
+        width: 0%;
+    }
+    
+    .password-strength-bar.weak { width: 33%; background-color: #ef4444; }
+    .password-strength-bar.medium { width: 66%; background-color: #f59e0b; }
+    .password-strength-bar.strong { width: 100%; background-color: #10b981; }
+    
+    .password-strength-text {
+        font-size: 0.8125rem;
+        margin-top: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .password-strength-text.weak { color: #ef4444; }
+    .password-strength-text.medium { color: #f59e0b; }
+    .password-strength-text.strong { color: #10b981; }
+    
+    /* Form Field Validation Indicators */
+    .form-field-wrapper {
+        position: relative;
+    }
+    
+    .form-field-wrapper .validation-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        display: none;
+    }
+    
+    .form-field-wrapper.valid .validation-icon.checkmark,
+    .form-field-wrapper.invalid .validation-icon.x-mark {
+        display: block;
+    }
+    
+    .validation-icon.checkmark {
+        color: #10b981;
+    }
+    
+    .validation-icon.x-mark {
+        color: #ef4444;
+    }
+    
+    .form-field-wrapper.valid input,
+    .form-field-wrapper.valid select,
+    .form-field-wrapper.valid textarea {
+        border-color: #10b981;
+        padding-right: 2.75rem;
+    }
+    
+    .form-field-wrapper.invalid input,
+    .form-field-wrapper.invalid select,
+    .form-field-wrapper.invalid textarea {
+        border-color: #ef4444;
+        padding-right: 2.75rem;
+    }
+    
+    .field-error-message {
+        display: none;
+        font-size: 0.8125rem;
+        color: #ef4444;
+        margin-top: 0.375rem;
+        font-weight: 500;
+    }
+    
+    .form-field-wrapper.invalid .field-error-message {
+        display: block;
+    }
+    
+    /* Toast Notification Styles */
+    .toast-container {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 9999;
+        max-width: 400px;
+        pointer-events: none;
+    }
+    
+    .toast {
+        background-color: rgba(30, 41, 59, 0.95);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        border-left: 4px solid;
+        pointer-events: auto;
+        animation: slideIn 0.3s ease-out;
+        max-width: 100%;
+        color: #f8fafc;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .toast.toast-success { border-left-color: #10b981; }
+    .toast.toast-error { border-left-color: #ef4444; }
+    .toast.toast-warning { border-left-color: #f59e0b; }
+    .toast.toast-info { border-left-color: #3b82f6; }
+    
+    .toast-icon {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+    }
+    
+    .toast-success .toast-icon { color: #10b981; }
+    .toast-error .toast-icon { color: #ef4444; }
+    .toast-warning .toast-icon { color: #f59e0b; }
+    .toast-info .toast-icon { color: #3b82f6; }
+    
+    .toast-content { flex: 1; }
+    
+    .toast-title {
+        font-weight: 600;
+        font-size: 0.9375rem;
+        color: #f8fafc;
+        margin-bottom: 0.25rem;
+    }
+    
+    .toast-message {
+        font-size: 0.875rem;
+        color: #cbd5e1;
+        line-height: 1.5;
+    }
+    
+    .toast-close {
+        flex-shrink: 0;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: color 0.2s;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .toast-close:hover {
+        color: #f8fafc;
+    }
+        flex-shrink: 0;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: color 0.2s;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .toast-close:hover {
+        color: #64748b;
+    }
+    .password-strength-bar.medium { width: 66%; background-color: #f59e0b; }
+    .password-strength-bar.strong { width: 100%; background-color: #10b981; }
+    
+    .password-strength-text {
+        font-size: 0.8125rem;
+        margin-top: 0.25rem;
+        font-weight: 500;
+    }
+    
+    .password-strength-text.weak { color: #ef4444; }
+    .password-strength-text.medium { color: #f59e0b; }
+    .password-strength-text.strong { color: #10b981; }
+    
+    /* Flash message animations and close button */
+    .flash-message {
+        position: relative;
+        animation: slideIn 0.3s ease-out;
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        padding-right: 3rem;
+    }
+    
+    .flash-message.fade-out {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .flash-close {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: currentColor;
+        cursor: pointer;
+        padding: 0.25rem;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+    
+    .flash-close:hover {
+        opacity: 1;
+    }
+    /* Form accessibility and readability improvements */
+    /* Ensures labels, inputs, textareas, selects and buttons are high-contrast,
+       reasonably large, and have clear focus outlines for keyboard users. */
+    .form-accessibility-label, form label {
+        color: #0f172a; /* deep navy */
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: block;
+        margin-bottom: 0.375rem;
+        line-height: 1.4;
+    }
+
+    input, textarea, select, .form-control {
+        font-size: 1rem; /* 16px */
+        line-height: 1.6;
+        color: #0f172a;
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1; /* light gray */
+        border-radius: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    textarea { min-height: 8rem; }
+
+    input::placeholder, textarea::placeholder {
+        color: #6b7280; /* gray-500 */
+        opacity: 1;
+    }
+
+    input[type="file"] { color: #0f172a; }
+
+    button, .btn {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #ffffff;
+        background-color: #2563eb;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+    }
+
+    button.secondary, .btn-secondary {
+        background-color: #e2e8f0;
+        color: #0f172a;
+        border: 1px solid #cbd5e1;
+    }
+
+    /* Focus states for keyboard users */
+    input:focus, textarea:focus, select:focus, button:focus,
+    input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37,99,235,0.22);
+    }
+
+    /* Stronger focus for keyboard users and high-contrast preference */
+    input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible {
+        box-shadow: 0 0 0 5px rgba(37,99,235,0.32);
+        transition: box-shadow 120ms ease-in-out;
+    }
+
+    /* Support dark/theme variants if present */
+    .dark input, .theme-dark input,
+    .dark textarea, .theme-dark textarea,
+    .dark select, .theme-dark select,
+    .dark .form-control, .theme-dark .form-control {
+        background-color: #0b1220;
+        color: #e6eef8;
+        border-color: #273449;
+    }
+
+    .dark button, .theme-dark button, .dark .btn, .theme-dark .btn {
+        color: #ffffff;
+    }
+
+    .dark input:focus-visible, .theme-dark input:focus-visible,
+    .dark textarea:focus-visible, .theme-dark textarea:focus-visible,
+    .dark select:focus-visible, .theme-dark select:focus-visible,
+    .dark button:focus-visible, .theme-dark button:focus-visible {
+        box-shadow: 0 0 0 4px rgba(96,165,250,0.18);
+        border-color: rgba(96,165,250,0.9);
+    }
+
+    /* Increase contrast when user requests high contrast */
+    @media (prefers-contrast: more) {
+        input, textarea, select, .form-control { border-width: 2px; }
+        .form-accessibility-label, form label { font-weight: 700; }
+        input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible {
+            box-shadow: 0 0 0 6px rgba(255,255,255,0.18);
+            border-width: 2px;
+        }
+    }
+
+    </style>
+    
+</head>
+<body class="selection:bg-umv-accent selection:text-white unda-shell">
+    
+    <!-- Global Animated Background -->
+    <div class="global-animated-bg">
+        <div class="bg-blob-1 animate-float"></div>
+        <div class="bg-blob-2 animate-float-delayed"></div>
+        <div class="bg-blob-3 animate-float"></div>
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 fill=%22black%22/%3E%3C/svg%3E');"></div>
+    </div>
+    
+    <!-- Main Content Wrapper -->
+    <div class="relative z-10 h-full flex flex-col min-h-screen">
+    
+    
+    
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #0f172a;">
+        
+            
+        
+        
+<div class="min-h-screen relative flex items-center justify-center overflow-hidden font-sans bg-slate-50">
+    
+    <!-- Immersive Gradient Background -->
+    <div class="absolute inset-0 w-full h-full">
+        <!-- Base Gradient -->
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-slate-100"></div>
+        
+        <!-- Animated Blobs for "Fading" Effect -->
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-400/20 blur-[100px] animate-float"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-400/20 blur-[100px] animate-float-delayed"></div>
+        <div class="absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full bg-indigo-300/20 blur-[80px] animate-float"></div>
+    </div>
+
+    <!-- Noise Texture Overlay (Optional for composition depth) -->
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 fill=%22black%22/%3E%3C/svg%3E');"></div>
+
+    <!-- Main Content Container -->
+    <div class="relative z-10 w-full max-w-5xl p-6 mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        
+        <!-- Composition Element: Text/Branding (Left Side) -->
+        <div class="hidden lg:block space-y-8 animate-fade-in-up">
+            <div class="relative">
+                <!-- Branding Logo -->
+                <div class="mb-6 inline-block p-4 rounded-2xl bg-white backdrop-blur-sm border border-indigo-100 shadow-xl">
+                     <img src="/static/img/logo.png" alt="Unda Logo" class="h-12 w-auto object-contain">
+                </div>
+
+                <div class="absolute -left-6 top-10 w-16 h-16 border-l-2 border-indigo-400/30 rounded-tl-2xl"></div>
+                
+                <h1 class="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-800 leading-tight">
+                    Empower Your <br/>
+                    <span class="text-indigo-900">Mental Journey</span>
+                </h1>
+                
+                <p class="mt-6 text-lg text-slate-600 leading-relaxed max-w-md">
+                    Connect with a supportive community, track your growth, and build resilience. Your story matters here.
+                </p>
+                
+                <div class="flex items-center gap-4 mt-8">
+                    <div class="flex -space-x-3">
+                        <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm bg-blue-100 flex items-center justify-center text-xs text-indigo-700">*</div>
+                        <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm bg-purple-100 flex items-center justify-center text-xs text-indigo-700">+</div>
+                        <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm bg-indigo-100 flex items-center justify-center text-xs text-indigo-700">o</div>
+                    </div>
+                    <span class="text-sm text-slate-500 font-medium">Join 500+ Youth Advocates</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Composition Element: Glass Login Card (Right Side/Center on Mobile) -->
+        <div class="w-full max-w-md mx-auto">
+            <div class="glass-card rounded-2xl p-8 md:p-10 relative overflow-hidden group">
+                
+                <!-- Subtle internal shine effect -->
+                <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                
+                <!-- Mobile Logo Header -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center mb-6 transform group-hover:scale-105 transition-transform duration-300">
+                         <!-- Logo Placeholder: Ensure file is at static/img/logo.png -->
+                         <img src="/static/img/logo.png" 
+                              alt="Unda Youth Network" 
+                              class="w-20 h-20 object-contain drop-shadow-2xl"
+                              onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlPSJ3aGl0ZSI+PHBhdGggc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik0xNyAyMGg1di0yYTMgMyAwIDAwLTUuMzU2LTEuODU3TTE3IDIwSDdtMTAgMHYtMmMwLS42NTYtLjEyNi0xLjI4My0uMzU2LTEuODU3TTcgMjBIMnYtMmEzIDMgMCAwMTUuMzU2LTEuODU3TTcgMjB2LTJjMC0uNjU2LjEyNi0xLjI4My4zNTYtMS44NTdtMCAwYTUuMDAyIDUuMDAyIDAgMDE5LjI4OCAwTTE1IDdhMyAzIDAgMTEtNiAwIDMgMyAwIDAxNiAwem02IDNhMiAyIDAgMTEtNCAwIDIgMiAwIDAxNCAwek03IDEwYTIgMiAwIDExLTQgMCAyIDIgMCAwMTQgMHoiLz48L3N2Zz4='; this.parentElement.classList.add('bg-blue-600', 'p-3', 'rounded-xl');">
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Welcome Back</h2>
+                    <p class="text-gray-500 text-sm mt-2">Sign in to continue your progress</p>
+                </div>
+
+                <!-- Form -->
+                <form method="POST" action="/auth/login" id="loginForm" autocomplete="off" class="space-y-6">
+                    <input type="hidden" name="csrf_token" value="IjE4YzZmNWUxNzNjY2U3MTAxM2I4MjE1OTE2ZTg1OTIxZDA0YTZkZGYi.aYO7qw.AUKHvsarC-aiSrQe9EcLLamez5U"/>
+                    
+                    <div>
+                        <label for="username" class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Username</label>
+                        <input type="text" id="username" name="username" required autofocus 
+                            class="glass-input w-full px-4 py-3 rounded-lg text-sm placeholder-gray-400 transition-colors duration-200"
+                            placeholder="Enter your username">
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Password</label>
+                        <div class="relative">
+                            <input type="password" id="password" name="password" required
+                                class="glass-input w-full px-4 py-3 rounded-lg text-sm placeholder-gray-400 transition-colors duration-200"
+                                placeholder="Enter your password">
+                            <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-closed hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/30 transform transition-all duration-200 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-blue-500">
+                        Sign In
+                    </button>
+                    
+                    <div class="flex items-center justify-between mt-6 text-sm">
+                        <a href="https://unda-youth-network.netlify.app" class="text-slate-500 hover:text-blue-700 transition-colors flex items-center gap-1 group/link">
+                             <svg class="w-3 h-3 group-hover/link:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                             Home
+                        </a>
+                        <a href="#" class="text-slate-500 hover:text-blue-700 transition-colors">Forgot Password?</a>
+                    </div>
+                </form>
+            </div>
+            
+            <p class="text-center text-slate-400 text-xs mt-6">
+                &copy; 2026 Unda Youth Network
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    
+    // Password visibility toggle
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            const eyeOpen = this.querySelector('.eye-open');
+            const eyeClosed = this.querySelector('.eye-closed');
+            
+            if (type === 'password') {
+                eyeOpen.style.display = 'block';
+                eyeClosed.style.display = 'none';
+            } else {
+                eyeOpen.style.display = 'none';
+                eyeClosed.style.display = 'block';
+            }
+        });
+    }
+});
+</script>
+
+    </div>
+    
+    
+    <script>
+    // Auto-dismiss flash messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const flashMessages = document.querySelectorAll('.flash-message');
+        flashMessages.forEach(function(message) {
+            setTimeout(function() {
+                message.classList.add('fade-out');
+                setTimeout(function() {
+                    message.remove();
+                }, 300); // Wait for fade animation to complete
+            }, 5000); // 5 seconds before starting fade
+        });
+        
+        // Form submission loading state
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+                if (submitBtn && !submitBtn.classList.contains('btn-loading')) {
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.classList.add('btn-loading');
+                    submitBtn.innerHTML = 'Submitting...';
+                    
+                    // Reset if form validation fails
+                    setTimeout(() => {
+                        if (!form.checkValidity()) {
+                            submitBtn.classList.remove('btn-loading');
+                            submitBtn.innerHTML = originalText;
+                        }
+                    }, 100);
+                }
+            });
+        });
+        
+        // Toast Notification System
+        window.showToast = function(message, type = 'info', title = '') {
+            const container = document.getElementById('toastContainer');
+            if (!container) {
+                const newContainer = document.createElement('div');
+                newContainer.id = 'toastContainer';
+                newContainer.className = 'toast-container';
+                document.body.appendChild(newContainer);
+            }
+            
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icons = {
+                success: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+                error: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+                warning: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+                info: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+            };
+            
+            const titleHTML = title ? `<div class="toast-title">${title}</div>` : '';
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    ${titleHTML}
+                    <div class="toast-message">${message}</div>
+                </div>
+                <div class="toast-close">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            });
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        };
+        
+        // Form Validation Functions
+        window.validateUsername = function(username) {
+            if (!username || username.length < 3) {
+                return { valid: false, message: 'Username must be at least 3 characters' };
+            }
+            if (username.length > 50) {
+                return { valid: false, message: 'Username must be less than 50 characters' };
+            }
+            return { valid: true, message: '' };
+        };
+        
+        window.validateEmail = function(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) {
+                return { valid: false, message: 'Email is required' };
+            }
+            if (!emailRegex.test(email)) {
+                return { valid: false, message: 'Please enter a valid email address' };
+            }
+            return { valid: true, message: '' };
+        };
+        
+        window.validateRequired = function(value, fieldName) {
+            if (!value || value.trim() === '') {
+                return { valid: false, message: `${fieldName} is required` };
+            }
+            return { valid: true, message: '' };
+        };
+        
+        window.addValidationToField = function(inputElement, validationFn) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'form-field-wrapper';
+            inputElement.parentNode.insertBefore(wrapper, inputElement);
+            wrapper.appendChild(inputElement);
+            
+            const checkmark = document.createElement('div');
+            checkmark.className = 'validation-icon checkmark';
+            checkmark.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            wrapper.appendChild(checkmark);
+            
+            const xMark = document.createElement('div');
+            xMark.className = 'validation-icon x-mark';
+            xMark.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            wrapper.appendChild(xMark);
+            
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'field-error-message';
+            wrapper.appendChild(errorMsg);
+            
+            inputElement.addEventListener('input', () => {
+                const result = validationFn(inputElement.value);
+                if (inputElement.value.trim() === '') {
+                    wrapper.classList.remove('valid', 'invalid');
+                    errorMsg.textContent = '';
+                } else if (result.valid) {
+                    wrapper.classList.remove('invalid');
+                    wrapper.classList.add('valid');
+                    errorMsg.textContent = '';
+                } else {
+                    wrapper.classList.remove('valid');
+                    wrapper.classList.add('invalid');
+                    errorMsg.textContent = result.message;
+                }
+            });
+            
+            inputElement.addEventListener('blur', () => {
+                if (inputElement.value.trim() !== '') {
+                    const result = validationFn(inputElement.value);
+                    if (!result.valid) {
+                        wrapper.classList.add('invalid');
+                        errorMsg.textContent = result.message;
+                    }
+                }
+            });
+        };
+        
+        // Mobile Sidebar Toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        
+        if (sidebarToggle && sidebar && sidebarOverlay) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            });
+            
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            });
+            
+            // Close sidebar on navigation link click (mobile)
+            const navLinks = sidebar.querySelectorAll('.sidebar-nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('active');
+                        sidebarOverlay.classList.remove('active');
+                    }
+                });
+            });
+        }
+        
+        // Ensure all interactive elements are clickable on mobile (critical for touch devices)
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.style.pointerEvents = 'auto';
+        }
+        
+        // Force all buttons and links to be tappable, even if CSS tries to block them
+        const interactiveElements = document.querySelectorAll('a, button, input[type="submit"], input[type="button"], .btn');
+        interactiveElements.forEach(el => {
+            const computed = window.getComputedStyle(el);
+            if (computed.pointerEvents === 'none') {
+                el.style.pointerEvents = 'auto';
+                console.warn('Fixed blocked element:', el);
+            }
+            
+            // Add touch feedback for mobile
+            if ('ontouchstart' in window) {
+                el.addEventListener('touchstart', function(e) {
+                    this.style.opacity = '0.7';
+                });
+                el.addEventListener('touchend', function(e) {
+                    this.style.opacity = '1';
+                });
+            }
+        });
+    });
+    </script>
+    
+    </div> <!-- End Main Content Wrapper -->
+</body>
+</html>
