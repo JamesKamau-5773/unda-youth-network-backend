@@ -828,6 +828,59 @@ def reject_registration(registration_id):
         return jsonify({'error': str(e)}), 500
 
 
+@public_auth_bp.route('/api/admin/fix-missing-champions', methods=['POST'])
+@admin_required
+def fix_missing_champions():
+    """Admin: Create Champion profiles for Prevention Advocates who don't have one"""
+    try:
+        # Find all Prevention Advocates without a champion_id
+        users_without_champions = User.query.filter(
+            User.role == 'Prevention Advocate',
+            (User.champion_id == None) | (User.champion_id == 0)
+        ).all()
+        
+        fixed_count = 0
+        fixed_users = []
+        
+        for user in users_without_champions:
+            # Try to find their registration to get full details
+            registration = MemberRegistration.query.filter_by(created_user_id=user.user_id).first()
+            
+            # Create Champion profile
+            champion = Champion(
+                full_name=registration.full_name if registration else user.username,
+                email=user.email or (registration.email if registration else None),
+                phone_number=registration.phone_number if registration else None,
+                date_of_birth=user.date_of_birth or (registration.date_of_birth if registration else None),
+                gender=user.gender or (registration.gender if registration else None),
+                county_sub_county=user.county_sub_county or (registration.county_sub_county if registration else None),
+                champion_status='Active'
+            )
+            db.session.add(champion)
+            db.session.flush()
+            
+            # Link user to champion
+            user.champion_id = champion.champion_id
+            
+            fixed_count += 1
+            fixed_users.append({
+                'user_id': user.user_id,
+                'username': user.username,
+                'champion_id': champion.champion_id
+            })
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'Fixed {fixed_count} users',
+            'fixed_users': fixed_users
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
 @public_auth_bp.route('/api/admin/champion-applications', methods=['GET'])
 @admin_required
 def get_champion_applications():
