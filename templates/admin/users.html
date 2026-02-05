@@ -9,14 +9,14 @@
 </div>
 
 <div class="table-actions" style="margin-bottom: 2rem;">
-    <a href="{{ backend_url('admin.create_user') }}" class="btn btn--primary btn--nowrap">
+    <a href="{{ url_for('admin.create_user') }}" class="btn btn--primary btn--nowrap">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;" aria-hidden="true">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
         Create New User
     </a>
-    <a href="{{ backend_url('admin.dashboard') }}" class="btn btn--secondary btn--nowrap">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn--secondary btn--nowrap">
         Back to Dashboard
     </a>
 </div>
