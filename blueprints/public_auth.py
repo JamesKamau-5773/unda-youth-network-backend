@@ -12,7 +12,11 @@ def exempt_csrf(f):
         pass
     return f
 from flask_login import login_required, current_user
-from models import db, User, Champion, MemberRegistration, ChampionApplication, MediaGallery, InstitutionalToolkitItem, UMVGlobalEntry, ResourceItem, BlogPost
+from models import (
+    db, User, Champion, MemberRegistration, ChampionApplication,
+    MediaGallery, InstitutionalToolkitItem, UMVGlobalEntry, ResourceItem, BlogPost,
+    DailyAffirmation, SymbolicItem, MentalHealthAssessment
+)
 from decorators import admin_required
 from password_validator import validate_password_strength
 from datetime import datetime, date, timezone
