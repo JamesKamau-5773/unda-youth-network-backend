@@ -915,6 +915,15 @@ def create_app(test_config=None):
     # directly to the SPA when configured. Falls back to None when not set.
     @app.context_processor
     def inject_frontend_portal():
+        def backend_url(endpoint, **kwargs):
+            try:
+                prefix = app.config.get('APP_URL', '') or os.environ.get('APP_URL', '')
+                prefix = prefix.rstrip('/')
+                # Use Flask's url_for to build the path portion
+                return prefix + url_for(endpoint, **kwargs)
+            except Exception:
+                return url_for(endpoint, **kwargs)
+
         return {
             'FRONTEND_MEMBER_PORTAL': (
                 app.config.get('FRONTEND_MEMBER_PORTAL')
@@ -923,7 +932,9 @@ def create_app(test_config=None):
                 or os.environ.get('MEMBER_PORTAL_URL')
                 or app.config.get('PREVENTION_ADVOCATE_DASHBOARD_URL')
                 or os.environ.get('PREVENTION_ADVOCATE_DASHBOARD_URL')
-            )
+            ),
+            'APP_URL': app.config.get('APP_URL'),
+            'backend_url': backend_url,
         }
 
     # --- Database Setup/Migration ---
