@@ -7,6 +7,22 @@ from flask import request
 from flask_login import login_required, current_user
 import json
 
+
+def _snake_to_camel(s: str) -> str:
+    parts = s.split('_')
+    return parts[0] + ''.join(p.title() for p in parts[1:]) if parts else s
+
+
+def _camelize_dict(d: dict, keys: list = None) -> dict:
+    """Return a shallow copy of d with selected keys converted to camelCase."""
+    out = {}
+    if keys is None:
+        keys = list(d.keys())
+    for k in keys:
+        v = d.get(k)
+        out[_snake_to_camel(k)] = v
+    return out
+
 # reuse phone normalization/email validation from public_auth when available
 try:
     from blueprints.public_auth import normalize_phone, validate_email
@@ -206,6 +222,54 @@ def api_auth_logout():
         response.set_cookie('refresh_token', '', expires=0, path='/')
         response.set_cookie('session', '', expires=0, path='/')
     return response
+
+
+@api_bp.route('/auth/me', methods=['GET'])
+@login_required
+def api_auth_me():
+    """Return current authenticated user and linked champion profile.
+
+    Fields are returned in camelCase to match typical JS/React clients.
+    """
+    try:
+        user = current_user
+        user_data = {
+            'user_id': user.user_id,
+            'username': user.username,
+            'email': getattr(user, 'email', None),
+            'role': user.role,
+            'champion_id': getattr(user, 'champion_id', None),
+            'date_of_birth': user.date_of_birth.isoformat() if getattr(user, 'date_of_birth', None) else None,
+            'gender': getattr(user, 'gender', None),
+            'county_sub_county': getattr(user, 'county_sub_county', None)
+        }
+
+        out = {'user': _camelize_dict(user_data)}
+
+        # If user has a champion profile, include key champion fields
+        if getattr(user, 'champion_id', None):
+            try:
+                champ = Champion.query.filter_by(champion_id=user.champion_id).first()
+            except Exception:
+                champ = None
+
+            if champ:
+                champ_fields = {
+                    'champion_id': champ.champion_id,
+                    'full_name': champ.full_name,
+                    'email': champ.email,
+                    'phone_number': champ.phone_number,
+                    'alternative_phone_number': champ.alternative_phone_number,
+                    'county_sub_county': champ.county_sub_county,
+                    'assigned_champion_code': champ.assigned_champion_code,
+                    'date_of_birth': champ.date_of_birth.isoformat() if champ.date_of_birth else None,
+                    'gender': champ.gender,
+                }
+                out['champion'] = _camelize_dict(champ_fields)
+
+        return jsonify(out), 200
+    except Exception:
+        return jsonify({'error': 'Failed to fetch user information'}), 500
 
 
 @api_bp.route('/impact-stats', methods=['GET'])
