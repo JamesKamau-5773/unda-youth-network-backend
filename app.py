@@ -684,6 +684,12 @@ def create_app(test_config=None):
     # API Status & Health Checks
     from blueprints.api_status import api_status_bp
     app.register_blueprint(api_status_bp)
+    # Admin debug endpoints for post-deploy verification
+    try:
+        from blueprints.debug import debug_bp
+        app.register_blueprint(debug_bp)
+    except Exception:
+        app.logger.info('debug blueprint not available; skipping')
     
     # Developer Routes (Hidden - requires secret key)
     from blueprints.dev import dev
