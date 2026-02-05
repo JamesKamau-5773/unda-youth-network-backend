@@ -911,29 +911,21 @@ def create_app(test_config=None):
     
     app.register_blueprint(main_bp)    
 
-    # Inject FRONTEND_MEMBER_PORTAL into templates so templates can link
-    # directly to the SPA when configured. Falls back to None when not set.
+    # Inject backend_url helper and APP_URL into templates so links always
+    # resolve to the backend host (prevents redirects to frontend/api hosts).
     @app.context_processor
-    def inject_frontend_portal():
+    def inject_backend_helpers():
         def backend_url(endpoint, **kwargs):
+            """Build an absolute URL to the backend host for the given endpoint."""
             try:
                 prefix = app.config.get('APP_URL', '') or os.environ.get('APP_URL', '')
                 prefix = prefix.rstrip('/')
-                # Use Flask's url_for to build the path portion
                 return prefix + url_for(endpoint, **kwargs)
             except Exception:
                 return url_for(endpoint, **kwargs)
 
         return {
-            'FRONTEND_MEMBER_PORTAL': (
-                app.config.get('FRONTEND_MEMBER_PORTAL')
-                or os.environ.get('FRONTEND_MEMBER_PORTAL')
-                or app.config.get('MEMBER_PORTAL_URL')
-                or os.environ.get('MEMBER_PORTAL_URL')
-                or app.config.get('PREVENTION_ADVOCATE_DASHBOARD_URL')
-                or os.environ.get('PREVENTION_ADVOCATE_DASHBOARD_URL')
-            ),
-            'APP_URL': app.config.get('APP_URL'),
+            'APP_URL': app.config.get('APP_URL') or os.environ.get('APP_URL', ''),
             'backend_url': backend_url,
         }
 
