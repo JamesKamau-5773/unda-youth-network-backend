@@ -14,6 +14,13 @@ champion_bp = Blueprint('champion', __name__, url_prefix='/champion', template_f
 @login_required
 @champion_required  # Champions, Supervisors, Admins can view; Supervisors/Admins may act on behalf
 def dashboard():
+	# If a frontend SPA hosts the Champion dashboard, redirect to it so the
+	# server-rendered view is not used. This keeps existing template links
+	# functional while delegating the UX to the frontend.
+	frontend_portal = os.environ.get('FRONTEND_MEMBER_PORTAL') or os.environ.get('PREVENTION_ADVOCATE_DASHBOARD_URL') or os.environ.get('MEMBER_PORTAL_URL')
+	if frontend_portal:
+		return redirect(frontend_portal)
+
 	# If configured, route Prevention Advocates (legacy Champions) to the external
 	# Prevention Advocate dashboard (supports both new and legacy config keys)
 	role_lower = (current_user.role or '').lower()
