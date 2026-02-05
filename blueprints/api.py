@@ -566,6 +566,19 @@ def update_current_member():
                 return jsonify({'error': 'Username already taken'}), 409
             user.username = data['username']
 
+        # Accept and persist profile-like fields on the user record as well
+        # so GET endpoints reflect values even when no Champion profile exists.
+        if 'date_of_birth' in data and data['date_of_birth']:
+            try:
+                user.date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+            except Exception:
+                # ignore here; champion date parsing handles format errors for champion records
+                pass
+        if 'gender' in data and data['gender']:
+            user.gender = data['gender']
+        if 'county_sub_county' in data and data['county_sub_county']:
+            user.county_sub_county = data['county_sub_county']
+
         # Update champion profile fields when user is a Prevention Advocate and linked to champion
         champion = None
         if user.champion_id:
