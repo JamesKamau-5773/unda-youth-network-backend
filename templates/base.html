@@ -551,7 +551,7 @@
                 <ul class="sidebar-nav">
                     {% if current_user.role == 'Admin' %}
                     <li class="sidebar-nav-item">
-                        <a href="{{ backend_url('admin.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                        <a href="{{ url_for('admin.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -633,7 +633,7 @@
                     </li>
                     {% elif current_user.role == 'Supervisor' %}
                     <li class="sidebar-nav-item">
-                        <a href="{{ backend_url('supervisor.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'supervisor.dashboard' %}active{% endif %}">
+                        <a href="{{ url_for('supervisor.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'supervisor.dashboard' %}active{% endif %}">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -644,7 +644,7 @@
                         </a>
                     </li>
                     <li class="sidebar-nav-item">
-                        <a href="{{ backend_url('supervisor.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'supervisor.dashboard' %}active{% endif %}">
+                        <a href="{{ url_for('supervisor.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'supervisor.dashboard' %}active{% endif %}">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
                                 <circle cx="9" cy="7" r="4"></circle>
@@ -664,7 +664,7 @@
                     </li>
                     {% elif current_user.role == 'Prevention Advocate' or current_user.role == 'Champion' %}
                     <li class="sidebar-nav-item">
-                        <a href="{{ backend_url('champion.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">
+                        <a href="{{ url_for('champion.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -675,7 +675,7 @@
                         </a>
                     </li>
                     <li class="sidebar-nav-item">
-                        <a href="{{ backend_url('champion.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">
+                        <a href="{{ url_for('champion.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>

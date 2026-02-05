@@ -11,7 +11,7 @@
 <div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 1rem; margin-bottom: 2rem; border-radius: 4px;">
     <p style="margin: 0; color: #0c5460; display: flex; align-items: center; gap: 0.5rem;">
         <strong>Admin Tools:</strong>
-                <a href="{{ backend_url('admin.test_email') }}" style="color: #0c5460; text-decoration: underline;">
+                <a href="{{ url_for('admin.test_email') }}" style="color: #0c5460; text-decoration: underline;">
             Test Email Configuration
         </a>
     </p>
@@ -91,7 +91,7 @@
             </h3>
         </div>
         <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
-            <a href="{{ backend_url('admin.change_password') }}" class="btn btn--primary btn--block">
+            <a href="{{ url_for('admin.change_password') }}" class="btn btn--primary btn--block">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
                 </svg>
@@ -99,7 +99,7 @@
             </a>
             
             {% if current_user.role == 'Admin' %}
-                <a href="{{ backend_url('admin.manage_users') }}" class="btn btn--secondary btn--block">
+                <a href="{{ url_for('admin.manage_users') }}" class="btn btn--secondary btn--block">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
@@ -107,7 +107,7 @@
                     </svg>
                     Manage Users
                 </a>
-                <a href="{{ backend_url('admin.dashboard') }}" class="btn btn--secondary btn--block">
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn--secondary btn--block">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <rect x="3" y="3" width="7" height="7"></rect>
                         <rect x="14" y="3" width="7" height="7"></rect>
@@ -117,7 +117,7 @@
                     View Dashboard
                 </a>
             {% elif current_user.role == 'Supervisor' %}
-                <a href="{{ backend_url('supervisor.dashboard') }}" class="btn btn--secondary btn--block">
+                <a href="{{ url_for('supervisor.dashboard') }}" class="btn btn--secondary btn--block">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <rect x="3" y="3" width="7" height="7"></rect>
                         <rect x="14" y="3" width="7" height="7"></rect>
@@ -127,7 +127,7 @@
                     View Dashboard
                 </a>
             {% else %}
-                <a href="{{ backend_url('champion.dashboard') }}" class="btn btn--secondary btn--block">
+                <a href="{{ url_for('champion.dashboard') }}" class="btn btn--secondary btn--block">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
