@@ -1,6 +1,7 @@
 from models import db, User, Champion
 import os
 from flask import Flask, redirect, url_for, flash, request, jsonify
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -23,6 +24,20 @@ def create_app(test_config=None):
     # Allow tests to override config early so database settings can be provided via test_config
     if test_config:
         app.config.update(test_config)
+
+    # Apply ProxyFix to respect X-Forwarded headers from proxies (e.g., Render).
+    # Enable via PROXY_FIX_ENABLED env var (default: true). Skip in test mode.
+    try:
+        proxy_fix_enabled = os.environ.get('PROXY_FIX_ENABLED', 'True').lower() in ('1', 'true', 'yes')
+    except Exception:
+        proxy_fix_enabled = True
+
+    if proxy_fix_enabled and not app.config.get('TESTING'):
+        try:
+            app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+            app.logger.info('Applied ProxyFix middleware (x_for=1, x_proto=1, x_host=1, x_port=1)')
+        except Exception:
+            app.logger.exception('Failed to apply ProxyFix middleware')
     
     # Initialize Prometheus metrics
     metrics = PrometheusMetrics(app)
