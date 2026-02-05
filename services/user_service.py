@@ -10,17 +10,33 @@ from services.mailer import send_invite
 def create_user(username: str, email: Optional[str], role: str) -> dict:
     """Create a new user, set an invite token and optionally send invite email.
 
-    Returns a dict with keys: user, invite_sent, invite_token, expires_at
+    Returns a dict with keys: user, invite_sent, invite_token, expires_at, temp_password
+    For staff users (Admin, Supervisor), a temporary password is generated for backend login.
     """
     bcrypt = Bcrypt()
-    temp_placeholder = secrets.token_urlsafe(32)
+    
+    # For staff users (Admin/Supervisor), generate a human-readable temp password
+    # They log in via the backend and need to see the password
+    is_staff = role in ('Admin', 'Supervisor')
+    
+    if is_staff:
+        temp_password = secrets.token_urlsafe(8)  # Human-readable temporary password
+        password_hash = bcrypt.generate_password_hash(temp_password).decode('utf-8')
+    else:
+        temp_password = None
+        temp_placeholder = secrets.token_urlsafe(32)
+        password_hash = bcrypt.generate_password_hash(temp_placeholder).decode('utf-8')
 
     new_user = User(
         username=username,
         email=email if email else None,
         role=role,
-        password_hash=bcrypt.generate_password_hash(temp_placeholder).decode('utf-8')
+        password_hash=password_hash
     )
+    
+    # Staff users should change password on first login
+    if is_staff:
+        new_user.must_change_password = True
 
     try:
         db.session.add(new_user)
@@ -42,6 +58,7 @@ def create_user(username: str, email: Optional[str], role: str) -> dict:
             'invite_sent': invite_sent,
             'invite_token': invite_token,
             'expires_at': expires_at,
+            'temp_password': temp_password,  # Will be set for staff users
         }
 
     except Exception:
