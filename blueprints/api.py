@@ -272,6 +272,156 @@ def api_auth_me():
         return jsonify({'error': 'Failed to fetch user information'}), 500
 
 
+@api_bp.route('/auth/me', methods=['PUT'])
+@login_required
+def api_auth_me_update():
+    """Update current authenticated user profile.
+
+    Frontend expects PUT /api/auth/me for profile updates.
+    Accepts JSON or multipart/form-data. Normalizes camelCase to snake_case.
+    """
+    from blueprints.public_auth import normalize_input
+
+    raw = None
+    if request.is_json:
+        raw = request.get_json() or {}
+    else:
+        try:
+            raw = request.form.to_dict() or {}
+        except Exception:
+            raw = {}
+
+    data = normalize_input(raw or {})
+    user = current_user
+
+    try:
+        if 'email' in data and data['email']:
+            if not validate_email(data['email']):
+                return jsonify({'error': 'Invalid email format'}), 400
+            user.email = data['email']
+
+        if 'username' in data and data['username']:
+            existing = User.query.filter(User.username == data['username'], User.user_id != user.user_id).first()
+            if existing:
+                return jsonify({'error': 'Username already taken'}), 409
+            user.username = data['username']
+
+        if 'date_of_birth' in data and data['date_of_birth']:
+            try:
+                user.date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+            except Exception:
+                pass
+
+        if 'gender' in data and data['gender']:
+            user.gender = data['gender']
+
+        if 'county_sub_county' in data and data['county_sub_county']:
+            user.county_sub_county = data['county_sub_county']
+
+        # Update linked champion profile if exists
+        champion = None
+        if user.champion_id:
+            champion = db.session.get(Champion, user.champion_id)
+
+        if champion:
+            if 'full_name' in data and data['full_name']:
+                champion.full_name = data['full_name']
+            if 'date_of_birth' in data and data['date_of_birth']:
+                try:
+                    champion.date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+                except Exception:
+                    return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+            if 'phone_number' in data and data['phone_number']:
+                if normalize_phone:
+                    normalized = normalize_phone(data['phone_number'])
+                    if not normalized:
+                        return jsonify({'error': 'Invalid phone number'}), 400
+                    champion.phone_number = normalized
+                else:
+                    champion.phone_number = data['phone_number']
+            if 'county_sub_county' in data and data['county_sub_county']:
+                champion.county_sub_county = data['county_sub_county']
+
+        db.session.add(user)
+        if champion:
+            db.session.add(champion)
+        db.session.commit()
+
+        # Return updated profile in camelCase
+        user_data = {
+            'user_id': user.user_id,
+            'username': user.username,
+            'email': getattr(user, 'email', None),
+            'role': user.role,
+            'champion_id': getattr(user, 'champion_id', None),
+            'date_of_birth': user.date_of_birth.isoformat() if getattr(user, 'date_of_birth', None) else None,
+            'gender': getattr(user, 'gender', None),
+            'county_sub_county': getattr(user, 'county_sub_county', None)
+        }
+
+        out = {'success': True, 'user': _camelize_dict(user_data)}
+
+        if champion:
+            champ_fields = {
+                'champion_id': champion.champion_id,
+                'full_name': champion.full_name,
+                'email': champion.email,
+                'phone_number': champion.phone_number,
+                'county_sub_county': champion.county_sub_county,
+                'date_of_birth': champion.date_of_birth.isoformat() if champion.date_of_birth else None,
+                'gender': champion.gender,
+            }
+            out['champion'] = _camelize_dict(champ_fields)
+
+        return jsonify(out), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@api_bp.route('/auth/me/avatar', methods=['POST'])
+@login_required
+def api_auth_me_avatar():
+    """Upload avatar for current authenticated user.
+
+    Expects multipart/form-data with 'avatar' file field.
+    Note: Avatar storage is not yet implemented in the User model.
+    This endpoint is a placeholder to satisfy frontend contract.
+    """
+    import os
+
+    if 'avatar' not in request.files:
+        return jsonify({'error': 'No avatar file provided'}), 400
+
+    file = request.files['avatar']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    # Validate file type
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in allowed_extensions:
+        return jsonify({'error': f'Invalid file type. Allowed: {", ".join(allowed_extensions)}'}), 400
+
+    # Save to uploads folder
+    uploads_dir = os.path.join(current_app.instance_path, 'uploads', 'avatars')
+    os.makedirs(uploads_dir, exist_ok=True)
+
+    filename = f'user_{current_user.user_id}.{ext}'
+    filepath = os.path.join(uploads_dir, filename)
+    file.save(filepath)
+
+    # Return URL path (served statically or via a route)
+    avatar_url = f'/uploads/avatars/{filename}'
+
+    return jsonify({
+        'success': True,
+        'avatarUrl': avatar_url,
+        'message': 'Avatar uploaded successfully'
+    }), 200
+
+
 @api_bp.route('/impact-stats', methods=['GET'])
 def impact_stats():
     """
