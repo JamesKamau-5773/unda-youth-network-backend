@@ -59,8 +59,23 @@ def register():
             user = User(username=registration.username)
             user.set_role(User.ROLE_PREVENTION_ADVOCATE)
             user.password_hash = registration.password_hash
+            user.email = email
             db.session.add(user)
             db.session.flush()
+            
+            # Create Champion profile
+            champion = Champion(
+                full_name=full_name,
+                email=email,
+                phone_number=phone,
+                champion_status='Active'
+            )
+            db.session.add(champion)
+            db.session.flush()
+            
+            # Link user to champion
+            user.champion_id = champion.champion_id
+            
             registration.status = 'Approved'
             registration.reviewed_at = datetime.now(timezone.utc)
             registration.reviewed_by = current_user.user_id
