@@ -89,15 +89,12 @@ def login():
             return redirect(url_for('admin.dashboard'))
         elif role == 'Supervisor':
             return redirect(url_for('supervisor.dashboard'))
-        elif role == 'Prevention Advocate':
-            return redirect(url_for('champion.dashboard'))
         else:
-            # Unknown role - logout and clear session to prevent redirect loop
-            from flask import session
+            # Prevention Advocates and unknown roles should not use backend
+            # Clear their session and show the login form for staff
             logout_user()
             session.clear()
-            flash('Your account has an invalid role. Please contact an administrator.', 'danger')
-            # Don't return here - let it fall through to show login form
+            # Fall through to show login form
 
     if request.method == 'POST':
         # Support both form-based login (HTML) and JSON API login
