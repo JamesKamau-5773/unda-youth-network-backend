@@ -1,39 +1,6 @@
 from datetime import datetime, timezone
-from models import db, MemberRegistration
-
-
-def approve_registration(registration_id: int, reviewer_id: int):
-    registration = db.session.get(MemberRegistration, registration_id)
-    if not registration:
-        raise ValueError('Registration not found')
-    if registration.status != 'Pending':
-        raise ValueError('Registration is not pending')
-
-    registration.status = 'Approved'
-    registration.reviewed_at = datetime.now(timezone.utc)
-    registration.reviewed_by = reviewer_id
-
-    db.session.commit()
-    return {'registration': registration}
-
-
-def reject_registration(registration_id: int, reviewer_id: int, reason: str = 'No reason provided'):
-    registration = db.session.get(MemberRegistration, registration_id)
-    if not registration:
-        raise ValueError('Registration not found')
-    if registration.status != 'Pending':
-        raise ValueError('Registration is not pending')
-
-    registration.status = 'Rejected'
-    registration.reviewed_at = datetime.now(timezone.utc)
-    registration.reviewed_by = reviewer_id
-    registration.rejection_reason = reason
-
-    db.session.commit()
-    return {'registration': registration}
-from datetime import datetime
+from models import db, MemberRegistration, User, Champion, Certificate
 from flask import current_app
-from models import db, User, MemberRegistration, Certificate
 import hmac
 import hashlib
 
@@ -55,6 +22,7 @@ def _sign_certificate_bytes(secret_key: str, data: bytes) -> str:
 
 
 def approve_registration(registration_id: int, reviewer_id: int) -> dict:
+    """Approve a member registration, create User and Champion profile"""
     registration = db.session.get(MemberRegistration, registration_id)
     if not registration:
         raise ValueError('Registration not found')
@@ -67,9 +35,29 @@ def approve_registration(registration_id: int, reviewer_id: int) -> dict:
         user = User(username=registration.username)
         user.set_role(User.ROLE_PREVENTION_ADVOCATE)
         user.password_hash = registration.password_hash
+        user.email = registration.email
+        user.date_of_birth = registration.date_of_birth
+        user.gender = registration.gender
+        user.county_sub_county = registration.county_sub_county
 
         db.session.add(user)
         db.session.flush()
+
+        # Create Champion profile for Prevention Advocate
+        champion = Champion(
+            full_name=registration.full_name,
+            email=registration.email,
+            phone_number=registration.phone_number,
+            date_of_birth=registration.date_of_birth,
+            gender=registration.gender,
+            county_sub_county=registration.county_sub_county,
+            champion_status='Active'
+        )
+        db.session.add(champion)
+        db.session.flush()
+
+        # Link user to champion
+        user.champion_id = champion.champion_id
 
         # Update registration metadata
         registration.status = 'Approved'
@@ -85,12 +73,11 @@ def approve_registration(registration_id: int, reviewer_id: int) -> dict:
 
             cert = Certificate(user_id=user.user_id, pdf_data=pdf_bytes, signature=signature)
             db.session.add(cert)
-            db.session.commit()
         except Exception:
-            db.session.rollback()
             current_app.logger.exception('Failed to generate certificate')
 
-        return {'user': user, 'registration': registration}
+        db.session.commit()
+        return {'user': user, 'registration': registration, 'champion': champion}
 
     except Exception:
         db.session.rollback()
