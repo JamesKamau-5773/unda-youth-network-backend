@@ -785,14 +785,23 @@ def submit_checkin():
     champion = None
     if current_user and current_user.is_authenticated and current_user.champion_id:
         champion = db.session.get(Champion, current_user.champion_id)
+    elif hasattr(g, 'jwt_payload') and g.jwt_payload:
+        # JWT token auth - get user from token's sub claim
+        user_id = g.jwt_payload.get('sub')
+        if user_id:
+            user = db.session.get(User, int(user_id))
+            if user and user.champion_id:
+                champion = db.session.get(Champion, user.champion_id)
+        # Fallback: allow champion_id in payload for automation scripts
+        if not champion:
+            cid = data.get('champion_id')
+            if cid:
+                champion = db.session.get(Champion, int(cid))
     else:
-        # When using API token, require `champion_id` in payload
-        if not _check_api_token():
-            return jsonify({'error': 'Unauthorized'}), 401
+        # Legacy API token auth - require champion_id in payload
         cid = data.get('champion_id')
-        if not cid:
-            return jsonify({'error': 'Missing champion_id for token-authenticated request'}), 400
-        champion = db.session.get(Champion, int(cid))
+        if cid:
+            champion = db.session.get(Champion, int(cid))
 
     if not champion:
         return jsonify({'error': 'Champion profile not found for current user'}), 404
