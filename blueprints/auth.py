@@ -126,6 +126,17 @@ def login():
 
             # Check password
             if user.check_password(password):
+                # Prevention Advocates must login via frontend, not backend
+                if user.role == 'Prevention Advocate':
+                    frontend_url = os.environ.get('FRONTEND_URL', 'https://undayouth.org')
+                    if request.is_json:
+                        return jsonify({
+                            'error': 'Prevention Advocates must login via the member portal',
+                            'redirect': f'{frontend_url}/login'
+                        }), 403
+                    flash('Prevention Advocates should login through the member portal at undayouth.org', 'info')
+                    return redirect(f'{frontend_url}/login')
+
                 # Successful login - reset failed attempts
                 user.reset_failed_logins()
                 login_user(user, remember=True)
@@ -181,9 +192,8 @@ def login():
                     return redirect(url_for('admin.dashboard'))
                 elif role == 'Supervisor':
                     return redirect(url_for('supervisor.dashboard'))
-                elif role == 'Prevention Advocate':
-                    return redirect(url_for('champion.dashboard'))
                 else:
+                    # Only Admin and Supervisor can use backend UI
                     return redirect(url_for('auth.login'))
             else:
                 # Failed login - record attempt

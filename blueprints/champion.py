@@ -12,18 +12,9 @@ champion_bp = Blueprint('champion', __name__, url_prefix='/champion')
 @champion_required
 def dashboard():
     """
-    Legacy server-rendered dashboard route.
-    The champion dashboard is now served by the frontend SPA.
-    Redirect browser requests to the frontend; return JSON for API clients.
+    Prevention Advocates use the frontend SPA for their dashboard.
+    Redirect any direct access to the frontend.
     """
-    # Check if this is an API/XHR request
-    if request.is_json or request.headers.get('Accept', '').startswith('application/json'):
-        return jsonify({
-            'message': 'Champion dashboard has moved to the frontend SPA',
-            'redirect': os.environ.get('FRONTEND_URL', 'https://undayouth.org') + '/dashboard'
-        }), 200
-
-    # Browser request: redirect to frontend
     frontend_url = os.environ.get('FRONTEND_URL', 'https://undayouth.org')
     return redirect(f"{frontend_url}/dashboard")
 
