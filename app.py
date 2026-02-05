@@ -1,6 +1,6 @@
 from models import db, User, Champion
 import os
-from flask import Flask, redirect, url_for, flash, request, jsonify
+from flask import Flask, redirect, url_for, flash, request, jsonify, session
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
