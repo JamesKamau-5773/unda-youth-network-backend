@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from models import db, MemberRegistration, User, Champion, Certificate
+from models import db, MemberRegistration, User, Champion, Certificate, generate_champion_code
 from flask import current_app
 import hmac
 import hashlib
@@ -42,19 +42,29 @@ def approve_registration(registration_id: int, reviewer_id: int) -> dict:
 
         db.session.add(user)
         db.session.flush()
+        
+        current_app.logger.info(f'Created user: {user.user_id} - {user.username}')
+        
+        # Generate unique champion code
+        champion_code = generate_champion_code()
+        current_app.logger.info(f'Generated champion code: {champion_code} for user: {user.username}')
 
         # Create Champion profile for Prevention Advocate
         champion = Champion(
+            user_id=user.user_id,
             full_name=registration.full_name,
             email=registration.email,
             phone_number=registration.phone_number,
             date_of_birth=registration.date_of_birth,
             gender=registration.gender,
             county_sub_county=registration.county_sub_county,
+            assigned_champion_code=champion_code,
             champion_status='Active'
         )
         db.session.add(champion)
         db.session.flush()
+        
+        current_app.logger.info(f'Created champion: {champion.champion_id} for user: {user.user_id}')
 
         # Link user to champion
         user.champion_id = champion.champion_id
