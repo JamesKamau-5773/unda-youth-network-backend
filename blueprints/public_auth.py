@@ -15,7 +15,7 @@ from flask_login import login_required, current_user
 from models import (
     db, User, Champion, MemberRegistration, ChampionApplication,
     MediaGallery, InstitutionalToolkitItem, UMVGlobalEntry, ResourceItem, BlogPost,
-    DailyAffirmation, SymbolicItem, MentalHealthAssessment
+    DailyAffirmation, SymbolicItem, MentalHealthAssessment, generate_champion_code
 )
 from decorators import admin_required
 from password_validator import validate_password_strength
@@ -760,18 +760,26 @@ def approve_registration(registration_id):
         db.session.add(user)
         db.session.flush()  # Get user_id
         
+        # Generate unique champion code
+        champion_code = generate_champion_code()
+        current_app.logger.info(f'Generated champion code: {champion_code} for user: {registration.username}')
+        
         # Create Champion profile for Prevention Advocate
         champion = Champion(
+            user_id=user.user_id,
             full_name=registration.full_name,
             email=registration.email,
             phone_number=registration.phone_number,
             date_of_birth=registration.date_of_birth,
             gender=registration.gender,
             county_sub_county=registration.county_sub_county,
+            assigned_champion_code=champion_code,
             champion_status='Active'
         )
         db.session.add(champion)
         db.session.flush()  # Get champion_id
+        
+        current_app.logger.info(f'Created Champion profile: {champion.champion_id} for user: {user.user_id}')
         
         # Link user to champion
         user.champion_id = champion.champion_id
@@ -784,15 +792,21 @@ def approve_registration(registration_id):
         
         db.session.commit()
         
+        current_app.logger.info(f'Registration approved: user_id={user.user_id}, champion_id={champion.champion_id}, code={champion_code}')
+        
         return jsonify({
             'message': 'Registration approved successfully',
             'user_id': user.user_id,
             'username': user.username,
-            'champion_id': champion.champion_id
+            'champion_id': champion.champion_id,
+            'champion_code': champion_code
         }), 200
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.error(f'Error approving registration {registration_id}: {str(e)}')
+        import traceback
+        current_app.logger.error(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
 
@@ -846,14 +860,20 @@ def fix_missing_champions():
             # Try to find their registration to get full details
             registration = MemberRegistration.query.filter_by(created_user_id=user.user_id).first()
             
+            # Generate unique champion code
+            champion_code = generate_champion_code()
+            current_app.logger.info(f'Fixing user {user.username}: generating champion code {champion_code}')
+            
             # Create Champion profile
             champion = Champion(
+                user_id=user.user_id,
                 full_name=registration.full_name if registration else user.username,
                 email=user.email or (registration.email if registration else None),
                 phone_number=registration.phone_number if registration else None,
                 date_of_birth=user.date_of_birth or (registration.date_of_birth if registration else None),
                 gender=user.gender or (registration.gender if registration else None),
                 county_sub_county=user.county_sub_county or (registration.county_sub_county if registration else None),
+                assigned_champion_code=champion_code,
                 champion_status='Active'
             )
             db.session.add(champion)
@@ -871,6 +891,8 @@ def fix_missing_champions():
         
         db.session.commit()
         
+        current_app.logger.info(f'Fixed {fixed_count} users with missing champion profiles')
+        
         return jsonify({
             'message': f'Fixed {fixed_count} users',
             'fixed_users': fixed_users
@@ -878,6 +900,9 @@ def fix_missing_champions():
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.error(f'Error fixing missing champions: {str(e)}')
+        import traceback
+        current_app.logger.error(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
 
