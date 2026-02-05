@@ -783,6 +783,17 @@ def create_app(test_config=None):
 
     @main_bp.route('/')
     def index():
+        # If this process is serving the API subdomain, avoid performing
+        # browser redirects to the frontend dashboards. Browsers may send
+        # site-wide session cookies to api.* subdomains which would make
+        # the app think the user is authenticated and cause unwanted
+        # redirects. When running in API-only mode (API_ONLY=true) or when
+        # the request host is an api subdomain, return a neutral JSON
+        # response instead.
+        host = request.host.split(':')[0] if request.host else ''
+        if host.startswith('api.') or os.environ.get('API_ONLY', 'False') == 'True':
+            return jsonify({'message': 'API root'}), 200
+
         if current_user.is_authenticated:
             # Redirect directly to role-specific dashboard (case-insensitive)
             role_lower = (current_user.role or '').lower()
