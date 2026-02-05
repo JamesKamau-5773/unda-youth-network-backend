@@ -664,7 +664,7 @@
                     </li>
                     {% elif current_user.role == 'Prevention Advocate' or current_user.role == 'Champion' %}
                     <li class="sidebar-nav-item">
-                        <a href="{{ url_for('champion.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">
+                        <a href="{% if FRONTEND_MEMBER_PORTAL %}{{ FRONTEND_MEMBER_PORTAL }}{% else %}{{ url_for('champion.dashboard') }}{% endif %}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -675,7 +675,7 @@
                         </a>
                     </li>
                     <li class="sidebar-nav-item">
-                        <a href="{{ url_for('champion.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">
+                        <a href="{% if FRONTEND_MEMBER_PORTAL %}{{ FRONTEND_MEMBER_PORTAL }}{% else %}{{ url_for('champion.dashboard') }}{% endif %}" class="sidebar-nav-link {% if request.endpoint == 'champion.dashboard' %}active{% endif %}">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>

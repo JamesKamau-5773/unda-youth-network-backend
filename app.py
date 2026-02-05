@@ -900,6 +900,21 @@ def create_app(test_config=None):
     
     app.register_blueprint(main_bp)    
 
+    # Inject FRONTEND_MEMBER_PORTAL into templates so templates can link
+    # directly to the SPA when configured. Falls back to None when not set.
+    @app.context_processor
+    def inject_frontend_portal():
+        return {
+            'FRONTEND_MEMBER_PORTAL': (
+                app.config.get('FRONTEND_MEMBER_PORTAL')
+                or os.environ.get('FRONTEND_MEMBER_PORTAL')
+                or app.config.get('MEMBER_PORTAL_URL')
+                or os.environ.get('MEMBER_PORTAL_URL')
+                or app.config.get('PREVENTION_ADVOCATE_DASHBOARD_URL')
+                or os.environ.get('PREVENTION_ADVOCATE_DASHBOARD_URL')
+            )
+        }
+
     # --- Database Setup/Migration ---
     # Initialize Flask-Migrate for database migrations
     migrate = Migrate(app, db)
