@@ -739,7 +739,7 @@ def get_registrations():
 @public_auth_bp.route('/api/admin/registrations/<int:registration_id>/approve', methods=['POST'])
 @admin_required
 def approve_registration(registration_id):
-    """Admin: Approve a member registration"""
+    """Admin: Approve a member registration and create Champion profile"""
     try:
         registration = db.session.get(MemberRegistration, registration_id)
         if not registration:
@@ -750,20 +750,31 @@ def approve_registration(registration_id):
         
         # Create user account
         user = User(username=registration.username)
-        user.set_role(User.ROLE_PREVENTION_ADVOCATE)  # Default role for new members
-        user.password_hash = registration.password_hash  # Use the hashed password from registration
-        # Preserve profile fields from the registration request when approving
+        user.set_role(User.ROLE_PREVENTION_ADVOCATE)
+        user.password_hash = registration.password_hash
         user.email = registration.email
-        try:
-            user.date_of_birth = registration.date_of_birth
-            user.gender = registration.gender
-            user.county_sub_county = registration.county_sub_county
-        except Exception:
-            # In case models don't include these fields (older DBs), ignore
-            pass
+        user.date_of_birth = registration.date_of_birth
+        user.gender = registration.gender
+        user.county_sub_county = registration.county_sub_county
         
         db.session.add(user)
         db.session.flush()  # Get user_id
+        
+        # Create Champion profile for Prevention Advocate
+        champion = Champion(
+            full_name=registration.full_name,
+            email=registration.email,
+            phone_number=registration.phone_number,
+            date_of_birth=registration.date_of_birth,
+            gender=registration.gender,
+            county_sub_county=registration.county_sub_county,
+            champion_status='Active'
+        )
+        db.session.add(champion)
+        db.session.flush()  # Get champion_id
+        
+        # Link user to champion
+        user.champion_id = champion.champion_id
         
         # Update registration
         registration.status = 'Approved'
@@ -776,7 +787,8 @@ def approve_registration(registration_id):
         return jsonify({
             'message': 'Registration approved successfully',
             'user_id': user.user_id,
-            'username': user.username
+            'username': user.username,
+            'champion_id': champion.champion_id
         }), 200
         
     except Exception as e:
