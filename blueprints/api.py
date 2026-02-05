@@ -519,7 +519,24 @@ def get_current_member():
 @api_auth_optional
 def update_current_member():
     """Update current authenticated member profile."""
-    data = request.get_json() or {}
+    # Accept JSON or multipart/form-data (e.g., when sending files). Normalize
+    # incoming camelCase keys to snake_case so both frontend styles work.
+    raw = None
+    if request.is_json:
+        raw = request.get_json() or {}
+    else:
+        # request.form handles application/x-www-form-urlencoded and multipart/form-data
+        try:
+            raw = request.form.to_dict() or {}
+        except Exception:
+            raw = {}
+
+    # Normalize camelCase to snake_case if helper available
+    try:
+        from blueprints.public_auth import normalize_input
+        data = normalize_input(raw or {})
+    except Exception:
+        data = raw or {}
     # Determine acting user: prefer session user, otherwise require `user_id` in payload when using API token
     if current_user and current_user.is_authenticated:
         user = current_user
