@@ -211,7 +211,7 @@ class RefreshToken(db.Model):
   expires_at = db.Column(db.DateTime)
   revoked = db.Column(db.Boolean, default=False)
 
-  user = db.relationship('User', backref='refresh_tokens')
+  user = db.relationship('User', backref=db.backref('refresh_tokens', passive_deletes=True))
   
 class Champion(db.Model):
   __tablename__ = 'champions'
@@ -1049,7 +1049,7 @@ class Certificate(db.Model):
     pdf_data = db.Column(db.LargeBinary)  # Raw PDF bytes
     signature = db.Column(db.String(255), nullable=False)  # HMAC or JWT
 
-    user = db.relationship('User', backref='certificates')
+    user = db.relationship('User', backref=db.backref('certificates', passive_deletes=True))
 
 
 class ChampionApplication(db.Model):
@@ -1097,7 +1097,7 @@ class ChampionApplication(db.Model):
   created_champion_id = db.Column(db.Integer, db.ForeignKey('champions.champion_id', ondelete='SET NULL'))
   
   # Relationships
-  user = db.relationship('User', foreign_keys=[user_id], backref='champion_applications')
+  user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('champion_applications', passive_deletes=True))
 
 
 class SeedFundingApplication(db.Model):
@@ -1157,7 +1157,7 @@ class SeedFundingApplication(db.Model):
   disbursement_reference = db.Column(db.String(255))
   
   # Relationships
-  applicant = db.relationship('User', foreign_keys=[user_id], backref='seed_funding_applications')
+  applicant = db.relationship('User', foreign_keys=[user_id], backref=db.backref('seed_funding_applications', passive_deletes=True))
   reviewer = db.relationship('User', foreign_keys=[reviewed_by])
   
   def to_dict(self):
