@@ -478,17 +478,55 @@ def get_podcast(podcast_id):
 # PUBLIC ENDPOINTS - Events (uses existing Event model)
 # ============================================================================
 
+# Program to event_type mapping
+PROGRAM_EVENT_TYPE_MAP = {
+    'umv-annual-conference': ['conference'],
+    'annual-conference': ['conference'],
+    'conference': ['conference'],
+    'umv-debaters': ['debate'],
+    'debaters': ['debate'],
+    'debate': ['debate'],
+    'umv-mtaani': ['baraza', 'barazas'],
+    'mtaani': ['baraza', 'barazas'],
+    'baraza': ['baraza', 'barazas'],
+    'umv-global': ['international', 'partnership', 'international partnership', 'international partnerships'],
+    'global': ['international', 'partnership', 'international partnership', 'international partnerships'],
+    'international': ['international', 'partnership', 'international partnership', 'international partnerships'],
+}
+
+
 @workstreams_bp.route('/api/workstreams/events', methods=['GET'])
 def get_workstream_events():
-    """List events with optional status filter."""
+    """List events with optional status and program filter.
+    
+    Query params:
+        status: Event status filter (default: 'Upcoming')
+        type: Direct event_type filter
+        program: Program slug to filter events by type mapping:
+            - 'umv-annual-conference' or 'conference' → conference events
+            - 'umv-debaters' or 'debate' → debate events
+            - 'umv-mtaani' or 'baraza' → baraza events
+            - 'umv-global' or 'international' → international partnership events
+        limit: Maximum number of events to return
+    """
     try:
         status = request.args.get('status', 'Upcoming')
-        event_type = request.args.get('type')  # debate, campus, mtaani, etc.
+        event_type = request.args.get('type')  # Direct event_type filter
+        program = request.args.get('program')  # Program-based filter
         limit = request.args.get('limit', type=int)
         
         query = Event.query.filter_by(status=status)
         
-        if event_type:
+        # If program is specified, map to event types
+        if program:
+            program_key = program.lower().strip()
+            allowed_types = PROGRAM_EVENT_TYPE_MAP.get(program_key, [])
+            if allowed_types:
+                # Filter by any of the allowed event types (case-insensitive)
+                from sqlalchemy import func
+                query = query.filter(func.lower(Event.event_type).in_([t.lower() for t in allowed_types]))
+        elif event_type:
+            # Direct event_type filter
             query = query.filter_by(event_type=event_type)
         
         query = query.order_by(Event.event_date.asc())
@@ -501,7 +539,12 @@ def get_workstream_events():
         return jsonify({
             'success': True,
             'events': [e.to_dict() for e in events],
-            'count': len(events)
+            'count': len(events),
+            'filter': {
+                'program': program,
+                'status': status,
+                'event_type': event_type
+            }
         }), 200
     except Exception as e:
         current_app.logger.error(f'Error fetching events: {str(e)}')
