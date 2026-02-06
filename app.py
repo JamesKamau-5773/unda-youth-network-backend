@@ -696,6 +696,10 @@ def create_app(test_config=None):
     from blueprints.seed_funding import seed_funding_bp
     app.register_blueprint(seed_funding_bp)
     
+    # Workstreams API (Programs, Pillars, Resources, Stories, Gallery)
+    from blueprints.workstreams import workstreams_bp
+    app.register_blueprint(workstreams_bp)
+    
     # API Status & Health Checks
     from blueprints.api_status import api_status_bp
     app.register_blueprint(api_status_bp)
@@ -715,6 +719,7 @@ def create_app(test_config=None):
     csrf.exempt(podcasts_bp)
     csrf.exempt(events_bp)
     csrf.exempt(participation_bp)
+    csrf.exempt(workstreams_bp)  # Workstreams API for frontend
     # Instead of exempting the whole API blueprint (broad and unsafe), only
     # exempt specific token-only view functions that must accept bearer-token
     # JSON POSTs from non-browser clients (e.g. /api/checkin).
