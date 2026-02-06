@@ -1,16 +1,24 @@
 """
 Workstreams API Blueprint
 Provides public GET endpoints and admin CRUD endpoints for:
-- Programs/Workstreams
-- Impact Pillars
-- Resources
-- Stories
-- Gallery Items
+- Programs/Workstreams (new model)
+- Impact Pillars (new model)
+- Resources (uses existing ResourceItem model)
+- Stories (uses existing BlogPost model)
+- Gallery (uses existing MediaGallery model)
+- Toolkits (uses existing InstitutionalToolkitItem model)
+- Podcasts (uses existing Podcast model)
+- Events (uses existing Event model)
+
+This ensures CRUD from admin dashboard reflects in frontend API.
 """
 
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
-from models import db, Program, Pillar, Story, GalleryItem, WorkstreamResource
+from models import (
+    db, Program, Pillar, BlogPost, MediaGallery, ResourceItem,
+    InstitutionalToolkitItem, Event, Podcast
+)
 from decorators import admin_required
 from datetime import datetime, timezone
 import re
@@ -50,7 +58,7 @@ def normalize_input(payload: dict) -> dict:
 
 
 # ============================================================================
-# PUBLIC ENDPOINTS - Programs
+# PUBLIC ENDPOINTS - Programs (uses Program model)
 # ============================================================================
 
 @workstreams_bp.route('/api/workstreams/programs', methods=['GET'])
@@ -87,7 +95,6 @@ def get_featured_programs():
 def get_program(id_or_slug):
     """Get single program by ID or slug."""
     try:
-        # Try by ID first
         if id_or_slug.isdigit():
             program = Program.query.get(int(id_or_slug))
         else:
@@ -106,7 +113,7 @@ def get_program(id_or_slug):
 
 
 # ============================================================================
-# PUBLIC ENDPOINTS - Pillars
+# PUBLIC ENDPOINTS - Pillars (uses Pillar model)
 # ============================================================================
 
 @workstreams_bp.route('/api/workstreams/pillars', methods=['GET'])
@@ -125,29 +132,45 @@ def get_pillars():
 
 
 # ============================================================================
-# PUBLIC ENDPOINTS - Resources
+# PUBLIC ENDPOINTS - Resources (uses existing ResourceItem model)
 # ============================================================================
 
 @workstreams_bp.route('/api/workstreams/resources', methods=['GET'])
 def get_resources():
     """List resources with optional category filter."""
     try:
-        category = request.args.get('category')
-        featured = request.args.get('featured')
+        category = request.args.get('category')  # publication, toolkit, guide, etc.
+        resource_type = request.args.get('type')
         
-        query = WorkstreamResource.query.filter_by(published=True)
+        query = ResourceItem.query.filter_by(published=True)
         
         if category:
-            query = query.filter_by(category=category)
-        if featured and featured.lower() == 'true':
-            query = query.filter_by(featured=True)
+            # Map frontend category to resource_type
+            query = query.filter_by(resource_type=category)
+        if resource_type:
+            query = query.filter_by(resource_type=resource_type)
         
-        resources = query.order_by(WorkstreamResource.created_at.desc()).all()
+        resources = query.order_by(ResourceItem.created_at.desc()).all()
+        
+        # Transform to frontend expected format
+        result = []
+        for r in resources:
+            result.append({
+                'id': r.resource_id,
+                'title': r.title,
+                'description': r.description,
+                'category': r.resource_type,  # Map resource_type to category
+                'downloadUrl': r.url,
+                'thumbnail': None,  # ResourceItem doesn't have thumbnail
+                'tags': r.tags or [],
+                'published': r.published,
+                'createdAt': r.created_at.isoformat() if r.created_at else None
+            })
         
         return jsonify({
             'success': True,
-            'resources': [r.to_dict() for r in resources],
-            'count': len(resources)
+            'resources': result,
+            'count': len(result)
         }), 200
     except Exception as e:
         current_app.logger.error(f'Error fetching resources: {str(e)}')
@@ -158,13 +181,24 @@ def get_resources():
 def get_resource(resource_id):
     """Get single resource by ID."""
     try:
-        resource = WorkstreamResource.query.get(resource_id)
+        resource = ResourceItem.query.get(resource_id)
         if not resource:
             return jsonify({'success': False, 'error': 'Resource not found'}), 404
         
+        result = {
+            'id': resource.resource_id,
+            'title': resource.title,
+            'description': resource.description,
+            'category': resource.resource_type,
+            'downloadUrl': resource.url,
+            'tags': resource.tags or [],
+            'published': resource.published,
+            'createdAt': resource.created_at.isoformat() if resource.created_at else None
+        }
+        
         return jsonify({
             'success': True,
-            'resource': resource.to_dict()
+            'resource': result
         }), 200
     except Exception as e:
         current_app.logger.error(f'Error fetching resource {resource_id}: {str(e)}')
@@ -172,41 +206,58 @@ def get_resource(resource_id):
 
 
 # ============================================================================
-# PUBLIC ENDPOINTS - Stories
+# PUBLIC ENDPOINTS - Stories (uses existing BlogPost model)
 # ============================================================================
 
 @workstreams_bp.route('/api/workstreams/stories', methods=['GET'])
 def get_stories():
-    """List stories with optional filters."""
+    """List stories with optional filters. Uses BlogPost model."""
     try:
         limit = request.args.get('limit', type=int)
         sort = request.args.get('sort', 'latest')
         featured = request.args.get('featured')
         category = request.args.get('category')
         
-        query = Story.query.filter_by(published=True)
+        query = BlogPost.query.filter_by(published=True)
         
-        if featured and featured.lower() == 'true':
-            query = query.filter_by(featured=True)
         if category:
             query = query.filter_by(category=category)
         
         if sort == 'latest':
-            query = query.order_by(Story.date.desc())
+            query = query.order_by(BlogPost.published_at.desc())
         elif sort == 'oldest':
-            query = query.order_by(Story.date.asc())
+            query = query.order_by(BlogPost.published_at.asc())
         elif sort == 'popular':
-            query = query.order_by(Story.views.desc())
+            query = query.order_by(BlogPost.views.desc())
         
         if limit:
             query = query.limit(limit)
         
-        stories = query.all()
+        posts = query.all()
+        
+        # Transform to frontend expected format
+        result = []
+        for p in posts:
+            author_name = p.author.username if p.author else 'UNDA Team'
+            result.append({
+                'id': p.post_id,
+                'title': p.title,
+                'slug': p.slug,
+                'excerpt': p.excerpt,
+                'content': p.content,
+                'author': author_name,
+                'date': p.published_at.strftime('%Y-%m-%d') if p.published_at else None,
+                'image': p.featured_image,
+                'category': p.category,
+                'tags': p.tags or [],
+                'featured': False,  # BlogPost doesn't have featured field
+                'views': p.views
+            })
         
         return jsonify({
             'success': True,
-            'stories': [s.to_dict() for s in stories],
-            'count': len(stories)
+            'stories': result,
+            'count': len(result)
         }), 200
     except Exception as e:
         current_app.logger.error(f'Error fetching stories: {str(e)}')
@@ -215,23 +266,38 @@ def get_stories():
 
 @workstreams_bp.route('/api/workstreams/stories/<id_or_slug>', methods=['GET'])
 def get_story(id_or_slug):
-    """Get single story by ID or slug."""
+    """Get single story by ID or slug. Uses BlogPost model."""
     try:
         if id_or_slug.isdigit():
-            story = Story.query.get(int(id_or_slug))
+            post = BlogPost.query.get(int(id_or_slug))
         else:
-            story = Story.query.filter_by(slug=id_or_slug).first()
+            post = BlogPost.query.filter_by(slug=id_or_slug).first()
         
-        if not story:
+        if not post:
             return jsonify({'success': False, 'error': 'Story not found'}), 404
         
         # Increment view count
-        story.views = (story.views or 0) + 1
+        post.views = (post.views or 0) + 1
         db.session.commit()
+        
+        author_name = post.author.username if post.author else 'UNDA Team'
+        result = {
+            'id': post.post_id,
+            'title': post.title,
+            'slug': post.slug,
+            'excerpt': post.excerpt,
+            'content': post.content,
+            'author': author_name,
+            'date': post.published_at.strftime('%Y-%m-%d') if post.published_at else None,
+            'image': post.featured_image,
+            'category': post.category,
+            'tags': post.tags or [],
+            'views': post.views
+        }
         
         return jsonify({
             'success': True,
-            'story': story.to_dict()
+            'story': result
         }), 200
     except Exception as e:
         current_app.logger.error(f'Error fetching story {id_or_slug}: {str(e)}')
@@ -239,69 +305,193 @@ def get_story(id_or_slug):
 
 
 # ============================================================================
-# PUBLIC ENDPOINTS - Gallery
+# PUBLIC ENDPOINTS - Gallery (uses existing MediaGallery model)
 # ============================================================================
 
 @workstreams_bp.route('/api/workstreams/gallery', methods=['GET'])
 def get_gallery():
-    """List gallery items with optional filters."""
+    """List gallery items. Uses MediaGallery model."""
     try:
-        item_type = request.args.get('type')
+        item_type = request.args.get('type')  # photo, video
         featured = request.args.get('featured')
-        category = request.args.get('category')
         
-        query = GalleryItem.query.filter_by(published=True)
+        query = MediaGallery.query.filter_by(published=True)
         
-        if item_type:
-            query = query.filter_by(type=item_type)
-        if featured and featured.lower() == 'true':
-            query = query.filter_by(featured=True)
-        if category:
-            query = query.filter_by(category=category)
+        galleries = query.order_by(MediaGallery.created_at.desc()).all()
         
-        items = query.order_by(GalleryItem.order, GalleryItem.created_at.desc()).all()
+        # Flatten media_items from galleries into individual items
+        result = []
+        for g in galleries:
+            if g.media_items:
+                for idx, item in enumerate(g.media_items):
+                    item_data = {
+                        'id': f"{g.gallery_id}_{idx}",
+                        'galleryId': g.gallery_id,
+                        'galleryTitle': g.title,
+                        'type': item.get('type', 'photo'),
+                        'title': item.get('caption', g.title),
+                        'src': item.get('url'),
+                        'thumbnail': item.get('thumbnail', item.get('url')),
+                        'videoUrl': item.get('video_url') or item.get('videoUrl'),
+                        'alt': item.get('alt', g.title),
+                        'category': g.description or 'general'
+                    }
+                    
+                    # Filter by type if specified
+                    if item_type and item_data['type'] != item_type:
+                        continue
+                    
+                    result.append(item_data)
         
         return jsonify({
             'success': True,
-            'items': [i.to_dict() for i in items],
-            'count': len(items)
+            'items': result,
+            'count': len(result)
         }), 200
     except Exception as e:
         current_app.logger.error(f'Error fetching gallery: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-@workstreams_bp.route('/api/workstreams/gallery/<int:item_id>', methods=['GET'])
-def get_gallery_item(item_id):
-    """Get single gallery item by ID."""
+@workstreams_bp.route('/api/workstreams/gallery/<int:gallery_id>', methods=['GET'])
+def get_gallery_item(gallery_id):
+    """Get single gallery by ID. Uses MediaGallery model."""
     try:
-        item = GalleryItem.query.get(item_id)
-        if not item:
-            return jsonify({'success': False, 'error': 'Gallery item not found'}), 404
+        gallery = MediaGallery.query.get(gallery_id)
+        if not gallery:
+            return jsonify({'success': False, 'error': 'Gallery not found'}), 404
+        
+        # Return the full gallery with all its items
+        result = {
+            'id': gallery.gallery_id,
+            'title': gallery.title,
+            'description': gallery.description,
+            'items': gallery.media_items or [],
+            'featuredMedia': gallery.featured_media,
+            'published': gallery.published
+        }
         
         return jsonify({
             'success': True,
-            'item': item.to_dict()
+            'gallery': result
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching gallery item {item_id}: {str(e)}')
+        current_app.logger.error(f'Error fetching gallery {gallery_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # ============================================================================
-# PUBLIC ENDPOINTS - Events (using existing Event model)
+# PUBLIC ENDPOINTS - Toolkits (uses existing InstitutionalToolkitItem model)
+# ============================================================================
+
+@workstreams_bp.route('/api/workstreams/toolkits', methods=['GET'])
+def get_toolkits():
+    """List institutional toolkit items."""
+    try:
+        category = request.args.get('category')
+        
+        query = InstitutionalToolkitItem.query.filter_by(published=True)
+        
+        if category:
+            query = query.filter_by(category=category)
+        
+        items = query.order_by(InstitutionalToolkitItem.created_at.desc()).all()
+        
+        return jsonify({
+            'success': True,
+            'toolkits': [t.to_dict() for t in items],
+            'count': len(items)
+        }), 200
+    except Exception as e:
+        current_app.logger.error(f'Error fetching toolkits: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@workstreams_bp.route('/api/workstreams/toolkits/<int:item_id>', methods=['GET'])
+def get_toolkit(item_id):
+    """Get single toolkit item by ID."""
+    try:
+        item = InstitutionalToolkitItem.query.get(item_id)
+        if not item:
+            return jsonify({'success': False, 'error': 'Toolkit item not found'}), 404
+        
+        return jsonify({
+            'success': True,
+            'toolkit': item.to_dict()
+        }), 200
+    except Exception as e:
+        current_app.logger.error(f'Error fetching toolkit {item_id}: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================================
+# PUBLIC ENDPOINTS - Podcasts (uses existing Podcast model)
+# ============================================================================
+
+@workstreams_bp.route('/api/workstreams/podcasts', methods=['GET'])
+def get_podcasts():
+    """List podcasts."""
+    try:
+        limit = request.args.get('limit', type=int)
+        category = request.args.get('category')
+        
+        query = Podcast.query.filter_by(published=True)
+        
+        if category:
+            query = query.filter_by(category=category)
+        
+        query = query.order_by(Podcast.published_at.desc())
+        
+        if limit:
+            query = query.limit(limit)
+        
+        podcasts = query.all()
+        
+        return jsonify({
+            'success': True,
+            'podcasts': [p.to_dict() for p in podcasts],
+            'count': len(podcasts)
+        }), 200
+    except Exception as e:
+        current_app.logger.error(f'Error fetching podcasts: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@workstreams_bp.route('/api/workstreams/podcasts/<int:podcast_id>', methods=['GET'])
+def get_podcast(podcast_id):
+    """Get single podcast by ID."""
+    try:
+        podcast = Podcast.query.get(podcast_id)
+        if not podcast:
+            return jsonify({'success': False, 'error': 'Podcast not found'}), 404
+        
+        return jsonify({
+            'success': True,
+            'podcast': podcast.to_dict()
+        }), 200
+    except Exception as e:
+        current_app.logger.error(f'Error fetching podcast {podcast_id}: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================================
+# PUBLIC ENDPOINTS - Events (uses existing Event model)
 # ============================================================================
 
 @workstreams_bp.route('/api/workstreams/events', methods=['GET'])
 def get_workstream_events():
     """List events with optional status filter."""
     try:
-        from models import Event
-        
         status = request.args.get('status', 'Upcoming')
+        event_type = request.args.get('type')  # debate, campus, mtaani, etc.
         limit = request.args.get('limit', type=int)
         
-        query = Event.query.filter_by(status=status).order_by(Event.event_date.asc())
+        query = Event.query.filter_by(status=status)
+        
+        if event_type:
+            query = query.filter_by(event_type=event_type)
+        
+        query = query.order_by(Event.event_date.asc())
         
         if limit:
             query = query.limit(limit)
@@ -318,16 +508,11 @@ def get_workstream_events():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-@workstreams_bp.route('/api/workstreams/events/<id_or_slug>', methods=['GET'])
-def get_workstream_event(id_or_slug):
+@workstreams_bp.route('/api/workstreams/events/<int:event_id>', methods=['GET'])
+def get_workstream_event(event_id):
     """Get single event by ID."""
     try:
-        from models import Event
-        
-        if id_or_slug.isdigit():
-            event = Event.query.get(int(id_or_slug))
-        else:
-            event = Event.query.filter_by(title=id_or_slug).first()
+        event = Event.query.get(event_id)
         
         if not event:
             return jsonify({'success': False, 'error': 'Event not found'}), 404
@@ -337,12 +522,12 @@ def get_workstream_event(id_or_slug):
             'event': event.to_dict()
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching event {id_or_slug}: {str(e)}')
+        current_app.logger.error(f'Error fetching event {event_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # ============================================================================
-# ADMIN ENDPOINTS - Programs
+# ADMIN ENDPOINTS - Programs (uses Program model - new)
 # ============================================================================
 
 @workstreams_bp.route('/api/admin/workstreams/programs', methods=['GET'])
@@ -374,7 +559,6 @@ def admin_create_program():
         
         slug = data.get('slug') or _slugify(title)
         
-        # Check for duplicate slug
         if Program.query.filter_by(slug=slug).first():
             return jsonify({'success': False, 'error': 'A program with this slug already exists'}), 400
         
@@ -421,11 +605,9 @@ def admin_update_program(program_id):
         
         data = normalize_input(request.get_json() or {})
         
-        # Update fields if provided
         if 'title' in data:
             program.title = data['title']
         if 'slug' in data:
-            # Check for duplicate slug
             existing = Program.query.filter(Program.slug == data['slug'], Program.program_id != program_id).first()
             if existing:
                 return jsonify({'success': False, 'error': 'A program with this slug already exists'}), 400
@@ -452,8 +634,6 @@ def admin_update_program(program_id):
             program.published = data['published']
         
         db.session.commit()
-        
-        current_app.logger.info(f'Admin {current_user.username} updated program: {program.title}')
         
         return jsonify({
             'success': True,
@@ -492,7 +672,7 @@ def admin_delete_program(program_id):
 
 
 # ============================================================================
-# ADMIN ENDPOINTS - Pillars
+# ADMIN ENDPOINTS - Pillars (uses Pillar model - new)
 # ============================================================================
 
 @workstreams_bp.route('/api/admin/workstreams/pillars', methods=['GET'])
@@ -603,403 +783,6 @@ def admin_delete_pillar(pillar_id):
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f'Admin error deleting pillar {pillar_id}: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# ============================================================================
-# ADMIN ENDPOINTS - Resources
-# ============================================================================
-
-@workstreams_bp.route('/api/admin/workstreams/resources', methods=['GET'])
-@admin_required
-def admin_list_resources():
-    """Admin: List all resources."""
-    try:
-        resources = WorkstreamResource.query.order_by(WorkstreamResource.created_at.desc()).all()
-        return jsonify({
-            'success': True,
-            'resources': [r.to_dict() for r in resources],
-            'count': len(resources)
-        }), 200
-    except Exception as e:
-        current_app.logger.error(f'Admin error listing resources: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@workstreams_bp.route('/api/admin/workstreams/resources', methods=['POST'])
-@admin_required
-def admin_create_resource():
-    """Admin: Create a new resource."""
-    try:
-        data = normalize_input(request.get_json() or {})
-        
-        title = data.get('title')
-        if not title:
-            return jsonify({'success': False, 'error': 'Title is required'}), 400
-        
-        resource = WorkstreamResource(
-            title=title,
-            description=data.get('description'),
-            category=data.get('category'),
-            download_url=data.get('download_url'),
-            thumbnail=data.get('thumbnail'),
-            tags=data.get('tags', []),
-            file_type=data.get('file_type'),
-            file_size=data.get('file_size'),
-            published=data.get('published', True),
-            featured=data.get('featured', False),
-            created_by=current_user.user_id
-        )
-        
-        db.session.add(resource)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Resource created successfully',
-            'resource': resource.to_dict()
-        }), 201
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Admin error creating resource: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@workstreams_bp.route('/api/admin/workstreams/resources/<int:resource_id>', methods=['PUT'])
-@admin_required
-def admin_update_resource(resource_id):
-    """Admin: Update a resource."""
-    try:
-        resource = WorkstreamResource.query.get(resource_id)
-        if not resource:
-            return jsonify({'success': False, 'error': 'Resource not found'}), 404
-        
-        data = normalize_input(request.get_json() or {})
-        
-        if 'title' in data:
-            resource.title = data['title']
-        if 'description' in data:
-            resource.description = data['description']
-        if 'category' in data:
-            resource.category = data['category']
-        if 'download_url' in data:
-            resource.download_url = data['download_url']
-        if 'thumbnail' in data:
-            resource.thumbnail = data['thumbnail']
-        if 'tags' in data:
-            resource.tags = data['tags']
-        if 'file_type' in data:
-            resource.file_type = data['file_type']
-        if 'file_size' in data:
-            resource.file_size = data['file_size']
-        if 'published' in data:
-            resource.published = data['published']
-        if 'featured' in data:
-            resource.featured = data['featured']
-        
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Resource updated successfully',
-            'resource': resource.to_dict()
-        }), 200
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Admin error updating resource {resource_id}: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@workstreams_bp.route('/api/admin/workstreams/resources/<int:resource_id>', methods=['DELETE'])
-@admin_required
-def admin_delete_resource(resource_id):
-    """Admin: Delete a resource."""
-    try:
-        resource = WorkstreamResource.query.get(resource_id)
-        if not resource:
-            return jsonify({'success': False, 'error': 'Resource not found'}), 404
-        
-        db.session.delete(resource)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Resource deleted successfully'
-        }), 200
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Admin error deleting resource {resource_id}: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# ============================================================================
-# ADMIN ENDPOINTS - Stories
-# ============================================================================
-
-@workstreams_bp.route('/api/admin/workstreams/stories', methods=['GET'])
-@admin_required
-def admin_list_stories():
-    """Admin: List all stories."""
-    try:
-        stories = Story.query.order_by(Story.created_at.desc()).all()
-        return jsonify({
-            'success': True,
-            'stories': [s.to_dict() for s in stories],
-            'count': len(stories)
-        }), 200
-    except Exception as e:
-        current_app.logger.error(f'Admin error listing stories: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@workstreams_bp.route('/api/admin/workstreams/stories', methods=['POST'])
-@admin_required
-def admin_create_story():
-    """Admin: Create a new story."""
-    try:
-        data = normalize_input(request.get_json() or {})
-        
-        title = data.get('title')
-        if not title:
-            return jsonify({'success': False, 'error': 'Title is required'}), 400
-        
-        slug = data.get('slug') or _slugify(title)
-        
-        # Check for duplicate slug
-        if Story.query.filter_by(slug=slug).first():
-            return jsonify({'success': False, 'error': 'A story with this slug already exists'}), 400
-        
-        story = Story(
-            title=title,
-            slug=slug,
-            excerpt=data.get('excerpt'),
-            content=data.get('content'),
-            author=data.get('author'),
-            author_id=current_user.user_id,
-            date=datetime.now(timezone.utc),
-            image=data.get('image'),
-            category=data.get('category'),
-            tags=data.get('tags', []),
-            featured=data.get('featured', False),
-            published=data.get('published', False)
-        )
-        
-        if data.get('published'):
-            story.published_at = datetime.now(timezone.utc)
-        
-        db.session.add(story)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Story created successfully',
-            'story': story.to_dict()
-        }), 201
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Admin error creating story: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@workstreams_bp.route('/api/admin/workstreams/stories/<int:story_id>', methods=['PUT'])
-@admin_required
-def admin_update_story(story_id):
-    """Admin: Update a story."""
-    try:
-        story = Story.query.get(story_id)
-        if not story:
-            return jsonify({'success': False, 'error': 'Story not found'}), 404
-        
-        data = normalize_input(request.get_json() or {})
-        
-        if 'title' in data:
-            story.title = data['title']
-        if 'slug' in data:
-            existing = Story.query.filter(Story.slug == data['slug'], Story.story_id != story_id).first()
-            if existing:
-                return jsonify({'success': False, 'error': 'A story with this slug already exists'}), 400
-            story.slug = data['slug']
-        if 'excerpt' in data:
-            story.excerpt = data['excerpt']
-        if 'content' in data:
-            story.content = data['content']
-        if 'author' in data:
-            story.author = data['author']
-        if 'image' in data:
-            story.image = data['image']
-        if 'category' in data:
-            story.category = data['category']
-        if 'tags' in data:
-            story.tags = data['tags']
-        if 'featured' in data:
-            story.featured = data['featured']
-        if 'published' in data:
-            story.published = data['published']
-            if data['published'] and not story.published_at:
-                story.published_at = datetime.now(timezone.utc)
-        
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Story updated successfully',
-            'story': story.to_dict()
-        }), 200
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Admin error updating story {story_id}: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@workstreams_bp.route('/api/admin/workstreams/stories/<int:story_id>', methods=['DELETE'])
-@admin_required
-def admin_delete_story(story_id):
-    """Admin: Delete a story."""
-    try:
-        story = Story.query.get(story_id)
-        if not story:
-            return jsonify({'success': False, 'error': 'Story not found'}), 404
-        
-        db.session.delete(story)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Story deleted successfully'
-        }), 200
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Admin error deleting story {story_id}: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# ============================================================================
-# ADMIN ENDPOINTS - Gallery
-# ============================================================================
-
-@workstreams_bp.route('/api/admin/workstreams/gallery', methods=['GET'])
-@admin_required
-def admin_list_gallery():
-    """Admin: List all gallery items."""
-    try:
-        items = GalleryItem.query.order_by(GalleryItem.order, GalleryItem.created_at.desc()).all()
-        return jsonify({
-            'success': True,
-            'items': [i.to_dict() for i in items],
-            'count': len(items)
-        }), 200
-    except Exception as e:
-        current_app.logger.error(f'Admin error listing gallery: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@workstreams_bp.route('/api/admin/workstreams/gallery', methods=['POST'])
-@admin_required
-def admin_create_gallery_item():
-    """Admin: Create a new gallery item."""
-    try:
-        data = normalize_input(request.get_json() or {})
-        
-        title = data.get('title')
-        item_type = data.get('type')
-        
-        if not title:
-            return jsonify({'success': False, 'error': 'Title is required'}), 400
-        if not item_type or item_type not in ('photo', 'video'):
-            return jsonify({'success': False, 'error': 'Type must be "photo" or "video"'}), 400
-        
-        item = GalleryItem(
-            type=item_type,
-            title=title,
-            src=data.get('src'),
-            thumbnail=data.get('thumbnail'),
-            video_url=data.get('video_url'),
-            alt=data.get('alt'),
-            category=data.get('category'),
-            featured=data.get('featured', False),
-            published=data.get('published', True),
-            order=data.get('order', 0),
-            created_by=current_user.user_id
-        )
-        
-        db.session.add(item)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Gallery item created successfully',
-            'item': item.to_dict()
-        }), 201
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Admin error creating gallery item: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@workstreams_bp.route('/api/admin/workstreams/gallery/<int:item_id>', methods=['PUT'])
-@admin_required
-def admin_update_gallery_item(item_id):
-    """Admin: Update a gallery item."""
-    try:
-        item = GalleryItem.query.get(item_id)
-        if not item:
-            return jsonify({'success': False, 'error': 'Gallery item not found'}), 404
-        
-        data = normalize_input(request.get_json() or {})
-        
-        if 'type' in data:
-            item.type = data['type']
-        if 'title' in data:
-            item.title = data['title']
-        if 'src' in data:
-            item.src = data['src']
-        if 'thumbnail' in data:
-            item.thumbnail = data['thumbnail']
-        if 'video_url' in data:
-            item.video_url = data['video_url']
-        if 'alt' in data:
-            item.alt = data['alt']
-        if 'category' in data:
-            item.category = data['category']
-        if 'featured' in data:
-            item.featured = data['featured']
-        if 'published' in data:
-            item.published = data['published']
-        if 'order' in data:
-            item.order = data['order']
-        
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Gallery item updated successfully',
-            'item': item.to_dict()
-        }), 200
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Admin error updating gallery item {item_id}: {str(e)}')
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@workstreams_bp.route('/api/admin/workstreams/gallery/<int:item_id>', methods=['DELETE'])
-@admin_required
-def admin_delete_gallery_item(item_id):
-    """Admin: Delete a gallery item."""
-    try:
-        item = GalleryItem.query.get(item_id)
-        if not item:
-            return jsonify({'success': False, 'error': 'Gallery item not found'}), 404
-        
-        db.session.delete(item)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Gallery item deleted successfully'
-        }), 200
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f'Admin error deleting gallery item {item_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -1124,4 +907,62 @@ def seed_workstreams_data():
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f'Error seeding workstreams data: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================================
+# AGGREGATED CONTENT ENDPOINT - All workstreams content for homepage
+# ============================================================================
+
+@workstreams_bp.route('/api/workstreams/all', methods=['GET'])
+def get_all_workstreams():
+    """Get aggregated workstreams content for homepage/overview."""
+    try:
+        # Get counts and recent items from each model
+        result = {
+            'programs': {
+                'count': Program.query.filter_by(published=True).count(),
+                'featured': [p.to_dict() for p in Program.query.filter_by(published=True, featured=True).order_by(Program.order).limit(6).all()]
+            },
+            'pillars': {
+                'count': Pillar.query.count(),
+                'items': [p.to_dict() for p in Pillar.query.order_by(Pillar.order).all()]
+            },
+            'stories': {
+                'count': BlogPost.query.filter_by(published=True).count(),
+                'recent': [{'id': p.post_id, 'title': p.title, 'slug': p.slug, 'excerpt': p.excerpt, 'image': p.featured_image, 'category': p.category} 
+                          for p in BlogPost.query.filter_by(published=True).order_by(BlogPost.published_at.desc()).limit(3).all()]
+            },
+            'resources': {
+                'count': ResourceItem.query.filter_by(published=True).count(),
+                'recent': [{'id': r.resource_id, 'title': r.title, 'category': r.resource_type}
+                          for r in ResourceItem.query.filter_by(published=True).order_by(ResourceItem.created_at.desc()).limit(3).all()]
+            },
+            'galleries': {
+                'count': MediaGallery.query.filter_by(published=True).count(),
+                'recent': [{'id': g.gallery_id, 'title': g.title, 'featuredMedia': g.featured_media}
+                          for g in MediaGallery.query.filter_by(published=True).order_by(MediaGallery.created_at.desc()).limit(3).all()]
+            },
+            'podcasts': {
+                'count': Podcast.query.filter_by(published=True).count(),
+                'recent': [{'id': p.podcast_id, 'title': p.title, 'guest': p.guest, 'thumbnailUrl': p.thumbnail_url}
+                          for p in Podcast.query.filter_by(published=True).order_by(Podcast.published_at.desc()).limit(3).all()]
+            },
+            'events': {
+                'upcoming_count': Event.query.filter_by(status='Upcoming').count(),
+                'upcoming': [e.to_dict() for e in Event.query.filter_by(status='Upcoming').order_by(Event.event_date.asc()).limit(3).all()]
+            },
+            'toolkits': {
+                'count': InstitutionalToolkitItem.query.filter_by(published=True).count(),
+                'recent': [{'id': t.item_id, 'title': t.title, 'category': t.category}
+                          for t in InstitutionalToolkitItem.query.filter_by(published=True).order_by(InstitutionalToolkitItem.created_at.desc()).limit(3).all()]
+            }
+        }
+        
+        return jsonify({
+            'success': True,
+            'workstreams': result
+        }), 200
+    except Exception as e:
+        current_app.logger.error(f'Error fetching all workstreams: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
