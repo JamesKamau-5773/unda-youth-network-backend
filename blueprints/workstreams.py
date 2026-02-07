@@ -72,7 +72,7 @@ def get_programs():
             'count': len(programs)
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching programs: {str(e)}')
+        current_app.logger.exception(f'Error fetching programs: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -87,7 +87,7 @@ def get_featured_programs():
             'count': len(programs)
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching featured programs: {str(e)}')
+        current_app.logger.exception(f'Error fetching featured programs: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -108,7 +108,7 @@ def get_program(id_or_slug):
             'program': program.to_dict()
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching program {id_or_slug}: {str(e)}')
+        current_app.logger.exception(f'Error fetching program {id_or_slug}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -127,7 +127,7 @@ def get_pillars():
             'count': len(pillars)
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching pillars: {str(e)}')
+        current_app.logger.exception(f'Error fetching pillars: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -173,7 +173,7 @@ def get_resources():
             'count': len(result)
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching resources: {str(e)}')
+        current_app.logger.exception(f'Error fetching resources: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -201,7 +201,7 @@ def get_resource(resource_id):
             'resource': result
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching resource {resource_id}: {str(e)}')
+        current_app.logger.exception(f'Error fetching resource {resource_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -260,7 +260,7 @@ def get_stories():
             'count': len(result)
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching stories: {str(e)}')
+        current_app.logger.exception(f'Error fetching stories: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -300,7 +300,7 @@ def get_story(id_or_slug):
             'story': result
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching story {id_or_slug}: {str(e)}')
+        current_app.logger.exception(f'Error fetching story {id_or_slug}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -349,7 +349,7 @@ def get_gallery():
             'count': len(result)
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching gallery: {str(e)}')
+        current_app.logger.exception(f'Error fetching gallery: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -376,7 +376,7 @@ def get_gallery_item(gallery_id):
             'gallery': result
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching gallery {gallery_id}: {str(e)}')
+        current_app.logger.exception(f'Error fetching gallery {gallery_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -403,7 +403,7 @@ def get_toolkits():
             'count': len(items)
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching toolkits: {str(e)}')
+        current_app.logger.exception(f'Error fetching toolkits: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -420,7 +420,7 @@ def get_toolkit(item_id):
             'toolkit': item.to_dict()
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching toolkit {item_id}: {str(e)}')
+        current_app.logger.exception(f'Error fetching toolkit {item_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -453,7 +453,7 @@ def get_podcasts():
             'count': len(podcasts)
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching podcasts: {str(e)}')
+        current_app.logger.exception(f'Error fetching podcasts: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -470,7 +470,7 @@ def get_podcast(podcast_id):
             'podcast': podcast.to_dict()
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching podcast {podcast_id}: {str(e)}')
+        current_app.logger.exception(f'Error fetching podcast {podcast_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -547,7 +547,7 @@ def get_workstream_events():
             }
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching events: {str(e)}')
+        current_app.logger.exception(f'Error fetching events: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -565,7 +565,7 @@ def get_workstream_event(event_id):
             'event': event.to_dict()
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching event {event_id}: {str(e)}')
+        current_app.logger.exception(f'Error fetching event {event_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -585,7 +585,7 @@ def admin_list_programs():
             'count': len(programs)
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Admin error listing programs: {str(e)}')
+        current_app.logger.exception(f'Admin error listing programs: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -633,7 +633,7 @@ def admin_create_program():
         }), 201
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Admin error creating program: {str(e)}')
+        current_app.logger.exception(f'Admin error creating program: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -685,7 +685,7 @@ def admin_update_program(program_id):
         }), 200
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Admin error updating program {program_id}: {str(e)}')
+        current_app.logger.exception(f'Admin error updating program {program_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -710,7 +710,7 @@ def admin_delete_program(program_id):
         }), 200
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Admin error deleting program {program_id}: {str(e)}')
+        current_app.logger.exception(f'Admin error deleting program {program_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -730,7 +730,7 @@ def admin_list_pillars():
             'count': len(pillars)
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Admin error listing pillars: {str(e)}')
+        current_app.logger.exception(f'Admin error listing pillars: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -766,7 +766,7 @@ def admin_create_pillar():
         }), 201
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Admin error creating pillar: {str(e)}')
+        current_app.logger.exception(f'Admin error creating pillar: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -803,7 +803,7 @@ def admin_update_pillar(pillar_id):
         }), 200
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Admin error updating pillar {pillar_id}: {str(e)}')
+        current_app.logger.exception(f'Admin error updating pillar {pillar_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -825,7 +825,7 @@ def admin_delete_pillar(pillar_id):
         }), 200
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Admin error deleting pillar {pillar_id}: {str(e)}')
+        current_app.logger.exception(f'Admin error deleting pillar {pillar_id}: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -949,7 +949,7 @@ def seed_workstreams_data():
         }), 200
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Error seeding workstreams data: {str(e)}')
+        current_app.logger.exception(f'Error seeding workstreams data: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -1007,5 +1007,5 @@ def get_all_workstreams():
             'workstreams': result
         }), 200
     except Exception as e:
-        current_app.logger.error(f'Error fetching all workstreams: {str(e)}')
+        current_app.logger.exception(f'Error fetching all workstreams: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500

@@ -89,6 +89,24 @@
         class="bg-white p-6 rounded-[2rem] border border-[#D6EAFC] shadow-sm h-full flex flex-col"
       >
         <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-[#0B1E3B]">Settings</h3>
+        </div>
+
+        <div class="mb-6">
+          <label class="flex items-center gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              name="published"
+              value="on"
+              {% if (item and item.published) or not item %}checked{% endif %}
+              class="w-5 h-5 rounded border-[#D6EAFC] text-[#00838F] focus:ring-[#00ACC1]"
+            />
+            <span class="text-sm font-bold text-[#0B1E3B]">Published</span>
+          </label>
+          <p class="text-xs text-[#00838F]/60 mt-1 ml-8">When checked, this item is visible on the public site.</p>
+        </div>
+
+        <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-bold text-[#0B1E3B]">Attachments</h3>
           <span
             id="attach-count"

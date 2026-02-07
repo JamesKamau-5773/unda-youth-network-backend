@@ -3,7 +3,7 @@ Developer-only hidden routes for debugging and build inspection.
 Only accessible with the correct secret key.
 """
 
-from flask import Blueprint, jsonify, request, abort, render_template_string
+from flask import Blueprint, jsonify, request, abort, render_template_string, current_app
 import os
 import sys
 from datetime import datetime, timezone
@@ -42,6 +42,7 @@ def build_info():
             'blog_posts_count': BlogPost.query.count() if hasattr(db, 'metadata') and 'blog_posts' in [t.name for t in db.metadata.sorted_tables] else 'N/A',
         }
     except Exception as e:
+        current_app.logger.exception('Dev info database stats failed')
         db_stats['error'] = str(e)
     
     # Get environment info (mask sensitive data)
@@ -66,6 +67,7 @@ def build_info():
             inspector = sqlalchemy.inspect(conn)
             db_tables = inspector.get_table_names()
     except Exception as e:
+        current_app.logger.exception('Dev info database table listing failed')
         db_tables = [f'Error: {str(e)}']
     
     info = {
@@ -364,6 +366,7 @@ def simulate_mpesa():
     try:
         from utils.idempotency import reserve_key, update_key
     except Exception as e:
+        current_app.logger.exception('Dev simulate_mpesa import failed')
         return jsonify({'error': 'Failed to import idempotency utilities', 'detail': str(e)}), 500
 
     import uuid, random, time

@@ -23,6 +23,7 @@ def health_check():
         db.session.execute('SELECT 1')
         db_status = 'healthy'
     except Exception as e:
+        current_app.logger.exception('Health check database probe failed')
         db_status = f'unhealthy: {str(e)}'
     
     return jsonify({
@@ -53,6 +54,7 @@ def api_status():
         
         stats_available = True
     except Exception as e:
+        current_app.logger.exception('API status stats query failed')
         total_users = total_champions = total_assessments = 0
         admins = supervisors = advocates = 0
         stats_available = False
@@ -158,4 +160,5 @@ def deploy_info():
 
         return jsonify(info), 200
     except Exception as e:
+        current_app.logger.exception('Deploy info endpoint failed')
         return jsonify({'error': str(e)}), 500

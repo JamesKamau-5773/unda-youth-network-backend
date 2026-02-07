@@ -52,6 +52,20 @@
               placeholder="Describe the contents of this gallery..."
             >{{ gallery.description if gallery else '' }}</textarea>
           </div>
+
+          <div class="form-group">
+            <label class="flex items-center gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                name="published"
+                value="on"
+                {% if (gallery and gallery.published) or not gallery %}checked{% endif %}
+                class="w-5 h-5 rounded border-[#D6EAFC] text-[#00C2CB] focus:ring-[#00ACC1]"
+              />
+              <span class="text-sm font-bold text-[#0B1E3B]">Published</span>
+            </label>
+            <p class="text-xs text-[#00838F]/60 mt-1 ml-8">When checked, the gallery will be visible via public API endpoints.</p>
+          </div>
         </div>
       </div>
     </div>

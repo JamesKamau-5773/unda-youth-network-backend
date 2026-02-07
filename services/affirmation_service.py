@@ -53,6 +53,16 @@ def delete_affirmation(affirmation_id: int) -> None:
     db.session.commit()
 
 
+def toggle_active_affirmation(affirmation_id: int) -> DailyAffirmation:
+    affirmation = db.session.get(DailyAffirmation, affirmation_id)
+    if not affirmation:
+        raise ValueError('Affirmation not found')
+    affirmation.active = not affirmation.active
+    affirmation.updated_at = datetime.now(timezone.utc)
+    db.session.commit()
+    return affirmation
+
+
 def list_affirmations():
     # ordering by scheduled_date desc for admin listing
     return db.session.query(DailyAffirmation).order_by(DailyAffirmation.scheduled_date.desc()).all()

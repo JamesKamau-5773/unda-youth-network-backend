@@ -27,6 +27,13 @@
     <input name="featured_image" class="form-input" value="{{ post.featured_image if post else '' }}" />
   </div>
 
+  <div class="form-group" style="display:flex; align-items:center; gap:0.75rem;">
+    <input type="checkbox" name="published" value="on" id="published"
+      {% if (post and post.published) or not post %}checked{% endif %}
+      style="width:1.25rem; height:1.25rem;" />
+    <label for="published" class="form-label" style="margin:0;">Published</label>
+  </div>
+
   {{ macros.action_buttons('Save', url_for('admin.list_stories')) }}
 </form>
 {{ macros.form_card_end() }}

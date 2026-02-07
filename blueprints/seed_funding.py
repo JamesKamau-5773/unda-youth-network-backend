@@ -2,7 +2,7 @@
 Seed Funding API Blueprint
 Handles seed funding applications for Campus Edition workstream
 """
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
 from models import db, SeedFundingApplication, User
 from datetime import datetime, timezone
@@ -87,6 +87,7 @@ def submit_application():
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error submitting seed funding application')
         return jsonify({'error': str(e)}), 500
 
 
@@ -104,6 +105,7 @@ def get_my_applications():
         }), 200
         
     except Exception as e:
+        current_app.logger.exception('Error fetching my seed funding applications')
         return jsonify({'error': str(e)}), 500
 
 
@@ -123,6 +125,7 @@ def get_application(application_id):
         return jsonify(application.to_dict()), 200
         
     except Exception as e:
+        current_app.logger.exception('Error fetching seed funding application')
         return jsonify({'error': str(e)}), 500
 
 
@@ -159,6 +162,7 @@ def list_all_applications():
         }), 200
         
     except Exception as e:
+        current_app.logger.exception('Error listing seed funding applications')
         return jsonify({'error': str(e)}), 500
 
 
@@ -220,6 +224,7 @@ def update_application_status(application_id):
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error updating seed funding application status')
         return jsonify({'error': str(e)}), 500
 
 
@@ -254,4 +259,5 @@ def get_statistics():
         return jsonify(stats), 200
         
     except Exception as e:
+        current_app.logger.exception('Error fetching seed funding statistics')
         return jsonify({'error': str(e)}), 500

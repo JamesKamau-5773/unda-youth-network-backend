@@ -5,7 +5,7 @@ from utils.http import get_session, request_with_timeout
 from utils.circuit import CircuitBreaker, circuit
 from utils.endpoint_guard import endpoint_guard
 from utils.idempotency import reserve_key, get_key, update_key, make_key_from_args
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required
 from flask_login import current_user
 from models import db, Champion, User
@@ -49,6 +49,7 @@ def get_access_token():
         resp.raise_for_status()
         return resp.json().get('access_token')
     except Exception as e:
+        current_app.logger.exception('Failed to get M-Pesa access token')
         raise Exception(f"Failed to get M-Pesa access token: {str(e)}")
 
 
@@ -176,6 +177,7 @@ def initiate_stk_push():
             update_key(idem_key, status='failed', response={'error': 'service_unavailable'})
             return jsonify({'success': False, 'message': 'M-Pesa service temporarily unavailable.'}), 503
         except Exception as e:
+            current_app.logger.exception('STK push request failed')
             update_key(idem_key, status='failed', response={'error': str(e)})
             return jsonify({'success': False, 'message': f'M-Pesa API request failed: {str(e)}'}), 500
 
@@ -188,11 +190,13 @@ def initiate_stk_push():
         return jsonify({'success': False, 'message': response_data.get('ResponseDescription', 'STK Push failed'), 'data': response_data}), 400
             
     except requests.exceptions.RequestException as e:
+        current_app.logger.exception('STK push API request exception')
         return jsonify({
             'success': False,
             'message': f'M-Pesa API request failed: {str(e)}'
         }), 500
     except Exception as e:
+        current_app.logger.exception('STK push unexpected error')
         return jsonify({
             'success': False,
             'message': f'An error occurred: {str(e)}'
@@ -258,6 +262,7 @@ def mpesa_callback():
             }), 200
             
     except KeyError as e:
+        current_app.logger.exception('Missing key in M-Pesa callback')
         print(f"Missing key in callback data: {str(e)}")
         print(f"Callback data: {data}")
         return jsonify({
@@ -265,6 +270,7 @@ def mpesa_callback():
             'ResultDesc': 'Failed to process callback'
         }), 500
     except Exception as e:
+        current_app.logger.exception('Error processing M-Pesa callback')
         print(f"Error processing callback: {str(e)}")
         return jsonify({
             'ResultCode': 1,
@@ -311,11 +317,13 @@ def query_stk_status(checkout_request_id):
         }), 200
         
     except requests.exceptions.RequestException as e:
+        current_app.logger.exception('STK query request exception')
         return jsonify({
             'success': False,
             'message': f'Query failed: {str(e)}'
         }), 500
     except Exception as e:
+        current_app.logger.exception('STK query unexpected error')
         return jsonify({
             'success': False,
             'message': f'An error occurred: {str(e)}'

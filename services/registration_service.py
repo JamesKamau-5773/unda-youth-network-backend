@@ -37,7 +37,7 @@ def approve_registration(registration_id: int, reviewer_id: int) -> dict:
         user.password_hash = registration.password_hash
         user.email = registration.email
         user.date_of_birth = registration.date_of_birth
-        user.gender = registration.gender
+        user.gender = registration.gender or 'Other'
         user.county_sub_county = registration.county_sub_county
 
         db.session.add(user)
@@ -56,7 +56,7 @@ def approve_registration(registration_id: int, reviewer_id: int) -> dict:
             email=registration.email,
             phone_number=registration.phone_number,
             date_of_birth=registration.date_of_birth,
-            gender=registration.gender,
+            gender=registration.gender or 'Other',
             county_sub_county=registration.county_sub_county,
             assigned_champion_code=champion_code,
             champion_status='Active'

@@ -43,10 +43,17 @@ def create_media_gallery(data: dict, creator_id: int) -> MediaGallery:
     if not title:
         raise ValueError('Title is required')
 
+    # Determine published state; default to True when created via admin
+    published = data.get('published', True)
+    if isinstance(published, str):
+        published = published.lower() in ('true', '1', 'on', 'yes')
+
     gallery = MediaGallery(
         title=title,
         description=description,
         media_items=media_items,
+        published=published,
+        published_at=datetime.now(timezone.utc) if published else None,
         created_by=creator_id
     )
     db.session.add(gallery)
@@ -60,6 +67,17 @@ def update_media_gallery(gallery_id: int, data: dict) -> MediaGallery:
         raise ValueError('Media gallery not found')
     gallery.title = data.get('title', gallery.title)
     gallery.description = data.get('description', gallery.description)
+    if 'published' in data:
+        was_published = gallery.published
+        published = data['published']
+        if isinstance(published, str):
+            published = published.lower() in ('true', '1', 'on', 'yes')
+        gallery.published = published
+        # Set published_at when first published
+        if published and not was_published:
+            gallery.published_at = datetime.now(timezone.utc)
+        elif not published:
+            gallery.published_at = None
     if 'media_items' in data:
         media_items = data.get('media_items')
         if media_items and isinstance(media_items, (list, tuple)):
@@ -98,6 +116,19 @@ def delete_media_gallery(gallery_id: int) -> None:
         raise ValueError('Media gallery not found')
     db.session.delete(gallery)
     db.session.commit()
+
+
+def toggle_publish_gallery(gallery_id: int) -> MediaGallery:
+    gallery = db.session.get(MediaGallery, gallery_id)
+    if not gallery:
+        raise ValueError('Media gallery not found')
+    was_published = gallery.published
+    gallery.published = not was_published
+    if not was_published and gallery.published:
+        gallery.published_at = datetime.now(timezone.utc)
+    gallery.updated_at = datetime.now(timezone.utc)
+    db.session.commit()
+    return gallery
 
 
 def list_media_galleries(published_only: bool = False):

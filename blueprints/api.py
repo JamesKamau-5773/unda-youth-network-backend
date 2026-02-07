@@ -191,6 +191,7 @@ def api_auth_refresh():
         return response
     except Exception:
         db.session.rollback()
+        current_app.logger.exception('Error rotating refresh token')
         return jsonify({'error': 'Failed to rotate refresh token'}), 500
 
 
@@ -377,6 +378,7 @@ def api_auth_me_update():
 
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error updating profile')
         return jsonify({'error': str(e)}), 500
 
 
@@ -642,6 +644,7 @@ def campus_initiatives():
         events = Event.query.filter(Event.event_type == 'campus').order_by(Event.event_date.asc()).all()
         return jsonify({'success': True, 'events': [e.to_dict() for e in events]}), 200
     except Exception as e:
+        current_app.logger.exception('Error fetching campus initiatives')
         return jsonify({'error': str(e)}), 500
 
 
@@ -767,6 +770,7 @@ def update_current_member():
         }}), 200
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error updating current member')
         return jsonify({'error': str(e)}), 500
 
 
@@ -852,4 +856,5 @@ def submit_checkin():
 
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error submitting check-in')
         return jsonify({'error': str(e)}), 500

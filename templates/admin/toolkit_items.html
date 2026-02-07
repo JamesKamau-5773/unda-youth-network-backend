@@ -87,13 +87,36 @@
           </div>
           <div>
             <h3 class="text-lg font-bold text-[#0B1E3B]">{{ it.title }}</h3>
-            <span
-              class="text-[10px] font-bold text-[#006064] bg-[#D6EAFC] px-2 py-0.5 rounded-md uppercase tracking-wide">Resource</span>
+            <div class="flex items-center gap-2 mt-1">
+              <span
+                class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide
+                {% if it.published %}bg-emerald-100 text-emerald-800{% else %}bg-amber-100 text-amber-800{% endif %}">
+                {{ 'Published' if it.published else 'Draft' }}
+              </span>
+              <span
+                class="text-[10px] font-bold text-[#006064] bg-[#D6EAFC] px-2 py-0.5 rounded-md uppercase tracking-wide">Resource</span>
+            </div>
           </div>
         </div>
 
         
-        <!-- per-item action controls removed (Edit / Delete) -->
+        <div class="flex items-center gap-2">
+          <form action="{{ url_for('admin.toggle_publish_toolkit', item_id=it.item_id) }}" method="post" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit"
+              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-colors
+              {% if it.published %}bg-amber-100 text-amber-800 hover:bg-amber-200{% else %}bg-emerald-100 text-emerald-800 hover:bg-emerald-200{% endif %}">
+              {{ 'Unpublish' if it.published else 'Publish' }}
+            </button>
+          </form>
+          <a href="{{ url_for('admin.edit_toolkit_item', item_id=it.item_id) }}"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#00838F] bg-[#ECF5FF] hover:bg-[#D6EAFC] transition-colors">Edit</a>
+          <form action="{{ url_for('admin.delete_toolkit_item', item_id=it.item_id) }}" method="post" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit"
+              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors">Delete</button>
+          </form>
+        </div>
       </div>
         {% endfor %}
       {% else %}

@@ -20,9 +20,21 @@
   <div class="card">
     <ul>
     {% for s in stories %}
-      <li style="padding:0.5rem 0; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color);">
-        <div>{{ s.title }}</div>
+      <li style="padding:0.75rem 0; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color);">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span style="display:inline-block; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.7rem; font-weight:700; letter-spacing:0.05em;
+            {% if s.published %}background:#d1fae5; color:#065f46;{% else %}background:#fef3c7; color:#92400e;{% endif %}">
+            {{ 'Published' if s.published else 'Draft' }}
+          </span>
+          <div>{{ s.title }}</div>
+        </div>
         <div style="display:flex; gap:0.5rem;">
+          <form action="{{ url_for('admin.toggle_publish_story', post_id=s.post_id) }}" method="post" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button class="btn btn--{{ 'warning' if s.published else 'success' }}" style="font-size:0.8rem;">
+              {{ 'Unpublish' if s.published else 'Publish' }}
+            </button>
+          </form>
           <a href="{{ url_for('admin.edit_story', post_id=s.post_id) }}" class="btn btn--secondary">Edit</a>
           <form action="{{ url_for('admin.delete_story', post_id=s.post_id) }}" method="post" style="display:inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
