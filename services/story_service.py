@@ -65,6 +65,18 @@ def update_story(post_id: int, data: dict) -> BlogPost:
     post.content = data.get('content', post.content)
     post.excerpt = data.get('excerpt', post.excerpt)
     post.featured_image = data.get('featured_image', post.featured_image)
+
+    if 'published' in data:
+        was_published = post.published
+        published = data['published']
+        if isinstance(published, str):
+            published = published.lower() in ('true', '1', 'on', 'yes')
+        post.published = bool(published)
+        if not was_published and post.published:
+            post.published_at = datetime.now(timezone.utc)
+        elif not post.published:
+            post.published_at = None
+
     post.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     return post
@@ -76,6 +88,19 @@ def delete_story(post_id: int) -> None:
         raise ValueError('Post not found')
     db.session.delete(post)
     db.session.commit()
+
+
+def toggle_publish_story(post_id: int) -> BlogPost:
+    post = db.session.get(BlogPost, post_id)
+    if not post:
+        raise ValueError('Post not found')
+    was_published = post.published
+    post.published = not was_published
+    if not was_published and post.published:
+        post.published_at = datetime.now(timezone.utc)
+    post.updated_at = datetime.now(timezone.utc)
+    db.session.commit()
+    return post
 
 
 def list_stories(category: str = 'Success Stories'):

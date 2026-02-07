@@ -142,6 +142,7 @@ def change_password():
             return render_template('admin/change_password.html')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error changing password')
             flash(f'Error changing password: {str(e)}', 'danger')
             return render_template('admin/change_password.html')
 
@@ -470,6 +471,7 @@ def assign_champion(champion_id):
         flash(str(e), 'danger')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error updating assignment')
         flash(f'Error updating assignment: {str(e)}', 'danger')
 
     return redirect(url_for('admin.manage_assignments'))
@@ -536,7 +538,8 @@ def create_media_gallery():
             data = {
                 'title': request.form.get('title', '').strip(),
                 'description': request.form.get('description'),
-                'media_items': combined_media
+                'media_items': combined_media,
+                'published': request.form.get('published', 'off')
             }
             gallery = media_gallery_service.create_media_gallery(data, creator_id=current_user.user_id)
             flash('Media gallery created', 'success')
@@ -547,6 +550,7 @@ def create_media_gallery():
             return render_template('admin/media_gallery_form.html', max_file_size=max_file_size)
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error creating gallery')
             flash(f'Error creating gallery: {str(e)}', 'danger')
             return render_template('admin/media_gallery_form.html')
 
@@ -584,7 +588,8 @@ def edit_media_gallery(gallery_id):
             data = {
                 'title': request.form.get('title', gallery.title),
                 'description': request.form.get('description', gallery.description),
-                'media_items': combined_media
+                'media_items': combined_media,
+                'published': request.form.get('published', 'off')
             }
             media_gallery_service.update_media_gallery(gallery_id, data)
             flash('Media gallery updated', 'success')
@@ -593,6 +598,7 @@ def edit_media_gallery(gallery_id):
             flash(str(e), 'danger')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error updating gallery')
             flash(f'Error updating gallery: {str(e)}', 'danger')
     max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
     return render_template('admin/media_gallery_form.html', gallery=gallery, max_file_size=max_file_size)
@@ -607,7 +613,23 @@ def delete_media_gallery(gallery_id):
         flash('Media gallery deleted', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting gallery')
         flash(f'Error deleting gallery: {str(e)}', 'danger')
+    return redirect(url_for('admin.list_media_galleries'))
+
+
+@admin_bp.route('/media-galleries/<int:gallery_id>/toggle-publish', methods=['POST'])
+@login_required
+@admin_required
+def toggle_publish_gallery(gallery_id):
+    try:
+        gallery = media_gallery_service.toggle_publish_gallery(gallery_id)
+        status = 'published' if gallery.published else 'unpublished'
+        flash(f'Gallery {status} successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception('Error updating gallery')
+        flash(f'Error updating gallery: {str(e)}', 'danger')
     return redirect(url_for('admin.list_media_galleries'))
 
 
@@ -632,7 +654,8 @@ def create_toolkit_item():
                 'title': request.form.get('title', '').strip(),
                 'content': request.form.get('content'),
                 # prefer files if uploaded
-                'attachments': request.files.getlist('attachments') or request.form.get('attachments')
+                'attachments': request.files.getlist('attachments') or request.form.get('attachments'),
+                'published': request.form.get('published', 'off')
             }
             item = toolkit_service.create_toolkit_item(data, creator_id=current_user.user_id)
             flash('Toolkit item created', 'success')
@@ -642,6 +665,7 @@ def create_toolkit_item():
             return render_template('admin/toolkit_form.html')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error creating toolkit item')
             flash(f'Error creating toolkit item: {str(e)}', 'danger')
             return render_template('admin/toolkit_form.html')
 
@@ -660,7 +684,8 @@ def edit_toolkit_item(item_id):
             data = {
                 'title': request.form.get('title', item.title),
                 'content': request.form.get('content', item.content),
-                'attachments': request.files.getlist('attachments') or request.form.get('attachments')
+                'attachments': request.files.getlist('attachments') or request.form.get('attachments'),
+                'published': request.form.get('published', 'off')
             }
             toolkit_service.update_toolkit_item(item_id, data)
             flash('Toolkit item updated', 'success')
@@ -669,6 +694,7 @@ def edit_toolkit_item(item_id):
             flash(str(e), 'danger')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error updating toolkit item')
             flash(f'Error updating toolkit item: {str(e)}', 'danger')
     return render_template('admin/toolkit_form.html', item=item)
 
@@ -682,7 +708,23 @@ def delete_toolkit_item(item_id):
         flash('Toolkit item deleted', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting toolkit item')
         flash(f'Error deleting toolkit item: {str(e)}', 'danger')
+    return redirect(url_for('admin.list_toolkit_items'))
+
+
+@admin_bp.route('/toolkit/<int:item_id>/toggle-publish', methods=['POST'])
+@login_required
+@admin_required
+def toggle_publish_toolkit(item_id):
+    try:
+        item = toolkit_service.toggle_publish_toolkit(item_id)
+        status = 'published' if item.published else 'unpublished'
+        flash(f'Toolkit item {status} successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception('Error updating toolkit item')
+        flash(f'Error updating toolkit item: {str(e)}', 'danger')
     return redirect(url_for('admin.list_toolkit_items'))
 
 
@@ -723,6 +765,7 @@ def create_umv_entry():
             return render_template('admin/umv_form.html')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error creating UMV entry')
             flash(f'Error creating UMV entry: {str(e)}', 'danger')
             return render_template('admin/umv_form.html')
 
@@ -745,6 +788,7 @@ def edit_umv_entry(entry_id):
             return redirect(url_for('admin.list_umv_global'))
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error updating UMV entry')
             flash(f'Error updating UMV entry: {str(e)}', 'danger')
     return render_template('admin/umv_form.html', entry=entry)
 
@@ -758,6 +802,7 @@ def delete_umv_entry(entry_id):
         flash('UMV entry deleted', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting UMV entry')
         flash(f'Error deleting UMV entry: {str(e)}', 'danger')
     return redirect(url_for('admin.list_umv_global'))
 
@@ -784,7 +829,8 @@ def create_resource():
                 'url': request.form.get('url'),
                 'description': request.form.get('description'),
                 'resource_type': request.form.get('resource_type'),
-                'tags': request.form.get('tags')
+                'tags': request.form.get('tags'),
+                'published': request.form.get('published', 'off')
             }
             resource = resource_service.create_resource_item(data, creator_id=current_user.user_id)
             flash('Resource created', 'success')
@@ -794,6 +840,7 @@ def create_resource():
             return render_template('admin/resource_form.html')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error creating resource')
             flash(f'Error creating resource: {str(e)}', 'danger')
             return render_template('admin/resource_form.html')
 
@@ -814,7 +861,8 @@ def edit_resource(resource_id):
                 'url': request.form.get('url', resource.url),
                 'description': request.form.get('description', resource.description),
                 'resource_type': request.form.get('resource_type', resource.resource_type),
-                'tags': request.form.get('tags')
+                'tags': request.form.get('tags'),
+                'published': request.form.get('published', 'off')
             }
             resource_service.update_resource_item(resource_id, data)
             flash('Resource updated', 'success')
@@ -823,6 +871,7 @@ def edit_resource(resource_id):
             flash(str(e), 'danger')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error updating resource')
             flash(f'Error updating resource: {str(e)}', 'danger')
     return render_template('admin/resource_form.html', resource=resource)
 
@@ -836,7 +885,23 @@ def delete_resource(resource_id):
         flash('Resource deleted', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting resource')
         flash(f'Error deleting resource: {str(e)}', 'danger')
+    return redirect(url_for('admin.list_resources'))
+
+
+@admin_bp.route('/resources/<int:resource_id>/toggle-publish', methods=['POST'])
+@login_required
+@admin_required
+def toggle_publish_resource(resource_id):
+    try:
+        item = resource_service.toggle_publish_resource(resource_id)
+        status = 'published' if item.published else 'unpublished'
+        flash(f'Resource {status} successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception('Error updating resource')
+        flash(f'Error updating resource: {str(e)}', 'danger')
     return redirect(url_for('admin.list_resources'))
 
 
@@ -863,7 +928,7 @@ def create_story():
                 'excerpt': request.form.get('excerpt'),
                 'featured_image': request.form.get('featured_image')
             }
-            story = story_service.create_story(data, author_id=current_user.user_id, publish=True)
+            story = story_service.create_story(data, author_id=current_user.user_id, publish=request.form.get('published') == 'on')
             flash('Story created', 'success')
             return redirect(url_for('admin.list_stories'))
         except ValueError as e:
@@ -875,6 +940,7 @@ def create_story():
             return render_template('admin/story_form.html')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error creating story')
             flash(f'Error creating story: {str(e)}', 'danger')
             return render_template('admin/story_form.html')
 
@@ -894,13 +960,15 @@ def edit_story(post_id):
                 'title': request.form.get('title', post.title),
                 'content': request.form.get('content', post.content),
                 'excerpt': request.form.get('excerpt', post.excerpt),
-                'featured_image': request.form.get('featured_image', post.featured_image)
+                'featured_image': request.form.get('featured_image', post.featured_image),
+                'published': request.form.get('published', 'off')
             }
             story_service.update_story(post_id, data)
             flash('Story updated', 'success')
             return redirect(url_for('admin.list_stories'))
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error updating story')
             flash(f'Error updating story: {str(e)}', 'danger')
     return render_template('admin/story_form.html', post=post)
 
@@ -914,7 +982,23 @@ def delete_story(post_id):
         flash('Story deleted', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting story')
         flash(f'Error deleting story: {str(e)}', 'danger')
+    return redirect(url_for('admin.list_stories'))
+
+
+@admin_bp.route('/stories/<int:post_id>/toggle-publish', methods=['POST'])
+@login_required
+@admin_required
+def toggle_publish_story(post_id):
+    try:
+        post = story_service.toggle_publish_story(post_id)
+        status = 'published' if post.published else 'unpublished'
+        flash(f'Story {status} successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception('Error updating story')
+        flash(f'Error updating story: {str(e)}', 'danger')
     return redirect(url_for('admin.list_stories'))
 
 
@@ -938,6 +1022,7 @@ def create_symbolic_item():
             return render_template('admin/symbolic_item_form.html')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error creating item')
             flash(f'Error creating item: {str(e)}', 'danger')
     return render_template('admin/symbolic_item_form.html')
 
@@ -964,6 +1049,7 @@ def edit_symbolic_item(item_id):
             flash(str(e), 'danger')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error updating item')
             flash(f'Error updating item: {str(e)}', 'danger')
     return render_template('admin/symbolic_item_form.html', item=item)
 
@@ -977,6 +1063,7 @@ def delete_symbolic_item(item_id):
         flash('Symbolic item deleted', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting item')
         flash(f'Error deleting item: {str(e)}', 'danger')
     return redirect(url_for('admin.list_symbolic_items'))
 
@@ -1012,6 +1099,7 @@ def create_assessment():
             return render_template('admin/assessment_form.html')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error creating assessment')
             flash(f'Error creating assessment: {str(e)}', 'danger')
     return render_template('admin/assessment_form.html')
 
@@ -1025,6 +1113,7 @@ def delete_assessment(assessment_id):
         flash('Assessment deleted', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting assessment')
         flash(f'Error deleting assessment: {str(e)}', 'danger')
     return redirect(url_for('admin.list_assessments_admin'))
 
@@ -1195,6 +1284,7 @@ def reject_application_web(application_id):
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error rejecting application')
         flash(f'Error rejecting application: {str(e)}', 'danger')
         return redirect(url_for('admin.champion_applications'))
 
@@ -1544,6 +1634,7 @@ def approve_seed_funding(application_id):
     except ValueError as e:
         flash(str(e), 'warning')
     except Exception as e:
+        current_app.logger.exception('Error approving seed funding application')
         flash(f'Error approving application: {str(e)}', 'danger')
 
     return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
@@ -1565,6 +1656,7 @@ def reject_seed_funding(application_id):
     except ValueError as e:
         flash(str(e), 'danger')
     except Exception as e:
+        current_app.logger.exception('Error rejecting seed funding application')
         flash(f'Error rejecting application: {str(e)}', 'danger')
 
     return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
@@ -1595,6 +1687,7 @@ def mark_seed_funding_funded(application_id):
         else:
             flash(msg, 'danger')
     except Exception as e:
+        current_app.logger.exception('Error marking seed funding as funded')
         flash(f'Error marking as funded: {str(e)}', 'danger')
 
     return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
@@ -1614,6 +1707,7 @@ def update_seed_funding_review_status(application_id):
     except ValueError:
         flash('Application not found', 'warning')
     except Exception as e:
+        current_app.logger.exception('Error updating seed funding review status')
         flash(f'Error updating review status: {str(e)}', 'danger')
 
     return redirect(url_for('admin.seed_funding_detail', application_id=application_id))
@@ -1859,6 +1953,7 @@ def create_podcast():
             return redirect(url_for('admin.podcasts'))
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error creating podcast')
             flash(f'Error creating podcast: {str(e)}', 'error')
     
     return render_template('admin/podcast_form.html', podcast=None, action='Create')
@@ -1894,6 +1989,7 @@ def edit_podcast(podcast_id):
             return redirect(url_for('admin.podcasts'))
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error updating podcast')
             flash(f'Error updating podcast: {str(e)}', 'error')
 
     return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
@@ -1909,6 +2005,7 @@ def delete_podcast(podcast_id):
         flash('Podcast deleted successfully!', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting podcast')
         flash(f'Error deleting podcast: {str(e)}', 'error')
     
     return redirect(url_for('admin.podcasts'))
@@ -1930,6 +2027,7 @@ def toggle_publish_podcast(podcast_id):
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error updating podcast')
         flash(f'Error updating podcast: {str(e)}', 'error')
     
     return redirect(url_for('admin.podcasts'))
@@ -2139,6 +2237,7 @@ def affirmation_form():
             
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error creating affirmation')
             flash(f'Error creating affirmation: {str(e)}', 'danger')
             return render_template('admin/affirmation_form.html')
     
@@ -2175,6 +2274,7 @@ def affirmation_edit(affirmation_id):
             return redirect(url_for('admin.affirmations'))
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error updating affirmation')
             flash(f'Error updating affirmation: {str(e)}', 'danger')
     
     return render_template('admin/affirmation_form.html', affirmation=affirmation, action='Edit')
@@ -2184,20 +2284,31 @@ def affirmation_edit(affirmation_id):
 @login_required
 @admin_required
 def affirmation_delete(affirmation_id):
-    """Delete (deactivate) an affirmation"""
+    """Delete an affirmation permanently"""
     try:
-        affirmation = db.session.get(DailyAffirmation, affirmation_id)
-        if not affirmation:
-            flash('Affirmation not found', 'warning')
-            return redirect(url_for('admin.affirmations'))
-        affirmation.active = False
-        db.session.commit()
-        
-        flash('Affirmation deactivated successfully!', 'success')
+        affirmation_service.delete_affirmation(affirmation_id)
+        flash('Affirmation deleted successfully!', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting affirmation')
         flash(f'Error deleting affirmation: {str(e)}', 'danger')
     
+    return redirect(url_for('admin.affirmations'))
+
+
+@admin_bp.route('/affirmations/<int:affirmation_id>/toggle-active', methods=['POST'])
+@login_required
+@admin_required
+def toggle_active_affirmation(affirmation_id):
+    """Toggle affirmation active/inactive status"""
+    try:
+        affirmation = affirmation_service.toggle_active_affirmation(affirmation_id)
+        status = 'activated' if affirmation.active else 'deactivated'
+        flash(f'Affirmation {status} successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception('Error updating affirmation')
+        flash(f'Error updating affirmation: {str(e)}', 'danger')
     return redirect(url_for('admin.affirmations'))
 
 
@@ -2262,6 +2373,7 @@ def symbolic_item_form():
             return render_template('admin/symbolic_item_form.html')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error creating item')
             flash(f'Error creating item: {str(e)}', 'danger')
             return render_template('admin/symbolic_item_form.html')
     
@@ -2295,6 +2407,7 @@ def symbolic_item_edit(item_id):
             flash('Quantity must be a number', 'danger')
         except Exception as e:
             db.session.rollback()
+            current_app.logger.exception('Error updating item')
             flash(f'Error updating item: {str(e)}', 'danger')
     
     return render_template('admin/symbolic_item_form.html', item=item, action='Edit')
@@ -2316,6 +2429,7 @@ def symbolic_item_delete(item_id):
         flash('Symbolic item deleted successfully!', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting item')
         flash(f'Error deleting item: {str(e)}', 'danger')
     
     return redirect(url_for('admin.symbolic_items'))

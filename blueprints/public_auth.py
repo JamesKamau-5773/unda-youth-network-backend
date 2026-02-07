@@ -155,6 +155,7 @@ def complete_invite():
         return jsonify({'message': 'Password set successfully. You can now log in.'}), 200
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Complete invite failed')
         return jsonify({'error': str(e)}), 500
 
 
@@ -290,6 +291,7 @@ def get_registration_status(registration_id):
             'cancellation_token': reg.cancellation_token
         }), 200
     except Exception as e:
+        current_app.logger.exception('Error fetching registration status')
         return jsonify({'error': str(e)}), 500
 
 
@@ -357,6 +359,7 @@ def get_certificate(certificate_id):
             'Content-Disposition': f'attachment; filename=certificate_{certificate_id}.pdf'
         })
     except Exception as e:
+        current_app.logger.exception('Error fetching certificate')
         return jsonify({'success': False, 'error': {'message': str(e)}}), 500
 
 
@@ -382,6 +385,7 @@ def verify_certificate():
 
         return jsonify({'valid': valid, 'certificate_id': cid}), 200
     except Exception as e:
+        current_app.logger.exception('Error verifying certificate')
         return _error_response('Internal error', status=500)
 
 
@@ -704,6 +708,7 @@ def apply_champion():
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error submitting champion application')
         return jsonify({'error': str(e)}), 500
 
 
@@ -733,6 +738,7 @@ def get_registrations():
         }), 200
         
     except Exception as e:
+        current_app.logger.exception('Error fetching registrations')
         return jsonify({'error': str(e)}), 500
 
 
@@ -771,7 +777,7 @@ def approve_registration(registration_id):
             email=registration.email,
             phone_number=registration.phone_number,
             date_of_birth=registration.date_of_birth,
-            gender=registration.gender,
+            gender=registration.gender or 'Other',
             county_sub_county=registration.county_sub_county,
             assigned_champion_code=champion_code,
             champion_status='Active'
@@ -804,9 +810,7 @@ def approve_registration(registration_id):
         
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Error approving registration {registration_id}: {str(e)}')
-        import traceback
-        current_app.logger.error(traceback.format_exc())
+        current_app.logger.exception(f'Error approving registration {registration_id}: {str(e)}')
         return jsonify({'error': str(e)}), 500
 
 
@@ -839,6 +843,7 @@ def reject_registration(registration_id):
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error rejecting registration')
         return jsonify({'error': str(e)}), 500
 
 
@@ -900,9 +905,7 @@ def fix_missing_champions():
         
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Error fixing missing champions: {str(e)}')
-        import traceback
-        current_app.logger.error(traceback.format_exc())
+        current_app.logger.exception('Error fixing missing champions')
         return jsonify({'error': str(e)}), 500
 
 
@@ -936,6 +939,7 @@ def get_champion_applications():
         }), 200
         
     except Exception as e:
+        current_app.logger.exception('Error fetching champion applications')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1008,6 +1012,7 @@ def approve_champion_application(application_id):
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error approving champion application')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1040,6 +1045,7 @@ def reject_champion_application(application_id):
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error rejecting champion application')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1158,6 +1164,7 @@ def api_list_affirmations():
         affirmations = DailyAffirmation.query.filter_by(active=True).order_by(DailyAffirmation.scheduled_date.asc().nullsfirst()).all()
         return jsonify({'affirmations': [a.to_dict() for a in affirmations]}), 200
     except Exception as e:
+        current_app.logger.exception('Error fetching affirmations')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1167,6 +1174,7 @@ def api_list_symbolic_items():
         items = SymbolicItem.query.order_by(SymbolicItem.item_name.asc()).all()
         return jsonify({'items': [i.to_dict() for i in items]}), 200
     except Exception as e:
+        current_app.logger.exception('Error fetching symbolic items')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1186,15 +1194,20 @@ def api_list_assessments():
             }
         return jsonify({'assessments': [serialize(x) for x in q]}), 200
     except Exception as e:
+        current_app.logger.exception('Error fetching assessments')
         return jsonify({'error': str(e)}), 500
 
 
 @public_auth_bp.route('/api/media-galleries', methods=['GET'])
 def api_list_media_galleries():
     try:
-        galleries = MediaGallery.query.filter_by(published=True).order_by(MediaGallery.published_at.desc()).all()
+        galleries = MediaGallery.query.filter_by(published=True).order_by(
+            MediaGallery.published_at.desc().nullslast(),
+            MediaGallery.created_at.desc()
+        ).all()
         return jsonify({'galleries': [g.to_dict() for g in galleries]}), 200
     except Exception as e:
+        current_app.logger.exception('Error fetching media galleries')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1204,6 +1217,7 @@ def api_list_toolkit():
         items = InstitutionalToolkitItem.query.filter_by(published=True).order_by(InstitutionalToolkitItem.created_at.desc()).all()
         return jsonify({'toolkit': [i.to_dict() for i in items]}), 200
     except Exception as e:
+        current_app.logger.exception('Error fetching toolkit items')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1213,6 +1227,7 @@ def api_list_umv_global():
         entries = UMVGlobalEntry.query.order_by(UMVGlobalEntry.key.asc()).all()
         return jsonify({'entries': [e.to_dict() for e in entries]}), 200
     except Exception as e:
+        current_app.logger.exception('Error fetching UMV global entries')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1222,6 +1237,7 @@ def api_list_resources():
         resources = ResourceItem.query.filter_by(published=True).order_by(ResourceItem.published_at.desc()).all()
         return jsonify({'resources': [r.to_dict() for r in resources]}), 200
     except Exception as e:
+        current_app.logger.exception('Error fetching resources')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1231,6 +1247,7 @@ def api_list_stories():
         stories = BlogPost.query.filter_by(category='Success Stories', published=True).order_by(BlogPost.published_at.desc()).all()
         return jsonify({'stories': [s.to_dict() for s in stories]}), 200
     except Exception as e:
+        current_app.logger.exception('Error fetching stories')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1253,6 +1270,7 @@ def get_my_applications():
         }), 200
         
     except Exception as e:
+        current_app.logger.exception('Error fetching my applications')
         return jsonify({'error': str(e)}), 500
 
 
@@ -1384,6 +1402,7 @@ def register_champion():
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Champion registration failed')
         return jsonify({
             'success': False,
             'error': f'Registration failed: {str(e)}'

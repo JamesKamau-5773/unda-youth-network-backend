@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from models import db, Podcast
 from decorators import admin_required
 from flask_login import login_required, current_user
@@ -56,6 +56,7 @@ def get_podcasts():
         }), 200
         
     except Exception as e:
+        current_app.logger.exception('Error fetching podcasts')
         return jsonify({
             'success': False,
             'message': f'Error fetching podcasts: {str(e)}'
@@ -80,6 +81,7 @@ def get_podcast(podcast_id):
         }), 200
         
     except Exception as e:
+        current_app.logger.exception('Error fetching podcast')
         return jsonify({
             'success': False,
             'message': f'Error fetching podcast: {str(e)}'
@@ -138,6 +140,7 @@ def create_podcast():
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error creating podcast')
         return jsonify({
             'success': False,
             'message': f'Error creating podcast: {str(e)}'
@@ -201,6 +204,7 @@ def update_podcast(podcast_id):
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error updating podcast')
         return jsonify({
             'success': False,
             'message': f'Error updating podcast: {str(e)}'
@@ -231,6 +235,7 @@ def delete_podcast(podcast_id):
         
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception('Error deleting podcast')
         return jsonify({
             'success': False,
             'message': f'Error deleting podcast: {str(e)}'
@@ -254,6 +259,7 @@ def get_categories():
         }), 200
         
     except Exception as e:
+        current_app.logger.exception('Error fetching podcast categories')
         return jsonify({
             'success': False,
             'message': f'Error fetching categories: {str(e)}'
@@ -290,6 +296,7 @@ def get_stats():
         }), 200
         
     except Exception as e:
+        current_app.logger.exception('Error fetching podcast stats')
         return jsonify({
             'success': False,
             'message': f'Error fetching stats: {str(e)}'
