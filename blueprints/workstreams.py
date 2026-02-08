@@ -20,6 +20,7 @@ from models import (
     InstitutionalToolkitItem, Event, Podcast
 )
 from decorators import admin_required
+from utils.media import infer_type_from_path, normalize_media_src, normalize_gallery_items
 from datetime import datetime, timezone
 import re
 
@@ -318,21 +319,25 @@ def get_gallery():
         query = MediaGallery.query.filter_by(published=True)
         
         galleries = query.order_by(MediaGallery.created_at.desc()).all()
-        
+
         # Flatten media_items from galleries into individual items
         result = []
         for g in galleries:
             if g.media_items:
                 for idx, item in enumerate(g.media_items):
+                    src = normalize_media_src(item)
+                    if not src:
+                        continue
+                    inferred_type = infer_type_from_path(item.get('filename') or src, fallback=item.get('type', 'photo'))
                     item_data = {
                         'id': f"{g.gallery_id}_{idx}",
                         'galleryId': g.gallery_id,
                         'galleryTitle': g.title,
-                        'type': item.get('type', 'photo'),
+                        'type': inferred_type,
                         'title': item.get('caption', g.title),
-                        'src': item.get('url'),
-                        'thumbnail': item.get('thumbnail', item.get('url')),
-                        'videoUrl': item.get('video_url') or item.get('videoUrl'),
+                        'src': src,
+                        'thumbnail': item.get('thumbnail') or src,
+                        'videoUrl': item.get('video_url') or item.get('videoUrl') or (src if inferred_type == 'video' else None),
                         'alt': item.get('alt', g.title),
                         'category': g.description or 'general'
                     }
@@ -361,12 +366,12 @@ def get_gallery_item(gallery_id):
         if not gallery:
             return jsonify({'success': False, 'error': 'Gallery not found'}), 404
         
-        # Return the full gallery with all its items
+        # Return the full gallery with all its items (normalised)
         result = {
             'id': gallery.gallery_id,
             'title': gallery.title,
             'description': gallery.description,
-            'items': gallery.media_items or [],
+            'items': normalize_gallery_items(gallery.media_items),
             'featuredMedia': gallery.featured_media,
             'published': gallery.published
         }

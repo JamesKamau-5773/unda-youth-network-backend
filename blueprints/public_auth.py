@@ -18,6 +18,7 @@ from models import (
     DailyAffirmation, SymbolicItem, MentalHealthAssessment, generate_champion_code
 )
 from decorators import admin_required
+from utils.media import normalize_gallery_items
 from password_validator import validate_password_strength
 from datetime import datetime, date, timezone
 import re
@@ -1205,7 +1206,12 @@ def api_list_media_galleries():
             MediaGallery.published_at.desc().nullslast(),
             MediaGallery.created_at.desc()
         ).all()
-        return jsonify({'galleries': [g.to_dict() for g in galleries]}), 200
+        result = []
+        for g in galleries:
+            d = g.to_dict()
+            d['media_items'] = normalize_gallery_items(d.get('media_items'))
+            result.append(d)
+        return jsonify({'galleries': result}), 200
     except Exception as e:
         current_app.logger.exception('Error fetching media galleries')
         return jsonify({'error': str(e)}), 500
