@@ -25,7 +25,9 @@
     {% for ws in workstreams %}
     <div class="tile" style="display: flex; flex-direction: column; transition: all 0.3s ease;">
         <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-            <div style="font-size: 2.5rem;">{{ ws.icon }}</div>
+            <div style="width: 56px; height: 56px; border-radius: 14px; background: #f8fafc; display: flex; align-items: center; justify-content: center; color: #0f172a;">
+                <i data-lucide="{{ ws.icon }}" style="width: 30px; height: 30px;"></i>
+            </div>
             <div>
                 <h3 style="margin: 0; font-size: 1.25rem; color: #1e293b;">{{ ws.name }}</h3>
                 <p style="margin: 0.25rem 0 0 0; color: #64748b; font-size: 0.875rem;">{{ ws.description }}</p>

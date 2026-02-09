@@ -2069,7 +2069,7 @@ def workstreams():
             'id': 'campus_edition',
             'name': 'Campus Edition',
             'description': 'Manage campus-based events and activities',
-            'icon': 'training',
+            'icon': 'graduation-cap',
             'route': 'admin.campus_edition',
             'create_route': 'admin.create_campus_event',
             'count': Event.query.filter(Event.event_type == 'campus').count()
@@ -2078,7 +2078,7 @@ def workstreams():
             'id': 'seed_funding',
             'name': 'Seed Funding',
             'description': 'Review and approve seed funding applications',
-            'icon': 'funding',
+            'icon': 'hand-coins',
             'route': 'admin.seed_funding_applications',
             'create_route': None,  # Applications come from frontend
             'count': SeedFundingApplication.query.count()
@@ -2087,7 +2087,7 @@ def workstreams():
             'id': 'umv_mtaani',
             'name': 'UMV Mtaani',
             'description': 'Manage community barazas and mtaani events',
-            'icon': 'community',
+            'icon': 'users',
             'route': 'admin.umv_mtaani',
             'create_route': 'admin.create_mtaani_event',
             'count': Event.query.filter(Event.event_type == 'mtaani').count()
@@ -2101,7 +2101,7 @@ def workstreams():
                 'id': 'media_galleries',
                 'name': 'Media Galleries',
                 'description': 'Manage image and video galleries used across the site',
-                'icon': 'gallery',
+                'icon': 'image',
                 'route': 'admin.list_media_galleries',
                 'create_route': 'admin.create_media_gallery',
                 'count': MediaGallery.query.count()
@@ -2110,7 +2110,7 @@ def workstreams():
                 'id': 'institutional_toolkit',
                 'name': 'Institutional Toolkit',
                 'description': 'Guides, templates and checklists for institutions',
-                'icon': 'toolkit',
+                'icon': 'briefcase',
                 'route': 'admin.list_toolkit_items',
                 'create_route': 'admin.create_toolkit_item',
                 'count': InstitutionalToolkitItem.query.count()
@@ -2137,8 +2137,8 @@ def workstreams():
     except Exception:
         # If models/tables not present yet (migration state), fallback to zero counts
         workstreams_data.extend([
-            {'id': 'media_galleries','name':'Media Galleries','description':'Manage image and video galleries used across the site','icon':'gallery','route':'admin.list_media_galleries','create_route':'admin.create_media_gallery','count':0},
-            {'id': 'institutional_toolkit','name':'Institutional Toolkit','description':'Guides, templates and checklists for institutions','icon':'toolkit','route':'admin.list_toolkit_items','create_route':'admin.create_toolkit_item','count':0},
+            {'id': 'media_galleries','name':'Media Galleries','description':'Manage image and video galleries used across the site','icon':'image','route':'admin.list_media_galleries','create_route':'admin.create_media_gallery','count':0},
+            {'id': 'institutional_toolkit','name':'Institutional Toolkit','description':'Guides, templates and checklists for institutions','icon':'briefcase','route':'admin.list_toolkit_items','create_route':'admin.create_toolkit_item','count':0},
             {'id': 'resources','name':'Resources','description':'External/internal resource links and documents','icon':'link','route':'admin.list_resources','create_route':'admin.create_resource','count':0},
             {'id': 'stories','name':'Success Stories','description':'Manage success stories / case studies','icon':'star','route':'admin.list_stories','create_route':'admin.create_story','count':0}
         ])
@@ -2149,7 +2149,7 @@ def workstreams():
                 'id': 'affirmations',
                 'name': 'Affirmations',
                 'description': 'Manage daily affirmations and schedules',
-                'icon': 'chat',
+                'icon': 'message-circle',
                 'route': 'admin.affirmations',
                 'create_route': 'admin.affirmation_form',
                 'count': DailyAffirmation.query.count()
@@ -2158,7 +2158,7 @@ def workstreams():
                 'id': 'symbolic_items',
                 'name': 'Symbolic Items',
                 'description': 'Items and symbolic resources used in sessions',
-                'icon': 'item',
+                'icon': 'package',
                 'route': 'admin.list_symbolic_items',
                 'create_route': 'admin.symbolic_item_form',
                 'count': SymbolicItem.query.count()
@@ -2166,8 +2166,8 @@ def workstreams():
         ])
     except Exception:
         workstreams_data.extend([
-            {'id': 'affirmations','name':'Affirmations','description':'Manage daily affirmations and schedules','icon':'chat','route':'admin.affirmations','create_route':'admin.affirmation_form','count':0},
-            {'id': 'symbolic_items','name':'Symbolic Items','description':'Items and symbolic resources used in sessions','icon':'item','route':'admin.list_symbolic_items','create_route':'admin.symbolic_item_form','count':0}
+            {'id': 'affirmations','name':'Affirmations','description':'Manage daily affirmations and schedules','icon':'message-circle','route':'admin.affirmations','create_route':'admin.affirmation_form','count':0},
+            {'id': 'symbolic_items','name':'Symbolic Items','description':'Items and symbolic resources used in sessions','icon':'package','route':'admin.list_symbolic_items','create_route':'admin.symbolic_item_form','count':0}
         ])
     
     return render_template('admin/workstreams.html', workstreams=workstreams_data)
