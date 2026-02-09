@@ -11,7 +11,7 @@ Flask-CORS==4.0.0             # Cross-Origin Resource Sharing
 Flask-Mail==0.10.0            # Email sending
 python-dotenv==1.0.0
 requests==2.31.0              # HTTP library for M-Pesa API calls
-gunicorn==20.1.0
+gunicorn==21.2.0
 setuptools>=65.5.0
 # Allow any compatible Celery 5.x release; some specific micro versions may be yanked
 # or unavailable in certain installers. Using a permissive range improves deploy
