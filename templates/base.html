@@ -7,6 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <title>{% block title %}Unda Youth Network{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -976,6 +977,10 @@
                 });
             }
         });
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
     });
     </script>
     {% block extra_js %}{% endblock %}
