@@ -601,8 +601,8 @@ def create_app(test_config=None):
     # Security headers
     @app.after_request
     def set_security_headers(response):
-        # Content Security Policy - allow Tailwind CDN and inline SVGs
-        response.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data: https:;"
+        # Content Security Policy - allow Tailwind CDN, Lucide icons, and inline scripts/styles
+        response.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com; img-src 'self' data: https:;"
         # Prevent clickjacking
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         # Prevent MIME type sniffing
