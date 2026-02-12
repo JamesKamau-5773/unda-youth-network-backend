@@ -2850,43 +2850,54 @@ def event_submissions_dashboard():
     try:
         current_app.logger.info('Loading event submissions dashboard')
         
-        # Check if submission_status column exists first
-        test_query = db.session.query(Event.submission_status).limit(1)
-        test_query.all()
+        # Get pending count
+        try:
+            pending = db.session.query(func.count(Event.event_id)).filter(
+                Event.submission_status == 'Pending Approval'
+            ).scalar() or 0
+            current_app.logger.debug(f'Pending submissions count: {pending}')
+        except Exception as e:
+            current_app.logger.warning(f'Could not count pending submissions: {str(e)}')
+            pending = 0
         
-        # If we get here, columns exist - run the real queries
-        pending = db.session.query(func.count(Event.event_id)).filter(
-            Event.submission_status == 'Pending Approval'
-        ).scalar() or 0
+        # Get approved count
+        try:
+            approved = db.session.query(func.count(Event.event_id)).filter(
+                Event.submission_status == 'Approved'
+            ).scalar() or 0
+            current_app.logger.debug(f'Approved submissions count: {approved}')
+        except Exception as e:
+            current_app.logger.warning(f'Could not count approved submissions: {str(e)}')
+            approved = 0
         
-        approved = db.session.query(func.count(Event.event_id)).filter(
-            Event.submission_status == 'Approved'
-        ).scalar() or 0
-        
-        rejected = db.session.query(func.count(Event.event_id)).filter(
-            Event.submission_status == 'Rejected'
-        ).scalar() or 0
+        # Get rejected count
+        try:
+            rejected = db.session.query(func.count(Event.event_id)).filter(
+                Event.submission_status == 'Rejected'
+            ).scalar() or 0
+            current_app.logger.debug(f'Rejected submissions count: {rejected}')
+        except Exception as e:
+            current_app.logger.warning(f'Could not count rejected submissions: {str(e)}')
+            rejected = 0
         
         # Get recent pending submissions
-        recent_submissions = Event.query.filter(
-            Event.submission_status == 'Pending Approval'
-        ).order_by(Event.created_at.desc()).limit(10).all()
+        try:
+            recent_submissions = Event.query.filter(
+                Event.submission_status == 'Pending Approval'
+            ).order_by(Event.created_at.desc()).limit(10).all()
+            current_app.logger.debug(f'Retrieved {len(recent_submissions)} recent pending submissions')
+        except Exception as e:
+            current_app.logger.warning(f'Could not retrieve recent submissions: {str(e)}')
+            recent_submissions = []
         
         current_app.logger.info(f'Event submissions dashboard loaded: {pending} pending, {approved} approved, {rejected} rejected')
         
     except Exception as e:
         import traceback
         error_msg = str(e)
-        current_app.logger.error(f'Error loading event submissions dashboard: {error_msg}')
+        current_app.logger.error(f'Unexpected error loading event submissions dashboard: {error_msg}')
         current_app.logger.error(f'Full traceback: {traceback.format_exc()}')
-        
-        if 'submission_status' in error_msg or 'does not exist' in error_msg:
-            # Database migration not applied yet
-            current_app.logger.warning('Event submission columns not yet created in database')
-            flash('Database migration pending. Event submissions feature will be available after database update.', 'info')
-        else:
-            current_app.logger.exception('Exception occurred while loading event submissions dashboard')
-            flash(f'Error loading dashboard: {str(e)}', 'danger')
+        flash('Error loading dashboard. Please check the server logs.', 'danger')
     
     return render_template(
         'admin/event_submissions/index.html',
@@ -2909,34 +2920,28 @@ def event_submissions_list():
     try:
         current_app.logger.info(f'Loading event submissions list (status: {status_filter}, type: {event_type})')
         
-        # Check if columns exist
-        test_query = db.session.query(Event.submission_status).limit(1)
-        test_query.all()
-        
-        query = Event.query.filter(Event.submission_status.isnot(None))
-        
-        if status_filter:
-            query = query.filter_by(submission_status=status_filter)
-            current_app.logger.debug(f'Filtered by status: {status_filter}')
-        if event_type:
-            query = query.filter_by(event_type=event_type)
-            current_app.logger.debug(f'Filtered by event type: {event_type}')
-        
-        submissions = query.order_by(Event.created_at.desc()).all()
-        current_app.logger.info(f'Event submissions list loaded: {len(submissions)} submissions found')
+        try:
+            query = Event.query.filter(Event.submission_status.isnot(None))
+            
+            if status_filter:
+                query = query.filter_by(submission_status=status_filter)
+                current_app.logger.debug(f'Filtered by status: {status_filter}')
+            if event_type:
+                query = query.filter_by(event_type=event_type)
+                current_app.logger.debug(f'Filtered by event type: {event_type}')
+            
+            submissions = query.order_by(Event.created_at.desc()).all()
+            current_app.logger.info(f'Event submissions list loaded: {len(submissions)} submissions found')
+        except Exception as query_error:
+            current_app.logger.warning(f'Error querying submissions: {str(query_error)}')
+            submissions = []
         
     except Exception as e:
         import traceback
         error_msg = str(e)
-        current_app.logger.error(f'Error loading event submissions list: {error_msg}')
+        current_app.logger.error(f'Error in event submissions list route: {error_msg}')
         current_app.logger.error(f'Full traceback: {traceback.format_exc()}')
-        
-        if 'submission_status' in error_msg or 'does not exist' in error_msg:
-            current_app.logger.warning('Event submission columns not yet created')
-            flash('Database migration pending. Please contact administrator.', 'info')
-        else:
-            current_app.logger.exception('Exception occurred while loading event submissions list')
-            flash(f'Error loading submissions: {str(e)}', 'danger')
+        flash('Error loading submissions. Please check the server logs.', 'danger')
     
     return render_template(
         'admin/event_submissions/list.html',
@@ -2958,42 +2963,36 @@ def event_submission_detail(event_id):
     try:
         current_app.logger.info(f'Loading event submission detail for event_id: {event_id}')
         
-        # Check if columns exist first
-        test_query = db.session.query(Event.submission_status).limit(1)
-        test_query.all()
-        
-        submission = Event.query.filter_by(event_id=event_id).first()
-        
-        if not submission:
-            current_app.logger.warning(f'Event submission not found: event_id={event_id}')
-            flash('Event submission not found', 'danger')
+        try:
+            submission = Event.query.filter_by(event_id=event_id).first()
+            
+            if not submission:
+                current_app.logger.warning(f'Event submission not found: event_id={event_id}')
+                flash('Event submission not found', 'danger')
+                return redirect(url_for('admin.event_submissions_list'))
+            
+            if not submission.submission_status:
+                current_app.logger.warning(f'Event {event_id} is not a member submission')
+                flash('This is not a member submission', 'warning')
+                return redirect(url_for('admin.event_submissions_list'))
+            
+            # Get submitter details
+            submitter = User.query.get(submission.submitted_by) if submission.submitted_by else None
+            reviewer = User.query.get(submission.reviewed_by) if submission.reviewed_by else None
+            
+            current_app.logger.info(f'Event submission detail loaded: {submission.title} (status: {submission.submission_status})')
+        except Exception as query_error:
+            current_app.logger.warning(f'Error querying submission details: {str(query_error)}')
+            flash('Error loading submission details.', 'danger')
             return redirect(url_for('admin.event_submissions_list'))
-        
-        if not submission.submission_status:
-            current_app.logger.warning(f'Event {event_id} is not a member submission')
-            flash('This is not a member submission', 'warning')
-            return redirect(url_for('admin.event_submissions_list'))
-        
-        # Get submitter details
-        submitter = User.query.get(submission.submitted_by) if submission.submitted_by else None
-        reviewer = User.query.get(submission.reviewed_by) if submission.reviewed_by else None
-        
-        current_app.logger.info(f'Event submission detail loaded: {submission.title} (status: {submission.submission_status})')
         
     except Exception as e:
         import traceback
         error_msg = str(e)
-        current_app.logger.error(f'Error loading event submission detail for event_id {event_id}: {error_msg}')
+        current_app.logger.error(f'Error in event submission detail route for event_id {event_id}: {error_msg}')
         current_app.logger.error(f'Full traceback: {traceback.format_exc()}')
-        
-        if 'submission_status' in error_msg or 'does not exist' in error_msg:
-            current_app.logger.warning('Event submission columns not yet created')
-            flash('Database migration pending.', 'info')
-            return redirect(url_for('admin.event_submissions_dashboard'))
-        else:
-            current_app.logger.exception('Exception occurred while loading event submission detail')
-            flash(f'Error loading submission: {str(e)}', 'danger')
-            return redirect(url_for('admin.event_submissions_list'))
+        flash('Error loading submission. Please check the server logs.', 'danger')
+        return redirect(url_for('admin.event_submissions_list'))
     
     return render_template(
         'admin/event_submissions/detail.html',
