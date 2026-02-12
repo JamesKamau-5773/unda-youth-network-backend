@@ -125,6 +125,8 @@ def register_for_event():
                 }), 404
         except Exception as lookup_error:
             current_app.logger.error(f'Error looking up event/champion: {str(lookup_error)}')
+            current_app.logger.error(f'Exception type: {type(lookup_error).__name__}')
+            current_app.logger.error(f'Traceback: {traceback.format_exc()}')
             return jsonify({
                 'success': False,
                 'message': 'Error validating event and champion'
@@ -156,7 +158,7 @@ def register_for_event():
             if event.max_participants:
                 registered_count = EventParticipation.query.filter_by(
                     event_id=data['event_id'],
-                    registration_status='confirmed'
+                    registration_status='Registered'
                 ).count()
                 
                 if registered_count >= event.max_participants:
@@ -176,7 +178,7 @@ def register_for_event():
             participation = EventParticipation(
                 event_id=data['event_id'],
                 champion_id=data['champion_id'],
-                registration_status=data.get('registration_status', 'registered')
+                registration_status=data.get('registration_status', 'Registered')
             )
             
             db.session.add(participation)
@@ -344,7 +346,7 @@ def get_event_stats(event_id):
     participations = EventParticipation.query.filter_by(event_id=event_id).all()
     
     total_registered = len(participations)
-    confirmed = sum(1 for p in participations if p.registration_status == 'confirmed')
+    confirmed = sum(1 for p in participations if p.registration_status == 'Registered')
     attended = sum(1 for p in participations if p.attended)
     certificates_issued = sum(1 for p in participations if p.certificate_issued)
     
