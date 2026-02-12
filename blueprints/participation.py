@@ -108,15 +108,26 @@ def register_for_event():
                 'message': f'Missing required fields: {missing_fields}'
             }), 400
         
+        # Validate data types
+        try:
+            event_id = int(data['event_id'])
+            champion_id = int(data['champion_id'])
+        except (TypeError, ValueError) as type_error:
+            current_app.logger.warning(f'Invalid data types in event participation: {str(type_error)}')
+            return jsonify({
+                'success': False,
+                'message': 'event_id and champion_id must be integers'
+            }), 400
+        
         # Validate event and champion exist
         try:
-            event = db.session.get(Event, data['event_id'])
-            champion = db.session.get(Champion, data['champion_id'])
+            event = db.session.get(Event, event_id)
+            champion = db.session.get(Champion, champion_id)
             
             if not event:
-                current_app.logger.warning(f'Event not found: event_id={data["event_id"]}')
+                current_app.logger.warning(f'Event not found: event_id={event_id}')
             if not champion:
-                current_app.logger.warning(f'Champion not found: champion_id={data["champion_id"]}')
+                current_app.logger.warning(f'Champion not found: champion_id={champion_id}')
             
             if not event or not champion:
                 return jsonify({
@@ -135,12 +146,12 @@ def register_for_event():
         # Check if already registered
         try:
             existing = EventParticipation.query.filter_by(
-                event_id=data['event_id'],
-                champion_id=data['champion_id']
+                event_id=event_id,
+                champion_id=champion_id
             ).first()
             
             if existing:
-                current_app.logger.info(f'Champion {data["champion_id"]} already registered for event {data["event_id"]}')
+                current_app.logger.info(f'Champion {champion_id} already registered for event {event_id}')
                 return jsonify({
                     'success': False,
                     'message': 'Champion already registered for this event',
@@ -157,12 +168,12 @@ def register_for_event():
         try:
             if event.max_participants:
                 registered_count = EventParticipation.query.filter_by(
-                    event_id=data['event_id'],
+                    event_id=event_id,
                     registration_status='Registered'
                 ).count()
                 
                 if registered_count >= event.max_participants:
-                    current_app.logger.info(f'Event {data["event_id"]} at full capacity')
+                    current_app.logger.info(f'Event {event_id} at full capacity')
                     return jsonify({
                         'success': False,
                         'message': 'Event is at full capacity'
@@ -176,15 +187,15 @@ def register_for_event():
         
         try:
             participation = EventParticipation(
-                event_id=data['event_id'],
-                champion_id=data['champion_id'],
+                event_id=event_id,
+                champion_id=champion_id,
                 registration_status=data.get('registration_status', 'Registered')
             )
             
             db.session.add(participation)
             db.session.commit()
             
-            current_app.logger.info(f'Event participation registered: participation_id={participation.participation_id}, event_id={data["event_id"]}, champion_id={data["champion_id"]}')
+            current_app.logger.info(f'Event participation registered: participation_id={participation.participation_id}, event_id={event_id}, champion_id={champion_id}')
             return jsonify({
                 'success': True,
                 'message': 'Registration successful',
@@ -193,7 +204,7 @@ def register_for_event():
         except Exception as create_error:
             db.session.rollback()
             error_msg = str(create_error)
-            current_app.logger.error(f'Error creating event participation: {error_msg}')
+            current_app.logger.info(f'Error creating event participation: {error_msg}')
             current_app.logger.error(f'Traceback: {traceback.format_exc()}')
             return jsonify({
                 'success': False,
