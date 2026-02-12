@@ -29,7 +29,8 @@ class EventSubmissionService:
                 created_by=user_id,
                 submitted_by=user_id,
                 submission_status='Pending Approval',
-                status='Pending Approval'  # Will change to Upcoming when approved
+                # Note: status is left as default 'Upcoming' but event is not yet published
+                # It will only be published (visible) after admin approves it
             )
             db.session.add(event)
             db.session.commit()
@@ -149,8 +150,9 @@ class EventSubmissionService:
                 return {'success': False, 'message': f'Event is {event.submission_status}, cannot reject'}
             
             # Reject the submission
+            # Note: We set submission_status to 'Rejected' but do NOT change the status field
+            # (which has valid values: Upcoming, Ongoing, Completed, Cancelled)
             event.submission_status = 'Rejected'
-            event.status = 'Rejected'
             event.reviewed_by = reviewer_id
             event.reviewed_at = datetime.utcnow()
             event.rejection_reason = rejection_reason

@@ -33,6 +33,13 @@ def list_events():
     limit = request.args.get('limit', type=int)
     
     query = Event.query
+    
+    # Exclude pending member submissions from public listings
+    # Only show approved submissions or admin-created events
+    query = query.filter(
+        (Event.submission_status.is_(None)) |  # Admin-created events (no submission_status)
+        (Event.submission_status == 'Approved')  # Approved submissions
+    )
 
     if status:
         query = query.filter_by(status=status)
@@ -62,6 +69,10 @@ def get_event(event_id):
     """Get a single event by ID."""
     event = db.session.get(Event, event_id)
     if not event:
+        return jsonify({'success': False, 'message': 'Event not found'}), 404
+    
+    # Exclude pending member submissions from public view
+    if event.submission_status == 'Pending Approval':
         return jsonify({'success': False, 'message': 'Event not found'}), 404
     
     return jsonify({
