@@ -592,6 +592,13 @@ class Event(db.Model):
   created_at = db.Column(db.DateTime, default=datetime.utcnow)
   updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
   created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  
+  # Member submission tracking
+  submission_status = db.Column(db.String(50))  # Pending Approval, Approved, Rejected (null if admin-created)
+  submitted_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))  # User who submitted it
+  reviewed_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))  # Admin who reviewed
+  reviewed_at = db.Column(db.DateTime)  # When admin reviewed
+  rejection_reason = db.Column(db.Text)  # Reason if rejected
 
   def to_dict(self):
     return {
@@ -611,6 +618,11 @@ class Event(db.Model):
       'created_at': self.created_at.isoformat() if self.created_at else None,
       'updated_at': self.updated_at.isoformat() if self.updated_at else None,
       'created_by': self.created_by,
+      'submission_status': self.submission_status,
+      'submitted_by': self.submitted_by,
+      'reviewed_by': self.reviewed_by,
+      'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
+      'rejection_reason': self.rejection_reason,
       # CamelCase aliases for JavaScript/React frontend compatibility
       'id': self.event_id,
       'eventDate': self.event_date.isoformat() if self.event_date else None,
@@ -620,7 +632,12 @@ class Event(db.Model):
       'imageUrl': self.image_url,
       'createdAt': self.created_at.isoformat() if self.created_at else None,
       'updatedAt': self.updated_at.isoformat() if self.updated_at else None,
-      'createdBy': self.created_by
+      'createdBy': self.created_by,
+      'submissionStatus': self.submission_status,
+      'submittedBy': self.submitted_by,
+      'reviewedBy': self.reviewed_by,
+      'reviewedAt': self.reviewed_at.isoformat() if self.reviewed_at else None,
+      'rejectionReason': self.rejection_reason
     }
 
 
