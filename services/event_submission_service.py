@@ -2,6 +2,10 @@
 
 from datetime import datetime
 from models import Event, db
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
 
 
 class EventSubmissionService:
@@ -20,6 +24,7 @@ class EventSubmissionService:
             Dict with success status and event_id or error message
         """
         try:
+            logger.info(f'Creating event submission from user {user_id}: {data.get("title")}')
             event = Event(
                 title=data.get('title'),
                 description=data.get('description'),
@@ -35,6 +40,7 @@ class EventSubmissionService:
             db.session.add(event)
             db.session.commit()
             
+            logger.info(f'Event submission created successfully: event_id={event.event_id}, user={user_id}')
             return {
                 'success': True,
                 'message': 'Event submitted for approval',
@@ -43,9 +49,12 @@ class EventSubmissionService:
             }
         except Exception as e:
             db.session.rollback()
+            error_msg = str(e)
+            logger.error(f'Failed to create event submission for user {user_id}: {error_msg}')
+            logger.error(f'Traceback: {traceback.format_exc()}')
             return {
                 'success': False,
-                'message': f'Failed to submit event: {str(e)}'
+                'message': f'Failed to submit event: {error_msg}'
             }
     
     @staticmethod
@@ -60,15 +69,21 @@ class EventSubmissionService:
             List of event submissions as dicts
         """
         try:
+            logger.info(f'Listing event submissions with filter: {status_filter}')
             query = Event.query.filter(Event.submission_status.isnot(None))
             
             if status_filter:
                 query = query.filter_by(submission_status=status_filter)
+                logger.debug(f'Applied status filter: {status_filter}')
             
             submissions = query.order_by(Event.created_at.desc()).all()
+            logger.info(f'Retrieved {len(submissions)} event submissions')
             return [s.to_dict() for s in submissions]
         except Exception as e:
-            return {'error': f'Failed to fetch submissions: {str(e)}'}
+            error_msg = str(e)
+            logger.error(f'Failed to fetch submissions: {error_msg}')
+            logger.error(f'Traceback: {traceback.format_exc()}')
+            return {'error': f'Failed to fetch submissions: {error_msg}'}
     
     @staticmethod
     def get_submission(event_id):
@@ -82,13 +97,23 @@ class EventSubmissionService:
             Event submission dict or None if not found
         """
         try:
+            logger.info(f'Retrieving event submission: event_id={event_id}')
             event = Event.query.filter_by(
                 event_id=event_id,
                 submission_status=Event.submission_status.isnot(None)
             ).first()
-            return event.to_dict() if event else None
+            
+            if event:
+                logger.info(f'Event submission found: {event.title}')
+                return event.to_dict()
+            else:
+                logger.warning(f'Event submission not found: event_id={event_id}')
+                return None
         except Exception as e:
-            return {'error': f'Failed to fetch submission: {str(e)}'}
+            error_msg = str(e)
+            logger.error(f'Failed to fetch submission {event_id}: {error_msg}')
+            logger.error(f'Traceback: {traceback.format_exc()}')
+            return {'error': f'Failed to fetch submission: {error_msg}'}
     
     @staticmethod
     def approve_submission(event_id, reviewer_id, admin_notes=''):
@@ -104,11 +129,16 @@ class EventSubmissionService:
             Dict with success status and updated event
         """
         try:
+            logger.info(f'Approving event submission: event_id={event_id}, reviewer_id={reviewer_id}')
             event = Event.query.get(event_id)
             if not event:
+                error_msg = f'Event not found: event_id={event_id}'
+                logger.warning(error_msg)
                 return {'success': False, 'message': 'Event not found'}
             
             if event.submission_status != 'Pending Approval':
+                error_msg = f'Cannot approve event {event_id}: current status is {event.submission_status}'
+                logger.warning(error_msg)
                 return {'success': False, 'message': f'Event is {event.submission_status}, cannot approve'}
             
             # Approve the submission and publish it
@@ -119,6 +149,7 @@ class EventSubmissionService:
             
             db.session.commit()
             
+            logger.info(f'Event submission approved successfully: event_id={event_id}, title={event.title}')
             return {
                 'success': True,
                 'message': 'Event approved and published as Upcoming',
@@ -126,7 +157,10 @@ class EventSubmissionService:
             }
         except Exception as e:
             db.session.rollback()
-            return {'success': False, 'message': f'Failed to approve event: {str(e)}'}
+            error_msg = str(e)
+            logger.error(f'Failed to approve event submission {event_id}: {error_msg}')
+            logger.error(f'Traceback: {traceback.format_exc()}')
+            return {'success': False, 'message': f'Failed to approve event: {error_msg}'}
     
     @staticmethod
     def reject_submission(event_id, reviewer_id, rejection_reason=''):
@@ -142,11 +176,16 @@ class EventSubmissionService:
             Dict with success status and updated event
         """
         try:
+            logger.info(f'Rejecting event submission: event_id={event_id}, reviewer_id={reviewer_id}, reason={rejection_reason}')
             event = Event.query.get(event_id)
             if not event:
+                error_msg = f'Event not found: event_id={event_id}'
+                logger.warning(error_msg)
                 return {'success': False, 'message': 'Event not found'}
             
             if event.submission_status != 'Pending Approval':
+                error_msg = f'Cannot reject event {event_id}: current status is {event.submission_status}'
+                logger.warning(error_msg)
                 return {'success': False, 'message': f'Event is {event.submission_status}, cannot reject'}
             
             # Reject the submission
@@ -159,6 +198,7 @@ class EventSubmissionService:
             
             db.session.commit()
             
+            logger.info(f'Event submission rejected successfully: event_id={event_id}, title={event.title}')
             return {
                 'success': True,
                 'message': 'Event submission rejected',
@@ -166,4 +206,7 @@ class EventSubmissionService:
             }
         except Exception as e:
             db.session.rollback()
-            return {'success': False, 'message': f'Failed to reject event: {str(e)}'}
+            error_msg = str(e)
+            logger.error(f'Failed to reject event submission {event_id}: {error_msg}')
+            logger.error(f'Traceback: {traceback.format_exc()}')
+            return {'success': False, 'message': f'Failed to reject event: {error_msg}'}

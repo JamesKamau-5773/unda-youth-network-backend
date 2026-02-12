@@ -2848,6 +2848,8 @@ def event_submissions_dashboard():
     recent_submissions = []
     
     try:
+        current_app.logger.info('Loading event submissions dashboard')
+        
         # Check if submission_status column exists first
         test_query = db.session.query(Event.submission_status).limit(1)
         test_query.all()
@@ -2870,14 +2872,20 @@ def event_submissions_dashboard():
             Event.submission_status == 'Pending Approval'
         ).order_by(Event.created_at.desc()).limit(10).all()
         
+        current_app.logger.info(f'Event submissions dashboard loaded: {pending} pending, {approved} approved, {rejected} rejected')
+        
     except Exception as e:
+        import traceback
         error_msg = str(e)
+        current_app.logger.error(f'Error loading event submissions dashboard: {error_msg}')
+        current_app.logger.error(f'Full traceback: {traceback.format_exc()}')
+        
         if 'submission_status' in error_msg or 'does not exist' in error_msg:
             # Database migration not applied yet
             current_app.logger.warning('Event submission columns not yet created in database')
             flash('Database migration pending. Event submissions feature will be available after database update.', 'info')
         else:
-            current_app.logger.exception('Error loading event submissions dashboard')
+            current_app.logger.exception('Exception occurred while loading event submissions dashboard')
             flash(f'Error loading dashboard: {str(e)}', 'danger')
     
     return render_template(
@@ -2899,6 +2907,8 @@ def event_submissions_list():
     submissions = []
     
     try:
+        current_app.logger.info(f'Loading event submissions list (status: {status_filter}, type: {event_type})')
+        
         # Check if columns exist
         test_query = db.session.query(Event.submission_status).limit(1)
         test_query.all()
@@ -2907,18 +2917,25 @@ def event_submissions_list():
         
         if status_filter:
             query = query.filter_by(submission_status=status_filter)
+            current_app.logger.debug(f'Filtered by status: {status_filter}')
         if event_type:
             query = query.filter_by(event_type=event_type)
+            current_app.logger.debug(f'Filtered by event type: {event_type}')
         
         submissions = query.order_by(Event.created_at.desc()).all()
+        current_app.logger.info(f'Event submissions list loaded: {len(submissions)} submissions found')
         
     except Exception as e:
+        import traceback
         error_msg = str(e)
+        current_app.logger.error(f'Error loading event submissions list: {error_msg}')
+        current_app.logger.error(f'Full traceback: {traceback.format_exc()}')
+        
         if 'submission_status' in error_msg or 'does not exist' in error_msg:
             current_app.logger.warning('Event submission columns not yet created')
             flash('Database migration pending. Please contact administrator.', 'info')
         else:
-            current_app.logger.exception('Error loading event submissions list')
+            current_app.logger.exception('Exception occurred while loading event submissions list')
             flash(f'Error loading submissions: {str(e)}', 'danger')
     
     return render_template(
@@ -2939,6 +2956,8 @@ def event_submission_detail(event_id):
     reviewer = None
     
     try:
+        current_app.logger.info(f'Loading event submission detail for event_id: {event_id}')
+        
         # Check if columns exist first
         test_query = db.session.query(Event.submission_status).limit(1)
         test_query.all()
@@ -2946,10 +2965,12 @@ def event_submission_detail(event_id):
         submission = Event.query.filter_by(event_id=event_id).first()
         
         if not submission:
+            current_app.logger.warning(f'Event submission not found: event_id={event_id}')
             flash('Event submission not found', 'danger')
             return redirect(url_for('admin.event_submissions_list'))
         
         if not submission.submission_status:
+            current_app.logger.warning(f'Event {event_id} is not a member submission')
             flash('This is not a member submission', 'warning')
             return redirect(url_for('admin.event_submissions_list'))
         
@@ -2957,14 +2978,20 @@ def event_submission_detail(event_id):
         submitter = User.query.get(submission.submitted_by) if submission.submitted_by else None
         reviewer = User.query.get(submission.reviewed_by) if submission.reviewed_by else None
         
+        current_app.logger.info(f'Event submission detail loaded: {submission.title} (status: {submission.submission_status})')
+        
     except Exception as e:
+        import traceback
         error_msg = str(e)
+        current_app.logger.error(f'Error loading event submission detail for event_id {event_id}: {error_msg}')
+        current_app.logger.error(f'Full traceback: {traceback.format_exc()}')
+        
         if 'submission_status' in error_msg or 'does not exist' in error_msg:
             current_app.logger.warning('Event submission columns not yet created')
             flash('Database migration pending.', 'info')
             return redirect(url_for('admin.event_submissions_dashboard'))
         else:
-            current_app.logger.exception('Error loading event submission detail')
+            current_app.logger.exception('Exception occurred while loading event submission detail')
             flash(f'Error loading submission: {str(e)}', 'danger')
             return redirect(url_for('admin.event_submissions_list'))
     
@@ -2982,16 +3009,23 @@ def event_submission_detail(event_id):
 def approve_event_submission(event_id):
     """Approve a member event submission and publish it as Upcoming."""
     try:
+        current_app.logger.info(f'Approving event submission: event_id={event_id}, admin={current_user.user_id}')
+        
         result = EventSubmissionService.approve_submission(event_id, current_user.user_id)
         
         if result.get('success'):
+            current_app.logger.info(f'Event {event_id} successfully approved by admin {current_user.user_id}')
             flash('Event submission approved and published as Upcoming!', 'success')
-            current_app.logger.info(f'Event {event_id} approved by admin {current_user.user_id}')
         else:
-            flash(result.get('message', 'Failed to approve submission'), 'warning')
+            error_msg = result.get('message', 'Unknown error')
+            current_app.logger.warning(f'Failed to approve event {event_id}: {error_msg}')
+            flash(error_msg, 'warning')
         
         return redirect(url_for('admin.event_submission_detail', event_id=event_id))
     except Exception as e:
+        import traceback
+        current_app.logger.error(f'Exception while approving event {event_id}: {str(e)}')
+        current_app.logger.error(f'Traceback: {traceback.format_exc()}')
         current_app.logger.exception('Error approving event submission')
         flash(f'Error: {str(e)}', 'danger')
         return redirect(url_for('admin.event_submission_detail', event_id=event_id))
@@ -3004,17 +3038,23 @@ def reject_event_submission(event_id):
     """Reject a member event submission."""
     try:
         rejection_reason = request.form.get('rejection_reason', '').strip()
+        current_app.logger.info(f'Rejecting event submission: event_id={event_id}, admin={current_user.user_id}, reason={rejection_reason}')
         
         result = EventSubmissionService.reject_submission(event_id, current_user.user_id, rejection_reason)
         
         if result.get('success'):
+            current_app.logger.info(f'Event {event_id} successfully rejected by admin {current_user.user_id}')
             flash('Event submission rejected.', 'success')
-            current_app.logger.info(f'Event {event_id} rejected by admin {current_user.user_id}: {rejection_reason}')
         else:
-            flash(result.get('message', 'Failed to reject submission'), 'warning')
+            error_msg = result.get('message', 'Unknown error')
+            current_app.logger.warning(f'Failed to reject event {event_id}: {error_msg}')
+            flash(error_msg, 'warning')
         
         return redirect(url_for('admin.event_submission_detail', event_id=event_id))
     except Exception as e:
+        import traceback
+        current_app.logger.error(f'Exception while rejecting event {event_id}: {str(e)}')
+        current_app.logger.error(f'Traceback: {traceback.format_exc()}')
         current_app.logger.exception('Error rejecting event submission')
         flash(f'Error: {str(e)}', 'danger')
         return redirect(url_for('admin.event_submission_detail', event_id=event_id))
