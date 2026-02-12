@@ -598,12 +598,8 @@ def create_app(test_config=None):
     # Flask-Limiter setup (using Redis for persistent rate limits)
     limiter.init_app(app)
     
-    # Auto-migration: Create event submission tracking columns if they don't exist
-    try:
-        from migrations.auto_migration import ensure_event_submission_columns
-        ensure_event_submission_columns(db, app)
-    except Exception as e:
-        app.logger.warning(f'Auto-migration check skipped: {e}')
+    # Note: Event submission tracking columns are now created by Alembic migration
+    # (add_event_submission_tracking.py) using conditional logic to avoid duplicates
     
     # Security headers
     @app.after_request
