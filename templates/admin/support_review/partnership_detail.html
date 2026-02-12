@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Partnership Inquiry #{{ inquiry.inquiry_id }} - Admin{% endblock %}
+
+{% block content %}
+<div class="hero-card">
+    <div class="hero-card__inner">
+        <div>
+            <h1 class="hero-card__title">{{ inquiry.organization_name }}</h1>
+            <p class="hero-card__subtitle">Partnership Inquiry #{{ inquiry.inquiry_id }}</p>
+        </div>
+        <div class="hero-card__actions" style="display: flex; align-items: center; gap: 1rem;">
+            <div class="pill pill--{{ 
+                'warning' if inquiry.status == 'Pending' else 
+                ('info' if inquiry.status == 'Under Review' else 
+                ('success' if inquiry.status == 'Approved' else 'danger'))
+            }}" style="font-size: 0.875rem;">
+                {{ inquiry.status }}
+            </div>
+            <a href="{{ url_for('admin.partnership_inquiries') }}" class="btn btn--secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid--2-col" style="gap: 1.5rem; margin-top: 1.5rem; align-items: start;">
+    <!-- Main Content -->
+    <div>
+        <!-- Organization Details -->
+        <div class="data-card" style="margin-bottom: 1.5rem;">
+            <h3 style="margin: 0 0 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb; font-size: 1rem; font-weight: 600; color: #111827;">
+                Organization Details
+            </h3>
+            <div class="grid grid--2-col" style="gap: 1.25rem;">
+                <div>
+                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Organization Name</div>
+                    <div style="font-weight: 500; color: #111827;">{{ inquiry.organization_name }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Partnership Type</div>
+                    <div style="font-weight: 500; color: #111827;">{{ inquiry.partnership_type }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Contact Person</div>
+                    <div style="font-weight: 500; color: #111827;">{{ inquiry.contact_person }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Email Address</div>
+                    <div style="font-weight: 500; color: #111827;">
+                        <a href="mailto:{{ inquiry.email }}" style="color: #2563eb;">{{ inquiry.email }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message / Proposal -->
+        <div class="data-card">
+            <h3 style="margin: 0 0 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb; font-size: 1rem; font-weight: 600; color: #111827;">
+                Message / Proposal
+            </h3>
+            <div style="color: #374151; line-height: 1.7; white-space: pre-wrap;">{{ inquiry.message }}</div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div>
+        <!-- Actions -->
+        <div class="data-card" style="margin-bottom: 1.5rem;">
+            <h3 style="margin: 0 0 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb; font-size: 1rem; font-weight: 600; color: #111827;">
+                Actions
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                {% if inquiry.status == 'Pending' %}
+                <form method="POST" action="{{ url_for('admin.mark_partnership_under_review', inquiry_id=inquiry.inquiry_id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn--secondary btn--block">Mark Under Review</button>
+                </form>
+                {% endif %}
+                {% if inquiry.status in ['Pending', 'Under Review'] %}
+                <button type="button" class="btn btn--success btn--block" onclick="showApproveModal()">Approve</button>
+                <button type="button" class="btn btn--danger btn--block" onclick="showRejectModal()">Reject</button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Status Info -->
+        <div class="data-card" style="margin-bottom: 1.5rem;">
+            <h3 style="margin: 0 0 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb; font-size: 1rem; font-weight: 600; color: #111827;">
+                Status
+            </h3>
+            <div style="margin-bottom: 0.75rem;">
+                <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Current Status</div>
+                <div class="pill pill--{{ 
+                    'warning' if inquiry.status == 'Pending' else 
+                    ('info' if inquiry.status == 'Under Review' else 
+                    ('success' if inquiry.status == 'Approved' else 'danger'))
+                }}">{{ inquiry.status }}</div>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Submitted</div>
+                <div style="font-weight: 500; color: #111827;">{{ inquiry.submitted_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+            </div>
+            {% if inquiry.reviewed_at %}
+            <div style="margin-bottom: 0.75rem;">
+                <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Reviewed</div>
+                <div style="font-weight: 500; color: #111827;">{{ inquiry.reviewed_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+            </div>
+            {% endif %}
+            {% if inquiry.reviewer %}
+            <div>
+                <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Reviewed By</div>
+                <div style="font-weight: 500; color: #111827;">{{ inquiry.reviewer.username }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Admin Notes -->
+        {% if inquiry.admin_notes %}
+        <div class="data-card">
+            <h3 style="margin: 0 0 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb; font-size: 1rem; font-weight: 600; color: #111827;">
+                Admin Notes
+            </h3>
+            <div style="color: #374151; line-height: 1.6; white-space: pre-wrap;">{{ inquiry.admin_notes }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Approve Modal -->
+<div id="approveModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; max-width: 500px; width: 90%; padding: 2rem;">
+        <h3 style="margin: 0 0 1rem; font-size: 1.25rem; font-weight: 600; color: #111827;">Approve Partnership Inquiry</h3>
+        <p style="color: #6b7280; margin: 0 0 1.5rem;">This will mark the inquiry from <strong>{{ inquiry.organization_name }}</strong> as approved.</p>
+        <form method="POST" action="{{ url_for('admin.approve_partnership_inquiry', inquiry_id=inquiry.inquiry_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Admin Notes (optional)</label>
+                <textarea name="admin_notes" rows="3" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.875rem; resize: vertical;" placeholder="Add any notes about this approval..."></textarea>
+            </div>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn--secondary btn--block" onclick="closeApproveModal()">Cancel</button>
+                <button type="submit" class="btn btn--success btn--block">Confirm Approval</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; max-width: 500px; width: 90%; padding: 2rem;">
+        <h3 style="margin: 0 0 1rem; font-size: 1.25rem; font-weight: 600; color: #111827;">Reject Partnership Inquiry</h3>
+        <p style="color: #6b7280; margin: 0 0 1.5rem;">This will mark the inquiry from <strong>{{ inquiry.organization_name }}</strong> as rejected.</p>
+        <form method="POST" action="{{ url_for('admin.reject_partnership_inquiry', inquiry_id=inquiry.inquiry_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Reason for Rejection</label>
+                <textarea name="admin_notes" rows="3" required style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.875rem; resize: vertical;" placeholder="Provide a reason for rejection..."></textarea>
+            </div>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn--secondary btn--block" onclick="closeRejectModal()">Cancel</button>
+                <button type="submit" class="btn btn--danger btn--block">Confirm Rejection</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showApproveModal() { document.getElementById('approveModal').style.display = 'flex'; }
+function closeApproveModal() { document.getElementById('approveModal').style.display = 'none'; }
+function showRejectModal() { document.getElementById('rejectModal').style.display = 'flex'; }
+function closeRejectModal() { document.getElementById('rejectModal').style.display = 'none'; }
+
+document.getElementById('approveModal').addEventListener('click', function(e) { if (e.target === this) closeApproveModal(); });
+document.getElementById('rejectModal').addEventListener('click', function(e) { if (e.target === this) closeRejectModal(); });
+</script>
+{% endblock %}

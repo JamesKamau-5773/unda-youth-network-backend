@@ -1371,6 +1371,133 @@ class Pillar(db.Model):
 # - InstitutionalToolkitItem for toolkits
 
 
+class PartnershipInquiry(db.Model):
+  """Partnership inquiry submissions from the public partner page."""
+  __tablename__ = 'partnership_inquiries'
+
+  inquiry_id = db.Column(db.Integer, primary_key=True)
+  organization_name = db.Column(db.String(255), nullable=False)
+  contact_person = db.Column(db.String(255), nullable=False)
+  email = db.Column(db.String(100), nullable=False)
+  partnership_type = db.Column(db.String(100), nullable=False)  # Academic/Research, Corporate, NGO, etc.
+  message = db.Column(db.Text, nullable=False)
+
+  # Status workflow
+  status = db.Column(db.String(50), default='Pending')  # Pending, Under Review, Approved, Rejected
+  submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+  reviewed_at = db.Column(db.DateTime)
+  reviewed_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  admin_notes = db.Column(db.Text)
+
+  # Relationships
+  reviewer = db.relationship('User', foreign_keys=[reviewed_by])
+
+  def to_dict(self):
+    return {
+      'inquiry_id': self.inquiry_id,
+      'id': self.inquiry_id,
+      'organization_name': self.organization_name,
+      'organizationName': self.organization_name,
+      'contact_person': self.contact_person,
+      'contactPerson': self.contact_person,
+      'email': self.email,
+      'partnership_type': self.partnership_type,
+      'partnershipType': self.partnership_type,
+      'message': self.message,
+      'status': self.status,
+      'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None,
+      'submittedAt': self.submitted_at.isoformat() if self.submitted_at else None,
+      'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
+      'reviewedAt': self.reviewed_at.isoformat() if self.reviewed_at else None,
+      'admin_notes': self.admin_notes,
+      'adminNotes': self.admin_notes,
+    }
+
+
+class VolunteerSubmission(db.Model):
+  """Volunteer support submissions from the public support page (type=volunteer)."""
+  __tablename__ = 'volunteer_submissions'
+
+  submission_id = db.Column(db.Integer, primary_key=True)
+  full_name = db.Column(db.String(255), nullable=False)
+  email = db.Column(db.String(100), nullable=False)
+  phone = db.Column(db.String(20))
+  interest = db.Column(db.String(100), nullable=False)  # Area of interest
+  motivation = db.Column(db.Text)  # Why do you want to support?
+
+  # Status workflow
+  status = db.Column(db.String(50), default='Pending')  # Pending, Under Review, Approved, Rejected
+  submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+  reviewed_at = db.Column(db.DateTime)
+  reviewed_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  admin_notes = db.Column(db.Text)
+
+  # Relationships
+  reviewer = db.relationship('User', foreign_keys=[reviewed_by])
+
+  def to_dict(self):
+    return {
+      'submission_id': self.submission_id,
+      'id': self.submission_id,
+      'full_name': self.full_name,
+      'fullName': self.full_name,
+      'email': self.email,
+      'phone': self.phone,
+      'interest': self.interest,
+      'motivation': self.motivation,
+      'status': self.status,
+      'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None,
+      'submittedAt': self.submitted_at.isoformat() if self.submitted_at else None,
+      'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
+      'reviewedAt': self.reviewed_at.isoformat() if self.reviewed_at else None,
+      'admin_notes': self.admin_notes,
+      'adminNotes': self.admin_notes,
+    }
+
+
+class HostSubmission(db.Model):
+  """Event hosting request submissions from the public support page (type=host-event)."""
+  __tablename__ = 'host_submissions'
+
+  submission_id = db.Column(db.Integer, primary_key=True)
+  full_name = db.Column(db.String(255), nullable=False)
+  email = db.Column(db.String(100), nullable=False)
+  phone = db.Column(db.String(20))
+  event_type = db.Column(db.String(100), nullable=False)  # Event type selection
+  event_description = db.Column(db.Text)  # Tell us about your event idea
+
+  # Status workflow
+  status = db.Column(db.String(50), default='Pending')  # Pending, Under Review, Approved, Rejected
+  submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+  reviewed_at = db.Column(db.DateTime)
+  reviewed_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  admin_notes = db.Column(db.Text)
+
+  # Relationships
+  reviewer = db.relationship('User', foreign_keys=[reviewed_by])
+
+  def to_dict(self):
+    return {
+      'submission_id': self.submission_id,
+      'id': self.submission_id,
+      'full_name': self.full_name,
+      'fullName': self.full_name,
+      'email': self.email,
+      'phone': self.phone,
+      'event_type': self.event_type,
+      'eventType': self.event_type,
+      'event_description': self.event_description,
+      'eventDescription': self.event_description,
+      'status': self.status,
+      'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None,
+      'submittedAt': self.submitted_at.isoformat() if self.submitted_at else None,
+      'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
+      'reviewedAt': self.reviewed_at.isoformat() if self.reviewed_at else None,
+      'admin_notes': self.admin_notes,
+      'adminNotes': self.admin_notes,
+    }
+
+
 
 
 

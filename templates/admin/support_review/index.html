@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Support Review - Admin{% endblock %}
+
+{% block content %}
+<div class="hero-card">
+    <div class="hero-card__inner">
+        <div>
+            <h1 class="hero-card__title">Support Review</h1>
+            <p class="hero-card__subtitle">Review partnership inquiries, volunteer applications, and event hosting requests</p>
+        </div>
+        <div class="hero-card__actions">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn--secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Section Cards -->
+<div class="grid grid--3-col" style="gap: 1.5rem; margin-top: 2rem;">
+
+    <!-- Partnership Inquiries -->
+    <a href="{{ url_for('admin.partnership_inquiries') }}" class="data-card" style="text-decoration: none; color: inherit; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #dbeafe; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+            </div>
+            <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: #111827;">Partnership Inquiries</h3>
+        </div>
+        <p style="margin: 0 0 1.25rem; color: #6b7280; font-size: 0.875rem;">
+            Review partnership proposals from organizations, academic institutions, and corporate partners.
+        </p>
+        <div class="grid grid--2-col" style="gap: 0.75rem;">
+            <div style="text-align: center; padding: 0.75rem; background: #f9fafb; border-radius: 8px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">{{ partnership_stats.pending }}</div>
+                <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase;">Pending</div>
+            </div>
+            <div style="text-align: center; padding: 0.75rem; background: #f9fafb; border-radius: 8px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #111827;">{{ partnership_stats.total }}</div>
+                <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase;">Total</div>
+            </div>
+        </div>
+    </a>
+
+    <!-- Volunteer Submissions -->
+    <a href="{{ url_for('admin.volunteer_submissions') }}" class="data-card" style="text-decoration: none; color: inherit; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #d1fae5; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+            </div>
+            <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: #111827;">Volunteer Submissions</h3>
+        </div>
+        <p style="margin: 0 0 1.25rem; color: #6b7280; font-size: 0.875rem;">
+            Review applications from individuals who want to support UMV channels and initiatives.
+        </p>
+        <div class="grid grid--2-col" style="gap: 0.75rem;">
+            <div style="text-align: center; padding: 0.75rem; background: #f9fafb; border-radius: 8px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">{{ volunteer_stats.pending }}</div>
+                <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase;">Pending</div>
+            </div>
+            <div style="text-align: center; padding: 0.75rem; background: #f9fafb; border-radius: 8px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #111827;">{{ volunteer_stats.total }}</div>
+                <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase;">Total</div>
+            </div>
+        </div>
+    </a>
+
+    <!-- Host Event Submissions -->
+    <a href="{{ url_for('admin.host_submissions') }}" class="data-card" style="text-decoration: none; color: inherit; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #fef3c7; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+            </div>
+            <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: #111827;">Host Event Submissions</h3>
+        </div>
+        <p style="margin: 0 0 1.25rem; color: #6b7280; font-size: 0.875rem;">
+            Review requests from organizations and individuals wanting to host UMV events.
+        </p>
+        <div class="grid grid--2-col" style="gap: 0.75rem;">
+            <div style="text-align: center; padding: 0.75rem; background: #f9fafb; border-radius: 8px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">{{ host_stats.pending }}</div>
+                <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase;">Pending</div>
+            </div>
+            <div style="text-align: center; padding: 0.75rem; background: #f9fafb; border-radius: 8px;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #111827;">{{ host_stats.total }}</div>
+                <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase;">Total</div>
+            </div>
+        </div>
+    </a>
+
+</div>
+{% endblock %}

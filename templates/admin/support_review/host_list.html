@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Host Event Submissions - Admin{% endblock %}
+
+{% block content %}
+<div class="hero-card">
+    <div class="hero-card__inner">
+        <div>
+            <h1 class="hero-card__title">Host Event Submissions</h1>
+            <p class="hero-card__subtitle">Review and manage event hosting requests</p>
+        </div>
+        <div class="hero-card__actions">
+            <a href="{{ url_for('admin.support_review') }}" class="btn btn--secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Support Review
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid--4-col" style="gap: 1rem; margin-bottom: 2rem;">
+    <div class="stat-card">
+        <div class="stat-card__value">{{ stats.total }}</div>
+        <div class="stat-card__label">Total Requests</div>
+    </div>
+    <div class="stat-card stat-card--warning">
+        <div class="stat-card__value">{{ stats.pending }}</div>
+        <div class="stat-card__label">Pending Review</div>
+    </div>
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__value">{{ stats.approved }}</div>
+        <div class="stat-card__label">Approved</div>
+    </div>
+    <div class="stat-card stat-card--info">
+        <div class="stat-card__value">{{ stats.rejected }}</div>
+        <div class="stat-card__label">Rejected</div>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="filter-tabs">
+    <a href="{{ url_for('admin.host_submissions', status='all') }}" 
+       class="filter-tab {% if status_filter == 'all' %}filter-tab--active{% endif %}">
+        All ({{ stats.total }})
+    </a>
+    <a href="{{ url_for('admin.host_submissions', status='Pending') }}" 
+       class="filter-tab {% if status_filter == 'Pending' %}filter-tab--active{% endif %}">
+        Pending ({{ stats.pending }})
+    </a>
+    <a href="{{ url_for('admin.host_submissions', status='Under Review') }}" 
+       class="filter-tab {% if status_filter == 'Under Review' %}filter-tab--active{% endif %}">
+        Under Review ({{ stats.under_review }})
+    </a>
+    <a href="{{ url_for('admin.host_submissions', status='Approved') }}" 
+       class="filter-tab {% if status_filter == 'Approved' %}filter-tab--active{% endif %}">
+        Approved ({{ stats.approved }})
+    </a>
+    <a href="{{ url_for('admin.host_submissions', status='Rejected') }}" 
+       class="filter-tab {% if status_filter == 'Rejected' %}filter-tab--active{% endif %}">
+        Rejected ({{ stats.rejected }})
+    </a>
+</div>
+
+<!-- Submissions List -->
+<div style="margin-top: 1.5rem;">
+    {% if submissions %}
+        {% for sub in submissions %}
+        <div class="data-card" style="margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 600; color: #111827;">
+                        {{ sub.full_name }}
+                    </h3>
+                    <p style="margin: 0 0 0.25rem 0; color: #6b7280; font-size: 0.875rem;">
+                        <strong>Email:</strong> {{ sub.email }}
+                        {% if sub.phone %} &middot; <strong>Phone:</strong> {{ sub.phone }}{% endif %}
+                    </p>
+                    <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">
+                        Submitted {{ sub.submitted_at.strftime('%B %d, %Y at %I:%M %p') }}
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <div class="pill pill--{{ 
+                        'warning' if sub.status == 'Pending' else 
+                        ('info' if sub.status == 'Under Review' else 
+                        ('success' if sub.status == 'Approved' else 'danger'))
+                    }}">
+                        {{ sub.status }}
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #d97706;">
+                        {{ sub.event_type }}
+                    </div>
+                </div>
+            </div>
+
+            {% if sub.event_description %}
+            <p style="color: #374151; font-size: 0.875rem; margin: 0 0 1rem 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                {{ sub.event_description }}
+            </p>
+            {% endif %}
+
+            <div style="border-top: 1px solid #e5e7eb; padding-top: 1rem; display: flex; gap: 0.75rem;">
+                <a href="{{ url_for('admin.host_submission_detail', submission_id=sub.submission_id) }}" class="btn btn--primary btn--sm">
+                    View Details
+                </a>
+                {% if sub.status == 'Pending' %}
+                <form method="POST" action="{{ url_for('admin.mark_host_under_review', submission_id=sub.submission_id) }}" style="margin: 0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn--secondary btn--sm">Mark Under Review</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin-bottom: 1rem;">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <h3 style="margin: 0 0 0.5rem; font-size: 1.125rem; color: #374151;">No host event submissions found</h3>
+            <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">
+                {% if status_filter != 'all' %}
+                    No submissions with status "{{ status_filter }}". 
+                    <a href="{{ url_for('admin.host_submissions', status='all') }}">View all</a>
+                {% else %}
+                    Event hosting requests from the website will appear here.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
