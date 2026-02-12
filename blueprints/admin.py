@@ -2885,6 +2885,14 @@ def event_submissions_dashboard():
             recent_submissions = Event.query.filter(
                 Event.submission_status == 'Pending Approval'
             ).order_by(Event.created_at.desc()).limit(10).all()
+            
+            # Enrich submissions with submitter info
+            for submission in recent_submissions:
+                if submission.submitted_by:
+                    submission._submitter = User.query.get(submission.submitted_by)
+                else:
+                    submission._submitter = None
+            
             current_app.logger.debug(f'Retrieved {len(recent_submissions)} recent pending submissions')
         except Exception as e:
             current_app.logger.warning(f'Could not retrieve recent submissions: {str(e)}')
