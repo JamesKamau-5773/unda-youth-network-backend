@@ -180,9 +180,9 @@ def get_resources():
 
 @workstreams_bp.route('/api/workstreams/resources/<int:resource_id>', methods=['GET'])
 def get_resource(resource_id):
-    """Get single resource by ID."""
+    """Get single resource by ID (published only)."""
     try:
-        resource = ResourceItem.query.get(resource_id)
+        resource = ResourceItem.query.filter_by(resource_id=resource_id, published=True).first()
         if not resource:
             return jsonify({'success': False, 'error': 'Resource not found'}), 404
         
