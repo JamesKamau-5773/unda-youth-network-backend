@@ -144,6 +144,8 @@ class EventSubmissionService:
             # Approve the submission and publish it
             event.submission_status = 'Approved'
             event.status = 'Upcoming'  # Publish as upcoming event
+            event.published = True  # Make visible on public page
+            event.published_at = datetime.utcnow()  # Record publication time
             event.reviewed_by = reviewer_id
             event.reviewed_at = datetime.utcnow()
             
