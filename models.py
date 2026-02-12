@@ -1498,6 +1498,46 @@ class HostSubmission(db.Model):
     }
 
 
+class EventInterest(db.Model):
+  """Event interest registrations — users expressing interest in attending events."""
+  __tablename__ = 'event_interests'
+
+  interest_id = db.Column(db.Integer, primary_key=True)
+  event_id = db.Column(db.Integer, db.ForeignKey('events.event_id', ondelete='CASCADE'), nullable=False)
+  
+  # Registration details
+  full_name = db.Column(db.String(255), nullable=False)
+  email = db.Column(db.String(100), nullable=False)
+  phone = db.Column(db.String(20))
+  organization = db.Column(db.String(255))
+  
+  # Tracking
+  registered_at = db.Column(db.DateTime, default=datetime.utcnow)
+  user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
+  
+  # Relationships
+  event = db.relationship('Event', backref=db.backref('interests', lazy='dynamic', cascade='all, delete-orphan'))
+  user = db.relationship('User', foreign_keys=[user_id])
+
+  def to_dict(self):
+    return {
+      'interest_id': self.interest_id,
+      'id': self.interest_id,
+      'event_id': self.event_id,
+      'eventId': self.event_id,
+      'full_name': self.full_name,
+      'fullName': self.full_name,
+      'email': self.email,
+      'phone': self.phone,
+      'organization': self.organization,
+      'registered_at': self.registered_at.isoformat() if self.registered_at else None,
+      'registeredAt': self.registered_at.isoformat() if self.registered_at else None,
+      'user_id': self.user_id,
+      'userId': self.user_id,
+      'event': self.event.to_dict() if self.event else None,
+    }
+
+
 
 
 

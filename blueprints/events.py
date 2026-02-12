@@ -1,8 +1,9 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
-from models import db, Event
+from models import db, Event, EventInterest
 from decorators import admin_required
 from datetime import datetime, timezone
+import re
 
 ALLOWED_EVENT_TYPES = {
     'debate': 'debate',              # Debaters Circle
@@ -205,3 +206,59 @@ def delete_event(event_id):
         'success': True,
         'message': 'Event deleted successfully'
     }), 200
+
+
+@events_bp.route('/<int:event_id>/register-interest', methods=['POST'])
+def register_event_interest(event_id):
+    """Register interest in attending an event (public endpoint)."""
+    try:
+        # Validate event exists
+        event = db.session.get(Event, event_id)
+        if not event:
+            return jsonify({'success': False, 'error': 'Event not found'}), 404
+        
+        data = request.get_json(silent=True) or {}
+        
+        # Validate required fields
+        required_fields = ['full_name', 'email']
+        missing = [f for f in required_fields if not data.get(f, '').strip()]
+        if missing:
+            return jsonify({
+                'success': False,
+                'error': f'Missing required fields: {", ".join(missing)}'
+            }), 400
+        
+        # Validate email format
+        email_re = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        email = data['email'].strip().lower()
+        if not email_re.match(email):
+            return jsonify({'success': False, 'error': 'Invalid email address'}), 400
+        
+        # Create interest registration
+        interest = EventInterest(
+            event_id=event_id,
+            full_name=data['full_name'].strip(),
+            email=email,
+            phone=data.get('phone', '').strip() or None,
+            organization=data.get('organization', '').strip() or None,
+            user_id=current_user.user_id if current_user.is_authenticated else None
+        )
+        
+        db.session.add(interest)
+        db.session.commit()
+        
+        current_app.logger.info(f'Event interest registered: {interest.full_name} for event {event_id}')
+        
+        return jsonify({
+            'success': True,
+            'message': f'Interest registered successfully for {event.title}. Check your email for confirmation.',
+            'interest': interest.to_dict()
+        }), 201
+    
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception('Error registering event interest')
+        return jsonify({
+            'success': False,
+            'error': 'An error occurred while registering interest. Please try again.'
+        }), 500
