@@ -598,11 +598,18 @@ def create_app(test_config=None):
     # Flask-Limiter setup (using Redis for persistent rate limits)
     limiter.init_app(app)
     
+    # Auto-migration: Create event submission tracking columns if they don't exist
+    try:
+        from migrations.auto_migration import ensure_event_submission_columns
+        ensure_event_submission_columns(db, app)
+    except Exception as e:
+        app.logger.warning(f'Auto-migration check skipped: {e}')
+    
     # Security headers
     @app.after_request
     def set_security_headers(response):
         # Content Security Policy - allow Tailwind CDN, Lucide icons, and inline scripts/styles
-        response.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com; img-src 'self' data: https:;"
+        response.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com; connect-src 'self' https://unpkg.com; img-src 'self' data: https:;"
         # Prevent clickjacking
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         # Prevent MIME type sniffing
