@@ -109,11 +109,14 @@ def register_for_event():
             }), 400
         
         # Validate data types
+        current_app.logger.info(f'Validating input data: event_id={data.get("event_id")}, champion_id={data.get("champion_id")}')
         try:
             event_id = int(data['event_id'])
             champion_id = int(data['champion_id'])
+            current_app.logger.info(f'Validation successful: event_id={event_id} (type={type(event_id).__name__}), champion_id={champion_id} (type={type(champion_id).__name__})')
         except (TypeError, ValueError) as type_error:
             current_app.logger.warning(f'Invalid data types in event participation: {str(type_error)}')
+            current_app.logger.warning(f'Attempted values: event_id={data.get("event_id")} (type={type(data.get("event_id")).__name__}), champion_id={data.get("champion_id")} (type={type(data.get("champion_id")).__name__})')
             return jsonify({
                 'success': False,
                 'message': 'event_id and champion_id must be integers'
