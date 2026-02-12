@@ -599,6 +599,10 @@ class Event(db.Model):
   reviewed_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))  # Admin who reviewed
   reviewed_at = db.Column(db.DateTime)  # When admin reviewed
   rejection_reason = db.Column(db.Text)  # Reason if rejected
+  
+  # Publishing control
+  published = db.Column(db.Boolean, default=False)  # Whether event is visible on public page
+  published_at = db.Column(db.DateTime)  # When event was published
 
   def to_dict(self):
     return {
@@ -623,6 +627,8 @@ class Event(db.Model):
       'reviewed_by': self.reviewed_by,
       'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
       'rejection_reason': self.rejection_reason,
+      'published': self.published,
+      'published_at': self.published_at.isoformat() if self.published_at else None,
       # CamelCase aliases for JavaScript/React frontend compatibility
       'id': self.event_id,
       'eventDate': self.event_date.isoformat() if self.event_date else None,
@@ -637,7 +643,8 @@ class Event(db.Model):
       'submittedBy': self.submitted_by,
       'reviewedBy': self.reviewed_by,
       'reviewedAt': self.reviewed_at.isoformat() if self.reviewed_at else None,
-      'rejectionReason': self.rejection_reason
+      'rejectionReason': self.rejection_reason,
+      'publishedAt': self.published_at.isoformat() if self.published_at else None
     }
 
 
