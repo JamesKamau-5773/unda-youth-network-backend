@@ -98,9 +98,9 @@ class EventSubmissionService:
         """
         try:
             logger.info(f'Retrieving event submission: event_id={event_id}')
-            event = Event.query.filter_by(
-                event_id=event_id,
-                submission_status=Event.submission_status.isnot(None)
+            event = Event.query.filter(
+                Event.event_id == event_id,
+                Event.submission_status.isnot(None)
             ).first()
             
             if event:
