@@ -2842,8 +2842,17 @@ def mark_host_under_review(submission_id):
 @admin_required
 def event_submissions_dashboard():
     """Admin dashboard for reviewing member-submitted events."""
+    pending = 0
+    approved = 0
+    rejected = 0
+    recent_submissions = []
+    
     try:
-        # Get counts by status
+        # Check if submission_status column exists first
+        test_query = db.session.query(Event.submission_status).limit(1)
+        test_query.all()
+        
+        # If we get here, columns exist - run the real queries
         pending = db.session.query(func.count(Event.event_id)).filter(
             Event.submission_status == 'Pending Approval'
         ).scalar() or 0
@@ -2861,17 +2870,23 @@ def event_submissions_dashboard():
             Event.submission_status == 'Pending Approval'
         ).order_by(Event.created_at.desc()).limit(10).all()
         
-        return render_template(
-            'admin/event_submissions/index.html',
-            pending_count=pending,
-            approved_count=approved,
-            rejected_count=rejected,
-            recent_submissions=recent_submissions
-        )
     except Exception as e:
-        current_app.logger.exception('Error loading event submissions dashboard')
-        flash(f'Error loading dashboard: {str(e)}', 'danger')
-        return render_template('admin/event_submissions/index.html', pending_count=0, approved_count=0, rejected_count=0, recent_submissions=[])
+        error_msg = str(e)
+        if 'submission_status' in error_msg or 'does not exist' in error_msg:
+            # Database migration not applied yet
+            current_app.logger.warning('Event submission columns not yet created in database')
+            flash('Database migration pending. Event submissions feature will be available after database update.', 'info')
+        else:
+            current_app.logger.exception('Error loading event submissions dashboard')
+            flash(f'Error loading dashboard: {str(e)}', 'danger')
+    
+    return render_template(
+        'admin/event_submissions/index.html',
+        pending_count=pending,
+        approved_count=approved,
+        rejected_count=rejected,
+        recent_submissions=recent_submissions
+    )
 
 
 @admin_bp.route('/event-submissions/list')
@@ -2881,8 +2896,13 @@ def event_submissions_list():
     """List all event submissions with filtering."""
     status_filter = request.args.get('status')  # Pending Approval, Approved, Rejected
     event_type = request.args.get('type')  # mtaani, baraza, etc.
+    submissions = []
     
     try:
+        # Check if columns exist
+        test_query = db.session.query(Event.submission_status).limit(1)
+        test_query.all()
+        
         query = Event.query.filter(Event.submission_status.isnot(None))
         
         if status_filter:
@@ -2892,16 +2912,21 @@ def event_submissions_list():
         
         submissions = query.order_by(Event.created_at.desc()).all()
         
-        return render_template(
-            'admin/event_submissions/list.html',
-            submissions=submissions,
-            current_status=status_filter,
-            current_type=event_type
-        )
     except Exception as e:
-        current_app.logger.exception('Error loading event submissions list')
-        flash(f'Error loading submissions: {str(e)}', 'danger')
-        return render_template('admin/event_submissions/list.html', submissions=[], current_status=None, current_type=None)
+        error_msg = str(e)
+        if 'submission_status' in error_msg or 'does not exist' in error_msg:
+            current_app.logger.warning('Event submission columns not yet created')
+            flash('Database migration pending. Please contact administrator.', 'info')
+        else:
+            current_app.logger.exception('Error loading event submissions list')
+            flash(f'Error loading submissions: {str(e)}', 'danger')
+    
+    return render_template(
+        'admin/event_submissions/list.html',
+        submissions=submissions,
+        current_status=status_filter,
+        current_type=event_type
+    )
 
 
 @admin_bp.route('/event-submissions/<int:event_id>')
@@ -2909,7 +2934,15 @@ def event_submissions_list():
 @admin_required
 def event_submission_detail(event_id):
     """View details of a specific event submission."""
+    submission = None
+    submitter = None
+    reviewer = None
+    
     try:
+        # Check if columns exist first
+        test_query = db.session.query(Event.submission_status).limit(1)
+        test_query.all()
+        
         submission = Event.query.filter_by(event_id=event_id).first()
         
         if not submission:
@@ -2924,16 +2957,23 @@ def event_submission_detail(event_id):
         submitter = User.query.get(submission.submitted_by) if submission.submitted_by else None
         reviewer = User.query.get(submission.reviewed_by) if submission.reviewed_by else None
         
-        return render_template(
-            'admin/event_submissions/detail.html',
-            submission=submission,
-            submitter=submitter,
-            reviewer=reviewer
-        )
     except Exception as e:
-        current_app.logger.exception('Error loading event submission detail')
-        flash(f'Error loading submission: {str(e)}', 'danger')
-        return redirect(url_for('admin.event_submissions_list'))
+        error_msg = str(e)
+        if 'submission_status' in error_msg or 'does not exist' in error_msg:
+            current_app.logger.warning('Event submission columns not yet created')
+            flash('Database migration pending.', 'info')
+            return redirect(url_for('admin.event_submissions_dashboard'))
+        else:
+            current_app.logger.exception('Error loading event submission detail')
+            flash(f'Error loading submission: {str(e)}', 'danger')
+            return redirect(url_for('admin.event_submissions_list'))
+    
+    return render_template(
+        'admin/event_submissions/detail.html',
+        submission=submission,
+        submitter=submitter,
+        reviewer=reviewer
+    )
 
 
 @admin_bp.route('/event-submissions/<int:event_id>/approve', methods=['POST'])
