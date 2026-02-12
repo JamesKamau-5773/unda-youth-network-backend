@@ -696,6 +696,10 @@ def create_app(test_config=None):
     from blueprints.seed_funding import seed_funding_bp
     app.register_blueprint(seed_funding_bp)
     
+    # Support Review API (Partnership Inquiries, Volunteer & Host Submissions)
+    from blueprints.support_review import support_review_bp
+    app.register_blueprint(support_review_bp)
+
     # Workstreams API (Programs, Pillars, Resources, Stories, Gallery)
     from blueprints.workstreams import workstreams_bp
     app.register_blueprint(workstreams_bp)
@@ -733,6 +737,7 @@ def create_app(test_config=None):
         # Non-fatal if blueprint isn't present (e.g., during partial deploy)
         app.logger.info('api_token blueprint not found; skipping CSRF exemption')
     csrf.exempt(seed_funding_bp)
+    csrf.exempt(support_review_bp)
     csrf.exempt(api_status_bp)
 
     # Defensive: if the specific API checkin view functions exist as endpoints,

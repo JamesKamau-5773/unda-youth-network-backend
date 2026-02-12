@@ -2532,3 +2532,276 @@ def test_email():
     }
     
     return render_template('admin/test_email.html', config=config_status)
+
+# ─── Support Review Section ─────────────────────────────────────────────────────
+
+@admin_bp.route('/support-review')
+@login_required
+@admin_required
+def support_review():
+    """Support review landing page with summary statistics."""
+    from services.support_review_service import (
+        list_partnership_inquiries, list_volunteer_submissions, list_host_submissions
+    )
+    _, partnership_stats = list_partnership_inquiries()
+    _, volunteer_stats = list_volunteer_submissions()
+    _, host_stats = list_host_submissions()
+
+    return render_template(
+        'admin/support_review/index.html',
+        partnership_stats=partnership_stats,
+        volunteer_stats=volunteer_stats,
+        host_stats=host_stats,
+    )
+
+
+# ── Partnership Inquiries ───────────────────────────────────────────────────────
+
+@admin_bp.route('/support-review/partnerships')
+@login_required
+@admin_required
+def partnership_inquiries():
+    """List all partnership inquiries."""
+    from services.support_review_service import list_partnership_inquiries
+    status_filter = request.args.get('status', 'all')
+    inquiries, stats = list_partnership_inquiries(status_filter=status_filter)
+    return render_template(
+        'admin/support_review/partnership_list.html',
+        inquiries=inquiries, status_filter=status_filter, stats=stats,
+        now=datetime.now(timezone.utc)
+    )
+
+
+@admin_bp.route('/support-review/partnerships/<int:inquiry_id>')
+@login_required
+@admin_required
+def partnership_inquiry_detail(inquiry_id):
+    """View a single partnership inquiry."""
+    from services.support_review_service import get_partnership_inquiry
+    try:
+        inquiry = get_partnership_inquiry(inquiry_id)
+    except ValueError:
+        flash('Partnership inquiry not found.', 'warning')
+        return redirect(url_for('admin.partnership_inquiries'))
+    return render_template('admin/support_review/partnership_detail.html', inquiry=inquiry)
+
+
+@admin_bp.route('/support-review/partnerships/<int:inquiry_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_partnership_inquiry(inquiry_id):
+    """Approve a partnership inquiry."""
+    from services.support_review_service import update_partnership_inquiry_status
+    admin_notes = request.form.get('admin_notes', '').strip()
+    try:
+        update_partnership_inquiry_status(inquiry_id, 'Approved', admin_notes, current_user.user_id)
+        flash('Partnership inquiry approved.', 'success')
+    except ValueError as e:
+        flash(str(e), 'warning')
+    except Exception as e:
+        current_app.logger.exception('Error approving partnership inquiry')
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('admin.partnership_inquiry_detail', inquiry_id=inquiry_id))
+
+
+@admin_bp.route('/support-review/partnerships/<int:inquiry_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_partnership_inquiry(inquiry_id):
+    """Reject a partnership inquiry."""
+    from services.support_review_service import update_partnership_inquiry_status
+    admin_notes = request.form.get('admin_notes', '').strip()
+    try:
+        update_partnership_inquiry_status(inquiry_id, 'Rejected', admin_notes, current_user.user_id)
+        flash('Partnership inquiry rejected.', 'success')
+    except ValueError as e:
+        flash(str(e), 'warning')
+    except Exception as e:
+        current_app.logger.exception('Error rejecting partnership inquiry')
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('admin.partnership_inquiry_detail', inquiry_id=inquiry_id))
+
+
+@admin_bp.route('/support-review/partnerships/<int:inquiry_id>/review', methods=['POST'])
+@login_required
+@admin_required
+def mark_partnership_under_review(inquiry_id):
+    """Mark a partnership inquiry as under review."""
+    from services.support_review_service import update_partnership_inquiry_status
+    try:
+        update_partnership_inquiry_status(inquiry_id, 'Under Review', None, current_user.user_id)
+        flash('Partnership inquiry marked as under review.', 'success')
+    except ValueError as e:
+        flash(str(e), 'warning')
+    except Exception as e:
+        current_app.logger.exception('Error updating partnership inquiry')
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('admin.partnership_inquiry_detail', inquiry_id=inquiry_id))
+
+
+# ── Volunteer Submissions ───────────────────────────────────────────────────────
+
+@admin_bp.route('/support-review/volunteers')
+@login_required
+@admin_required
+def volunteer_submissions():
+    """List all volunteer submissions."""
+    from services.support_review_service import list_volunteer_submissions
+    status_filter = request.args.get('status', 'all')
+    submissions, stats = list_volunteer_submissions(status_filter=status_filter)
+    return render_template(
+        'admin/support_review/volunteer_list.html',
+        submissions=submissions, status_filter=status_filter, stats=stats,
+        now=datetime.now(timezone.utc)
+    )
+
+
+@admin_bp.route('/support-review/volunteers/<int:submission_id>')
+@login_required
+@admin_required
+def volunteer_submission_detail(submission_id):
+    """View a single volunteer submission."""
+    from services.support_review_service import get_volunteer_submission
+    try:
+        submission = get_volunteer_submission(submission_id)
+    except ValueError:
+        flash('Volunteer submission not found.', 'warning')
+        return redirect(url_for('admin.volunteer_submissions'))
+    return render_template('admin/support_review/volunteer_detail.html', submission=submission)
+
+
+@admin_bp.route('/support-review/volunteers/<int:submission_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_volunteer_submission(submission_id):
+    """Approve a volunteer submission."""
+    from services.support_review_service import update_volunteer_submission_status
+    admin_notes = request.form.get('admin_notes', '').strip()
+    try:
+        update_volunteer_submission_status(submission_id, 'Approved', admin_notes, current_user.user_id)
+        flash('Volunteer application approved.', 'success')
+    except ValueError as e:
+        flash(str(e), 'warning')
+    except Exception as e:
+        current_app.logger.exception('Error approving volunteer submission')
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('admin.volunteer_submission_detail', submission_id=submission_id))
+
+
+@admin_bp.route('/support-review/volunteers/<int:submission_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_volunteer_submission(submission_id):
+    """Reject a volunteer submission."""
+    from services.support_review_service import update_volunteer_submission_status
+    admin_notes = request.form.get('admin_notes', '').strip()
+    try:
+        update_volunteer_submission_status(submission_id, 'Rejected', admin_notes, current_user.user_id)
+        flash('Volunteer application rejected.', 'success')
+    except ValueError as e:
+        flash(str(e), 'warning')
+    except Exception as e:
+        current_app.logger.exception('Error rejecting volunteer submission')
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('admin.volunteer_submission_detail', submission_id=submission_id))
+
+
+@admin_bp.route('/support-review/volunteers/<int:submission_id>/review', methods=['POST'])
+@login_required
+@admin_required
+def mark_volunteer_under_review(submission_id):
+    """Mark a volunteer submission as under review."""
+    from services.support_review_service import update_volunteer_submission_status
+    try:
+        update_volunteer_submission_status(submission_id, 'Under Review', None, current_user.user_id)
+        flash('Volunteer application marked as under review.', 'success')
+    except ValueError as e:
+        flash(str(e), 'warning')
+    except Exception as e:
+        current_app.logger.exception('Error updating volunteer submission')
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('admin.volunteer_submission_detail', submission_id=submission_id))
+
+
+# ── Host Event Submissions ──────────────────────────────────────────────────────
+
+@admin_bp.route('/support-review/hosts')
+@login_required
+@admin_required
+def host_submissions():
+    """List all host event submissions."""
+    from services.support_review_service import list_host_submissions
+    status_filter = request.args.get('status', 'all')
+    submissions, stats = list_host_submissions(status_filter=status_filter)
+    return render_template(
+        'admin/support_review/host_list.html',
+        submissions=submissions, status_filter=status_filter, stats=stats,
+        now=datetime.now(timezone.utc)
+    )
+
+
+@admin_bp.route('/support-review/hosts/<int:submission_id>')
+@login_required
+@admin_required
+def host_submission_detail(submission_id):
+    """View a single host event submission."""
+    from services.support_review_service import get_host_submission
+    try:
+        submission = get_host_submission(submission_id)
+    except ValueError:
+        flash('Host event submission not found.', 'warning')
+        return redirect(url_for('admin.host_submissions'))
+    return render_template('admin/support_review/host_detail.html', submission=submission)
+
+
+@admin_bp.route('/support-review/hosts/<int:submission_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_host_submission(submission_id):
+    """Approve a host event submission."""
+    from services.support_review_service import update_host_submission_status
+    admin_notes = request.form.get('admin_notes', '').strip()
+    try:
+        update_host_submission_status(submission_id, 'Approved', admin_notes, current_user.user_id)
+        flash('Event hosting request approved.', 'success')
+    except ValueError as e:
+        flash(str(e), 'warning')
+    except Exception as e:
+        current_app.logger.exception('Error approving host submission')
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('admin.host_submission_detail', submission_id=submission_id))
+
+
+@admin_bp.route('/support-review/hosts/<int:submission_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_host_submission(submission_id):
+    """Reject a host event submission."""
+    from services.support_review_service import update_host_submission_status
+    admin_notes = request.form.get('admin_notes', '').strip()
+    try:
+        update_host_submission_status(submission_id, 'Rejected', admin_notes, current_user.user_id)
+        flash('Event hosting request rejected.', 'success')
+    except ValueError as e:
+        flash(str(e), 'warning')
+    except Exception as e:
+        current_app.logger.exception('Error rejecting host submission')
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('admin.host_submission_detail', submission_id=submission_id))
+
+
+@admin_bp.route('/support-review/hosts/<int:submission_id>/review', methods=['POST'])
+@login_required
+@admin_required
+def mark_host_under_review(submission_id):
+    """Mark a host event submission as under review."""
+    from services.support_review_service import update_host_submission_status
+    try:
+        update_host_submission_status(submission_id, 'Under Review', None, current_user.user_id)
+        flash('Event hosting request marked as under review.', 'success')
+    except ValueError as e:
+        flash(str(e), 'warning')
+    except Exception as e:
+        current_app.logger.exception('Error updating host submission')
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('admin.host_submission_detail', submission_id=submission_id))
