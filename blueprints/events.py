@@ -292,6 +292,8 @@ def submit_event():
     }
     """
     try:
+        current_app.logger.info(f'Event submission request from user {current_user.user_id}')
+        
         data = request.get_json()
         
         # Validate required fields
@@ -299,26 +301,32 @@ def submit_event():
         missing_fields = [f for f in required_fields if not data.get(f)]
         
         if missing_fields:
+            error_msg = f'Missing required fields: {", ".join(missing_fields)}'
+            current_app.logger.warning(f'Event submission validation failed: {error_msg}')
             return jsonify({
                 'success': False,
-                'message': f'Missing required fields: {", ".join(missing_fields)}'
+                'message': error_msg
             }), 400
         
         # Normalize event type
         event_type = data.get('event_type', '').lower()
         if event_type not in ['mtaani', 'baraza']:
+            error_msg = 'Event type must be "mtaani" or "baraza"'
+            current_app.logger.warning(f'Event submission validation failed: {error_msg}')
             return jsonify({
                 'success': False,
-                'message': 'Event type must be "mtaani" or "baraza"'
+                'message': error_msg
             }), 400
         
         # Parse event date
         try:
             event_date = datetime.fromisoformat(data['event_date'].replace('Z', '+00:00'))
         except (ValueError, AttributeError):
+            error_msg = 'Invalid event_date format. Use ISO format (2026-02-20T14:00:00)'
+            current_app.logger.warning(f'Event submission validation failed: {error_msg}')
             return jsonify({
                 'success': False,
-                'message': 'Invalid event_date format. Use ISO format (2026-02-20T14:00:00)'
+                'message': error_msg
             }), 400
         
         # Create submission
@@ -330,15 +338,22 @@ def submit_event():
             'event_type': 'mtaani'  # Normalize baraza to mtaani
         }
         
+        current_app.logger.debug(f'Creating event submission: {submission_data["title"]}')
         result = EventSubmissionService.create_submission(submission_data, current_user.user_id)
         
         if result.get('success'):
-            current_app.logger.info(f'Event submitted for approval by user {current_user.user_id}: {submission_data["title"]}')
+            current_app.logger.info(f'Event submitted successfully for approval by user {current_user.user_id}: {submission_data["title"]} (event_id={result.get("event_id")})')
             return jsonify(result), 201
         else:
+            error_msg = result.get('message', 'Unknown error')
+            current_app.logger.error(f'Event submission failed for user {current_user.user_id}: {error_msg}')
             return jsonify(result), 400
             
     except Exception as e:
+        import traceback
+        error_msg = str(e)
+        current_app.logger.error(f'Exception while submitting event for user {current_user.user_id}: {error_msg}')
+        current_app.logger.error(f'Traceback: {traceback.format_exc()}')
         current_app.logger.exception('Error submitting event')
         return jsonify({
             'success': False,
