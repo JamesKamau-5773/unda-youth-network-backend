@@ -24,19 +24,29 @@ def create_partnership_inquiry(data):
 
 def list_partnership_inquiries(status_filter='all'):
     """List partnership inquiries with optional status filter."""
-    query = PartnershipInquiry.query.order_by(PartnershipInquiry.submitted_at.desc())
-    if status_filter and status_filter != 'all':
-        query = query.filter_by(status=status_filter)
+    try:
+        query = PartnershipInquiry.query.order_by(PartnershipInquiry.submitted_at.desc())
+        if status_filter and status_filter != 'all':
+            query = query.filter_by(status=status_filter)
 
-    inquiries = query.all()
-    stats = {
-        'total': PartnershipInquiry.query.count(),
-        'pending': PartnershipInquiry.query.filter_by(status='Pending').count(),
-        'under_review': PartnershipInquiry.query.filter_by(status='Under Review').count(),
-        'approved': PartnershipInquiry.query.filter_by(status='Approved').count(),
-        'rejected': PartnershipInquiry.query.filter_by(status='Rejected').count(),
-    }
-    return inquiries, stats
+        inquiries = query.all()
+        stats = {
+            'total': PartnershipInquiry.query.count(),
+            'pending': PartnershipInquiry.query.filter_by(status='Pending').count(),
+            'under_review': PartnershipInquiry.query.filter_by(status='Under Review').count(),
+            'approved': PartnershipInquiry.query.filter_by(status='Approved').count(),
+            'rejected': PartnershipInquiry.query.filter_by(status='Rejected').count(),
+        }
+        return inquiries, stats
+    except Exception:
+        # Table may not exist yet; return empty results
+        return [], {
+            'total': 0,
+            'pending': 0,
+            'under_review': 0,
+            'approved': 0,
+            'rejected': 0,
+        }
 
 
 def get_partnership_inquiry(inquiry_id):
@@ -76,19 +86,29 @@ def create_volunteer_submission(data):
 
 def list_volunteer_submissions(status_filter='all'):
     """List volunteer submissions with optional status filter."""
-    query = VolunteerSubmission.query.order_by(VolunteerSubmission.submitted_at.desc())
-    if status_filter and status_filter != 'all':
-        query = query.filter_by(status=status_filter)
+    try:
+        query = VolunteerSubmission.query.order_by(VolunteerSubmission.submitted_at.desc())
+        if status_filter and status_filter != 'all':
+            query = query.filter_by(status=status_filter)
 
-    submissions = query.all()
-    stats = {
-        'total': VolunteerSubmission.query.count(),
-        'pending': VolunteerSubmission.query.filter_by(status='Pending').count(),
-        'under_review': VolunteerSubmission.query.filter_by(status='Under Review').count(),
-        'approved': VolunteerSubmission.query.filter_by(status='Approved').count(),
-        'rejected': VolunteerSubmission.query.filter_by(status='Rejected').count(),
-    }
-    return submissions, stats
+        submissions = query.all()
+        stats = {
+            'total': VolunteerSubmission.query.count(),
+            'pending': VolunteerSubmission.query.filter_by(status='Pending').count(),
+            'under_review': VolunteerSubmission.query.filter_by(status='Under Review').count(),
+            'approved': VolunteerSubmission.query.filter_by(status='Approved').count(),
+            'rejected': VolunteerSubmission.query.filter_by(status='Rejected').count(),
+        }
+        return submissions, stats
+    except Exception:
+        # Table may not exist yet; return empty results
+        return [], {
+            'total': 0,
+            'pending': 0,
+            'under_review': 0,
+            'approved': 0,
+            'rejected': 0,
+        }
 
 
 def get_volunteer_submission(submission_id):
@@ -128,19 +148,29 @@ def create_host_submission(data):
 
 def list_host_submissions(status_filter='all'):
     """List host submissions with optional status filter."""
-    query = HostSubmission.query.order_by(HostSubmission.submitted_at.desc())
-    if status_filter and status_filter != 'all':
-        query = query.filter_by(status=status_filter)
+    try:
+        query = HostSubmission.query.order_by(HostSubmission.submitted_at.desc())
+        if status_filter and status_filter != 'all':
+            query = query.filter_by(status=status_filter)
 
-    submissions = query.all()
-    stats = {
-        'total': HostSubmission.query.count(),
-        'pending': HostSubmission.query.filter_by(status='Pending').count(),
-        'under_review': HostSubmission.query.filter_by(status='Under Review').count(),
-        'approved': HostSubmission.query.filter_by(status='Approved').count(),
-        'rejected': HostSubmission.query.filter_by(status='Rejected').count(),
-    }
-    return submissions, stats
+        submissions = query.all()
+        stats = {
+            'total': HostSubmission.query.count(),
+            'pending': HostSubmission.query.filter_by(status='Pending').count(),
+            'under_review': HostSubmission.query.filter_by(status='Under Review').count(),
+            'approved': HostSubmission.query.filter_by(status='Approved').count(),
+            'rejected': HostSubmission.query.filter_by(status='Rejected').count(),
+        }
+        return submissions, stats
+    except Exception:
+        # Table may not exist yet; return empty results
+        return [], {
+            'total': 0,
+            'pending': 0,
+            'under_review': 0,
+            'approved': 0,
+            'rejected': 0,
+        }
 
 
 def get_host_submission(submission_id):

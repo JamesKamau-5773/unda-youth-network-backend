@@ -2540,12 +2540,19 @@ def test_email():
 @admin_required
 def support_review():
     """Support review landing page with summary statistics."""
-    from services.support_review_service import (
-        list_partnership_inquiries, list_volunteer_submissions, list_host_submissions
-    )
-    _, partnership_stats = list_partnership_inquiries()
-    _, volunteer_stats = list_volunteer_submissions()
-    _, host_stats = list_host_submissions()
+    try:
+        from services.support_review_service import (
+            list_partnership_inquiries, list_volunteer_submissions, list_host_submissions
+        )
+        _, partnership_stats = list_partnership_inquiries()
+        _, volunteer_stats = list_volunteer_submissions()
+        _, host_stats = list_host_submissions()
+    except Exception as e:
+        current_app.logger.exception('Error loading support review stats')
+        # Return empty stats if database tables don't exist yet
+        partnership_stats = volunteer_stats = host_stats = {
+            'total': 0, 'pending': 0, 'under_review': 0, 'approved': 0, 'rejected': 0
+        }
 
     return render_template(
         'admin/support_review/index.html',
@@ -2562,9 +2569,16 @@ def support_review():
 @admin_required
 def partnership_inquiries():
     """List all partnership inquiries."""
-    from services.support_review_service import list_partnership_inquiries
-    status_filter = request.args.get('status', 'all')
-    inquiries, stats = list_partnership_inquiries(status_filter=status_filter)
+    try:
+        from services.support_review_service import list_partnership_inquiries
+        status_filter = request.args.get('status', 'all')
+        inquiries, stats = list_partnership_inquiries(status_filter=status_filter)
+    except Exception as e:
+        current_app.logger.exception('Error loading partnership inquiries')
+        inquiries = []
+        stats = {'total': 0, 'pending': 0, 'under_review': 0, 'approved': 0, 'rejected': 0}
+        status_filter = 'all'
+    
     return render_template(
         'admin/support_review/partnership_list.html',
         inquiries=inquiries, status_filter=status_filter, stats=stats,
@@ -2646,9 +2660,16 @@ def mark_partnership_under_review(inquiry_id):
 @admin_required
 def volunteer_submissions():
     """List all volunteer submissions."""
-    from services.support_review_service import list_volunteer_submissions
-    status_filter = request.args.get('status', 'all')
-    submissions, stats = list_volunteer_submissions(status_filter=status_filter)
+    try:
+        from services.support_review_service import list_volunteer_submissions
+        status_filter = request.args.get('status', 'all')
+        submissions, stats = list_volunteer_submissions(status_filter=status_filter)
+    except Exception as e:
+        current_app.logger.exception('Error loading volunteer submissions')
+        submissions = []
+        stats = {'total': 0, 'pending': 0, 'under_review': 0, 'approved': 0, 'rejected': 0}
+        status_filter = 'all'
+    
     return render_template(
         'admin/support_review/volunteer_list.html',
         submissions=submissions, status_filter=status_filter, stats=stats,
@@ -2730,9 +2751,16 @@ def mark_volunteer_under_review(submission_id):
 @admin_required
 def host_submissions():
     """List all host event submissions."""
-    from services.support_review_service import list_host_submissions
-    status_filter = request.args.get('status', 'all')
-    submissions, stats = list_host_submissions(status_filter=status_filter)
+    try:
+        from services.support_review_service import list_host_submissions
+        status_filter = request.args.get('status', 'all')
+        submissions, stats = list_host_submissions(status_filter=status_filter)
+    except Exception as e:
+        current_app.logger.exception('Error loading host submissions')
+        submissions = []
+        stats = {'total': 0, 'pending': 0, 'under_review': 0, 'approved': 0, 'rejected': 0}
+        status_filter = 'all'
+    
     return render_template(
         'admin/support_review/host_list.html',
         submissions=submissions, status_filter=status_filter, stats=stats,
