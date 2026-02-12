@@ -1,8 +1,9 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
 from models import db, EventParticipation, Event, Champion
 from decorators import supervisor_required
 from datetime import datetime, timezone
+import traceback
 
 participation_bp = Blueprint('participation', __name__, url_prefix='/api/event-participation')
 
@@ -81,65 +82,132 @@ def get_participation(participation_id):
 @login_required
 def register_for_event():
     """Register a champion for an event."""
-    data = request.get_json()
-    
-    required_fields = ['event_id', 'champion_id']
-    if not all(field in data for field in required_fields):
-        return jsonify({
-            'success': False,
-            'message': f'Missing required fields: {required_fields}'
-        }), 400
-    
-    # Validate event and champion exist
-    event = db.session.get(Event, data['event_id'])
-    champion = db.session.get(Champion, data['champion_id'])
-    
-    if not event or not champion:
-        return jsonify({
-            'success': False,
-            'message': 'Event or Champion not found'
-        }), 404
-    
-    # Check if already registered
-    existing = EventParticipation.query.filter_by(
-        event_id=data['event_id'],
-        champion_id=data['champion_id']
-    ).first()
-    
-    if existing:
-        return jsonify({
-            'success': False,
-            'message': 'Champion already registered for this event',
-            'participation_id': existing.participation_id
-        }), 409
-    
-    # Check event capacity if applicable
-    if event.max_participants:
-        registered_count = EventParticipation.query.filter_by(
-            event_id=data['event_id'],
-            registration_status='confirmed'
-        ).count()
+    try:
+        current_app.logger.info(f'Event participation registration request from user {current_user.user_id}')
         
-        if registered_count >= event.max_participants:
+        try:
+            data = request.get_json()
+            if not data:
+                current_app.logger.warning('No JSON data in event participation request')
+                return jsonify({
+                    'success': False,
+                    'message': 'Request body must be valid JSON'
+                }), 400
+        except Exception as json_error:
+            current_app.logger.error(f'Error parsing JSON in event participation request: {str(json_error)}')
             return jsonify({
                 'success': False,
-                'message': 'Event is at full capacity'
+                'message': 'Invalid JSON in request'
             }), 400
-    
-    participation = EventParticipation(
-        event_id=data['event_id'],
-        champion_id=data['champion_id'],
-        registration_status=data.get('registration_status', 'registered')
-    )
-    
-    db.session.add(participation)
-    db.session.commit()
-    
-    return jsonify({
-        'success': True,
-        'message': 'Registration successful',
-        'participation_id': participation.participation_id
-    }), 201
+        
+        required_fields = ['event_id', 'champion_id']
+        missing_fields = [f for f in required_fields if f not in data]
+        if missing_fields:
+            current_app.logger.warning(f'Missing required fields in event participation: {missing_fields}')
+            return jsonify({
+                'success': False,
+                'message': f'Missing required fields: {missing_fields}'
+            }), 400
+        
+        # Validate event and champion exist
+        try:
+            event = db.session.get(Event, data['event_id'])
+            champion = db.session.get(Champion, data['champion_id'])
+            
+            if not event:
+                current_app.logger.warning(f'Event not found: event_id={data["event_id"]}')
+            if not champion:
+                current_app.logger.warning(f'Champion not found: champion_id={data["champion_id"]}')
+            
+            if not event or not champion:
+                return jsonify({
+                    'success': False,
+                    'message': 'Event or Champion not found'
+                }), 404
+        except Exception as lookup_error:
+            current_app.logger.error(f'Error looking up event/champion: {str(lookup_error)}')
+            return jsonify({
+                'success': False,
+                'message': 'Error validating event and champion'
+            }), 500
+        
+        # Check if already registered
+        try:
+            existing = EventParticipation.query.filter_by(
+                event_id=data['event_id'],
+                champion_id=data['champion_id']
+            ).first()
+            
+            if existing:
+                current_app.logger.info(f'Champion {data["champion_id"]} already registered for event {data["event_id"]}')
+                return jsonify({
+                    'success': False,
+                    'message': 'Champion already registered for this event',
+                    'participation_id': existing.participation_id
+                }), 409
+        except Exception as check_error:
+            current_app.logger.error(f'Error checking existing registration: {str(check_error)}')
+            return jsonify({
+                'success': False,
+                'message': 'Error checking registration status'
+            }), 500
+        
+        # Check event capacity if applicable
+        try:
+            if event.max_participants:
+                registered_count = EventParticipation.query.filter_by(
+                    event_id=data['event_id'],
+                    registration_status='confirmed'
+                ).count()
+                
+                if registered_count >= event.max_participants:
+                    current_app.logger.info(f'Event {data["event_id"]} at full capacity')
+                    return jsonify({
+                        'success': False,
+                        'message': 'Event is at full capacity'
+                    }), 400
+        except Exception as capacity_error:
+            current_app.logger.error(f'Error checking event capacity: {str(capacity_error)}')
+            return jsonify({
+                'success': False,
+                'message': 'Error checking event capacity'
+            }), 500
+        
+        try:
+            participation = EventParticipation(
+                event_id=data['event_id'],
+                champion_id=data['champion_id'],
+                registration_status=data.get('registration_status', 'registered')
+            )
+            
+            db.session.add(participation)
+            db.session.commit()
+            
+            current_app.logger.info(f'Event participation registered: participation_id={participation.participation_id}, event_id={data["event_id"]}, champion_id={data["champion_id"]}')
+            return jsonify({
+                'success': True,
+                'message': 'Registration successful',
+                'participation_id': participation.participation_id
+            }), 201
+        except Exception as create_error:
+            db.session.rollback()
+            error_msg = str(create_error)
+            current_app.logger.error(f'Error creating event participation: {error_msg}')
+            current_app.logger.error(f'Traceback: {traceback.format_exc()}')
+            return jsonify({
+                'success': False,
+                'message': f'Error registering for event: {error_msg}'
+            }), 500
+            
+    except Exception as e:
+        import traceback
+        error_msg = str(e)
+        current_app.logger.error(f'Unexpected error in event participation registration: {error_msg}')
+        current_app.logger.error(f'Traceback: {traceback.format_exc()}')
+        return jsonify({
+            'success': False,
+            'message': 'An unexpected error occurred during registration'
+        }), 500
 
 
 @participation_bp.route('/<int:participation_id>/status', methods=['PUT'])
