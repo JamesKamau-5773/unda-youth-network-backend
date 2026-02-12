@@ -145,7 +145,7 @@
           <div class="card-body">
             <!-- Approve Button -->
             <form method="POST" action="{{ url_for('admin.approve_event_submission', event_id=submission.event_id) }}" class="mb-3">
-              {{ csrf_token() }}
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <button type="submit" class="btn btn-success btn-block w-100" onclick="return confirm('Approve this event submission? It will be published as Upcoming.')">
                 <i class="fas fa-check"></i> Approve & Publish
               </button>
@@ -175,7 +175,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form method="POST" action="{{ url_for('admin.reject_event_submission', event_id=submission.event_id) }}">
-        {{ csrf_token() }}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="modal-body">
           <div class="mb-3">
             <label for="rejectionReason" class="form-label">Rejection Reason</label>
