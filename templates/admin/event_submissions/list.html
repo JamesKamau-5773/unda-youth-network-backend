@@ -77,9 +77,10 @@
                       {% endif %}
                     </td>
                     <td>
-                      {% if submission.submitted_by %}
-                        {% set submitter = __import__('models').User.query.get(submission.submitted_by) %}
-                        {{ submitter.full_name if submitter else 'Unknown' }}
+                      {% if submission._submitter %}
+                        {{ submission._submitter.full_name }}
+                      {% elif submission.submitted_by %}
+                        Unknown
                       {% else %}
                         N/A
                       {% endif %}

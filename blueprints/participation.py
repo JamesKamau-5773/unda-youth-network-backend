@@ -40,7 +40,7 @@ def list_participations():
             'champion_name': p.champion.full_name if p.champion else None,
             'registration_status': p.registration_status,
             'attended': p.attended,
-            'attendance_verified_at': p.attendance_verified_at.isoformat() if p.attendance_verified_at else None,
+            'attendance_confirmed_at': p.attendance_confirmed_at.isoformat() if p.attendance_confirmed_at else None,
             'feedback_score': p.feedback_score,
             'certificate_issued': p.certificate_issued,
             'registered_at': p.registered_at.isoformat() if p.registered_at else None
@@ -68,11 +68,10 @@ def get_participation(participation_id):
             'champion_name': participation.champion.full_name if participation.champion else None,
             'registration_status': participation.registration_status,
             'attended': participation.attended,
-            'attendance_verified_at': participation.attendance_verified_at.isoformat() if participation.attendance_verified_at else None,
+            'attendance_confirmed_at': participation.attendance_confirmed_at.isoformat() if participation.attendance_confirmed_at else None,
             'feedback_score': participation.feedback_score,
             'feedback_comments': participation.feedback_comments,
             'certificate_issued': participation.certificate_issued,
-            'certificate_issued_at': participation.certificate_issued_at.isoformat() if participation.certificate_issued_at else None,
             'registered_at': participation.registered_at.isoformat() if participation.registered_at else None
         }
     }), 200
@@ -260,7 +259,7 @@ def mark_attendance(participation_id):
     
     participation.attended = data['attended']
     if data['attended']:
-        participation.attendance_verified_at = datetime.now(timezone.utc)
+        participation.attendance_confirmed_at = datetime.now(timezone.utc)
     
     db.session.commit()
     

@@ -2938,7 +2938,19 @@ def event_submissions_list():
                 query = query.filter_by(event_type=event_type)
                 current_app.logger.debug(f'Filtered by event type: {event_type}')
             
-            submissions = query.order_by(Event.created_at.desc()).all()
+            submission_records = query.order_by(Event.created_at.desc()).all()
+            
+            # Build submission list with submitter info
+            submissions = []
+            for submission in submission_records:
+                submitter = None
+                if submission.submitted_by:
+                    submitter = User.query.get(submission.submitted_by)
+                
+                # Add submitter info to submission object
+                submission._submitter = submitter
+                submissions.append(submission)
+            
             current_app.logger.info(f'Event submissions list loaded: {len(submissions)} submissions found')
         except Exception as query_error:
             current_app.logger.warning(f'Error querying submissions: {str(query_error)}')
