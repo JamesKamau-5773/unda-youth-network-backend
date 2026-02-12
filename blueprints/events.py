@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from models import db, Event, EventInterest
 from decorators import admin_required
 from datetime import datetime, timezone
+from services.event_submission_service import EventSubmissionService
 import re
 
 ALLOWED_EVENT_TYPES = {
@@ -262,3 +263,74 @@ def register_event_interest(event_id):
             'success': False,
             'error': 'An error occurred while registering interest. Please try again.'
         }), 500
+
+
+@events_bp.route('/submit', methods=['POST'])
+@login_required
+def submit_event():
+    """
+    Allow authenticated members to submit a new baraza/mtaani event for admin approval.
+    
+    Expected JSON:
+    {
+        "title": "Event title",
+        "description": "Event description",
+        "event_date": "2026-02-20T14:00:00",
+        "location": "Event location",
+        "event_type": "mtaani" or "baraza"
+    }
+    """
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['title', 'description', 'event_date', 'location', 'event_type']
+        missing_fields = [f for f in required_fields if not data.get(f)]
+        
+        if missing_fields:
+            return jsonify({
+                'success': False,
+                'message': f'Missing required fields: {", ".join(missing_fields)}'
+            }), 400
+        
+        # Normalize event type
+        event_type = data.get('event_type', '').lower()
+        if event_type not in ['mtaani', 'baraza']:
+            return jsonify({
+                'success': False,
+                'message': 'Event type must be "mtaani" or "baraza"'
+            }), 400
+        
+        # Parse event date
+        try:
+            event_date = datetime.fromisoformat(data['event_date'].replace('Z', '+00:00'))
+        except (ValueError, AttributeError):
+            return jsonify({
+                'success': False,
+                'message': 'Invalid event_date format. Use ISO format (2026-02-20T14:00:00)'
+            }), 400
+        
+        # Create submission
+        submission_data = {
+            'title': data['title'].strip(),
+            'description': data['description'].strip(),
+            'event_date': event_date,
+            'location': data['location'].strip(),
+            'event_type': 'mtaani'  # Normalize baraza to mtaani
+        }
+        
+        result = EventSubmissionService.create_submission(submission_data, current_user.user_id)
+        
+        if result.get('success'):
+            current_app.logger.info(f'Event submitted for approval by user {current_user.user_id}: {submission_data["title"]}')
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 400
+            
+    except Exception as e:
+        current_app.logger.exception('Error submitting event')
+        return jsonify({
+            'success': False,
+            'error': 'An error occurred while submitting the event. Please try again.'
+        }), 500
+

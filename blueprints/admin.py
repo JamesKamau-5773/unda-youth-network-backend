@@ -10,6 +10,7 @@ import secrets
 import string
 from datetime import datetime, timedelta, timezone
 from services import user_service, champion_service, mailer, registration_service, champion_application_service, assignment_service, event_service, affirmation_service, media_gallery_service, toolkit_service, resource_service, story_service, symbolic_item_service, umv_service, assessment_service, podcast_service
+from services.event_submission_service import EventSubmissionService
 from flask import current_app
 import json
 from services.admin_metrics import get_dashboard_metrics
@@ -2833,3 +2834,147 @@ def mark_host_under_review(submission_id):
         current_app.logger.exception('Error updating host submission')
         flash(f'Error: {str(e)}', 'danger')
     return redirect(url_for('admin.host_submission_detail', submission_id=submission_id))
+
+
+# Event Submission Routes
+@admin_bp.route('/event-submissions')
+@login_required
+@admin_required
+def event_submissions_dashboard():
+    """Admin dashboard for reviewing member-submitted events."""
+    try:
+        # Get counts by status
+        pending = db.session.query(func.count(Event.event_id)).filter(
+            Event.submission_status == 'Pending Approval'
+        ).scalar() or 0
+        
+        approved = db.session.query(func.count(Event.event_id)).filter(
+            Event.submission_status == 'Approved'
+        ).scalar() or 0
+        
+        rejected = db.session.query(func.count(Event.event_id)).filter(
+            Event.submission_status == 'Rejected'
+        ).scalar() or 0
+        
+        # Get recent pending submissions
+        recent_submissions = Event.query.filter(
+            Event.submission_status == 'Pending Approval'
+        ).order_by(Event.created_at.desc()).limit(10).all()
+        
+        return render_template(
+            'admin/event_submissions/index.html',
+            pending_count=pending,
+            approved_count=approved,
+            rejected_count=rejected,
+            recent_submissions=recent_submissions
+        )
+    except Exception as e:
+        current_app.logger.exception('Error loading event submissions dashboard')
+        flash(f'Error loading dashboard: {str(e)}', 'danger')
+        return render_template('admin/event_submissions/index.html', pending_count=0, approved_count=0, rejected_count=0, recent_submissions=[])
+
+
+@admin_bp.route('/event-submissions/list')
+@login_required
+@admin_required
+def event_submissions_list():
+    """List all event submissions with filtering."""
+    status_filter = request.args.get('status')  # Pending Approval, Approved, Rejected
+    event_type = request.args.get('type')  # mtaani, baraza, etc.
+    
+    try:
+        query = Event.query.filter(Event.submission_status.isnot(None))
+        
+        if status_filter:
+            query = query.filter_by(submission_status=status_filter)
+        if event_type:
+            query = query.filter_by(event_type=event_type)
+        
+        submissions = query.order_by(Event.created_at.desc()).all()
+        
+        return render_template(
+            'admin/event_submissions/list.html',
+            submissions=submissions,
+            current_status=status_filter,
+            current_type=event_type
+        )
+    except Exception as e:
+        current_app.logger.exception('Error loading event submissions list')
+        flash(f'Error loading submissions: {str(e)}', 'danger')
+        return render_template('admin/event_submissions/list.html', submissions=[], current_status=None, current_type=None)
+
+
+@admin_bp.route('/event-submissions/<int:event_id>')
+@login_required
+@admin_required
+def event_submission_detail(event_id):
+    """View details of a specific event submission."""
+    try:
+        submission = Event.query.filter_by(event_id=event_id).first()
+        
+        if not submission:
+            flash('Event submission not found', 'danger')
+            return redirect(url_for('admin.event_submissions_list'))
+        
+        if not submission.submission_status:
+            flash('This is not a member submission', 'warning')
+            return redirect(url_for('admin.event_submissions_list'))
+        
+        # Get submitter details
+        submitter = User.query.get(submission.submitted_by) if submission.submitted_by else None
+        reviewer = User.query.get(submission.reviewed_by) if submission.reviewed_by else None
+        
+        return render_template(
+            'admin/event_submissions/detail.html',
+            submission=submission,
+            submitter=submitter,
+            reviewer=reviewer
+        )
+    except Exception as e:
+        current_app.logger.exception('Error loading event submission detail')
+        flash(f'Error loading submission: {str(e)}', 'danger')
+        return redirect(url_for('admin.event_submissions_list'))
+
+
+@admin_bp.route('/event-submissions/<int:event_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_event_submission(event_id):
+    """Approve a member event submission and publish it as Upcoming."""
+    try:
+        result = EventSubmissionService.approve_submission(event_id, current_user.user_id)
+        
+        if result.get('success'):
+            flash('Event submission approved and published as Upcoming!', 'success')
+            current_app.logger.info(f'Event {event_id} approved by admin {current_user.user_id}')
+        else:
+            flash(result.get('message', 'Failed to approve submission'), 'warning')
+        
+        return redirect(url_for('admin.event_submission_detail', event_id=event_id))
+    except Exception as e:
+        current_app.logger.exception('Error approving event submission')
+        flash(f'Error: {str(e)}', 'danger')
+        return redirect(url_for('admin.event_submission_detail', event_id=event_id))
+
+
+@admin_bp.route('/event-submissions/<int:event_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_event_submission(event_id):
+    """Reject a member event submission."""
+    try:
+        rejection_reason = request.form.get('rejection_reason', '').strip()
+        
+        result = EventSubmissionService.reject_submission(event_id, current_user.user_id, rejection_reason)
+        
+        if result.get('success'):
+            flash('Event submission rejected.', 'success')
+            current_app.logger.info(f'Event {event_id} rejected by admin {current_user.user_id}: {rejection_reason}')
+        else:
+            flash(result.get('message', 'Failed to reject submission'), 'warning')
+        
+        return redirect(url_for('admin.event_submission_detail', event_id=event_id))
+    except Exception as e:
+        current_app.logger.exception('Error rejecting event submission')
+        flash(f'Error: {str(e)}', 'danger')
+        return redirect(url_for('admin.event_submission_detail', event_id=event_id))
