@@ -80,11 +80,11 @@
                 <!-- Episode Details -->
                 <div class="grid grid--3-col" style="gap: 1rem;">
                     <div class="form-group">
-                        <label for="duration" class="form-label">Duration (seconds)</label>
-                        <input type="number" id="duration" name="duration" class="form-input" min="0" 
-                               value="{{ podcast.duration if podcast else '' }}" 
-                               placeholder="e.g., 1800">
-                        <small style="color: #6b7280; font-size: 0.875rem;">Total length in seconds</small>
+                       <label for="duration" class="form-label">Duration (minutes)</label>
+                       <input type="number" id="duration" name="duration" class="form-input" min="0" step="0.1"
+                           value="{{ ('%.1f' % (podcast.duration / 60)) if podcast and podcast.duration else '' }}"
+                           placeholder="e.g., 30">
+                       <small style="color: #6b7280; font-size: 0.875rem;">Total length in minutes</small>
                     </div>
                     
                     <div class="form-group">
@@ -201,11 +201,25 @@ document.getElementById('audio_url').addEventListener('blur', function() {
         const audio = new Audio(url);
         audio.addEventListener('loadedmetadata', function() {
             if (audio.duration && audio.duration !== Infinity) {
-                durationField.value = Math.round(audio.duration);
+                durationField.value = (audio.duration / 60).toFixed(1);
             }
         });
     }
 });
+
+// Convert minutes to seconds before submit (storage remains seconds)
+const podcastForm = document.getElementById('podcastForm');
+if (podcastForm) {
+    podcastForm.addEventListener('submit', function() {
+        const durationField = document.getElementById('duration');
+        if (durationField && durationField.value) {
+            const minutes = parseFloat(durationField.value);
+            if (!Number.isNaN(minutes)) {
+                durationField.value = Math.round(minutes * 60);
+            }
+        }
+    });
+}
 </script>
 
 {% endblock %}

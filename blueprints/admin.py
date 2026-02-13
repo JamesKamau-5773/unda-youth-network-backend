@@ -1881,6 +1881,231 @@ def delete_mtaani_event(event_id):
 
 
 # ========================================
+# WORKSTREAM EVENTS (Unified)
+# ========================================
+
+WORKSTREAM_EVENT_TYPE_MAP = {
+    'conference': ['conference'],
+    'international': ['international', 'partnership', 'international partnership', 'international partnerships'],
+    'debate': ['debate', 'Debaters Circle'],
+    'mtaani': ['mtaani', 'baraza', 'barazas'],
+    'campus': ['campus', 'Campus Edition']
+}
+
+WORKSTREAM_EVENT_LABELS = {
+    'conference': 'Annual Conference',
+    'international': 'UMV Global (International)',
+    'debate': 'Debaters Circle',
+    'mtaani': 'UMV Mtaani',
+    'campus': 'Campus Edition'
+}
+
+WORKSTREAM_EVENT_ALIASES = {
+    'Debaters Circle': 'debate',
+    'baraza': 'mtaani',
+    'barazas': 'mtaani',
+    'Campus Edition': 'campus',
+    'international partnership': 'international',
+    'international partnerships': 'international',
+    'partnership': 'international'
+}
+
+
+@admin_bp.route('/workstreams/events')
+@login_required
+@admin_required
+def workstream_events():
+    """Unified events manager with program and status filters."""
+    program_filter = request.args.get('program', 'all')
+    status_filter = request.args.get('status', 'all')
+
+    base_query = Event.query
+    if program_filter != 'all':
+        allowed_types = WORKSTREAM_EVENT_TYPE_MAP.get(program_filter, [])
+        if allowed_types:
+            base_query = base_query.filter(Event.event_type.in_(allowed_types))
+
+    total = base_query.count()
+    upcoming = base_query.filter(Event.status == 'Upcoming').count()
+    completed = base_query.filter(Event.status == 'Completed').count()
+
+    list_query = base_query
+    if status_filter != 'all' and status_filter:
+        list_query = list_query.filter_by(status=status_filter)
+
+    events = list_query.order_by(Event.event_date.desc()).all()
+
+    program_options = [
+        {'value': 'all', 'label': 'All Programs'},
+        {'value': 'conference', 'label': 'Annual Conference'},
+        {'value': 'international', 'label': 'UMV Global (International)'},
+        {'value': 'debate', 'label': 'Debaters Circle'},
+        {'value': 'mtaani', 'label': 'UMV Mtaani'},
+        {'value': 'campus', 'label': 'Campus Edition'}
+    ]
+
+    type_labels = {}
+    for key, label in WORKSTREAM_EVENT_LABELS.items():
+        for event_type in WORKSTREAM_EVENT_TYPE_MAP.get(key, []):
+            type_labels[event_type] = label
+
+    return render_template(
+        'admin/workstream_events.html',
+        events=events,
+        status_filter=status_filter,
+        program_filter=program_filter,
+        program_options=program_options,
+        type_labels=type_labels,
+        stats={'total': total, 'upcoming': upcoming, 'completed': completed}
+    )
+
+
+@admin_bp.route('/workstreams/events/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_workstream_event():
+    """Create a workstream event (conference, international, etc.)."""
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        event_date_raw = request.form.get('event_date', '').strip()
+        program = request.form.get('event_type', '').strip()
+
+        if not title or not event_date_raw or program not in WORKSTREAM_EVENT_TYPE_MAP:
+            flash('Title, program, and event date are required.', 'danger')
+            return render_template('admin/workstream_event_form.html', action='Create', event=None)
+
+        try:
+            event_date = datetime.strptime(event_date_raw, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            flash('Invalid date format. Please use the provided date picker.', 'danger')
+            return render_template('admin/workstream_event_form.html', action='Create', event=None)
+
+        registration_deadline = None
+        registration_deadline_raw = request.form.get('registration_deadline', '').strip()
+        if registration_deadline_raw:
+            try:
+                registration_deadline = datetime.strptime(registration_deadline_raw, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                registration_deadline = None
+
+        try:
+            max_participants_raw = request.form.get('max_participants')
+            max_participants = int(max_participants_raw) if max_participants_raw else None
+        except ValueError:
+            flash('Max participants must be a number.', 'danger')
+            return render_template('admin/workstream_event_form.html', action='Create', event=None)
+
+        event = Event(
+            title=title,
+            description=request.form.get('description'),
+            event_date=event_date,
+            location=request.form.get('location'),
+            event_type=program,
+            organizer=request.form.get('organizer'),
+            max_participants=max_participants,
+            registration_deadline=registration_deadline,
+            status=request.form.get('status', 'Upcoming'),
+            image_url=request.form.get('image_url'),
+            created_by=current_user.user_id
+        )
+
+        db.session.add(event)
+        db.session.commit()
+
+        flash('Event created.', 'success')
+        return redirect(url_for('admin.workstream_events', program=program))
+
+    return render_template('admin/workstream_event_form.html', action='Create', event=None)
+
+
+@admin_bp.route('/workstreams/events/<int:event_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_workstream_event(event_id):
+    """Edit a workstream event."""
+    event = db.session.get(Event, event_id)
+    if not event:
+        flash('Event not found', 'warning')
+        return redirect(url_for('admin.workstream_events'))
+
+    normalized_type = WORKSTREAM_EVENT_ALIASES.get(event.event_type, event.event_type)
+    if normalized_type not in WORKSTREAM_EVENT_TYPE_MAP:
+        flash('This event type is not managed in Workstreams Events.', 'warning')
+        return redirect(url_for('admin.workstream_events'))
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        event_date_raw = request.form.get('event_date', '').strip()
+        program = request.form.get('event_type', '').strip()
+
+        if not title or not event_date_raw or program not in WORKSTREAM_EVENT_TYPE_MAP:
+            flash('Title, program, and event date are required.', 'danger')
+            return render_template('admin/workstream_event_form.html', action='Edit', event=event)
+
+        try:
+            event_date = datetime.strptime(event_date_raw, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            flash('Invalid date format. Please use the provided date picker.', 'danger')
+            return render_template('admin/workstream_event_form.html', action='Edit', event=event)
+
+        registration_deadline = None
+        registration_deadline_raw = request.form.get('registration_deadline', '').strip()
+        if registration_deadline_raw:
+            try:
+                registration_deadline = datetime.strptime(registration_deadline_raw, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                registration_deadline = None
+
+        try:
+            max_participants_raw = request.form.get('max_participants')
+            max_participants = int(max_participants_raw) if max_participants_raw else None
+        except ValueError:
+            flash('Max participants must be a number.', 'danger')
+            return render_template('admin/workstream_event_form.html', action='Edit', event=event)
+
+        event.title = title
+        event.description = request.form.get('description')
+        event.event_date = event_date
+        event.location = request.form.get('location')
+        event.event_type = program
+        event.organizer = request.form.get('organizer')
+        event.max_participants = max_participants
+        event.registration_deadline = registration_deadline
+        event.status = request.form.get('status', 'Upcoming')
+        event.image_url = request.form.get('image_url')
+        event.updated_at = datetime.now(timezone.utc)
+
+        db.session.commit()
+
+        flash('Event updated.', 'success')
+        return redirect(url_for('admin.workstream_events', program=program))
+
+    return render_template('admin/workstream_event_form.html', action='Edit', event=event, normalized_type=normalized_type)
+
+
+@admin_bp.route('/workstreams/events/<int:event_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_workstream_event(event_id):
+    """Delete a workstream event."""
+    event = db.session.get(Event, event_id)
+    if not event:
+        flash('Event not found', 'warning')
+        return redirect(url_for('admin.workstream_events'))
+
+    normalized_type = WORKSTREAM_EVENT_ALIASES.get(event.event_type, event.event_type)
+    if normalized_type not in WORKSTREAM_EVENT_TYPE_MAP:
+        flash('This event type is not managed in Workstreams Events.', 'warning')
+        return redirect(url_for('admin.workstream_events'))
+
+    db.session.delete(event)
+    db.session.commit()
+
+    flash('Event deleted.', 'success')
+    return redirect(url_for('admin.workstream_events', program=normalized_type))
+
+
+# ========================================
 # PODCAST MANAGEMENT ROUTES
 # ========================================
 
@@ -1936,13 +2161,21 @@ def create_podcast():
     """Create a new podcast"""
     if request.method == 'POST':
         try:
+            duration_minutes = request.form.get('duration')
+            duration_seconds = None
+            if duration_minutes:
+                try:
+                    duration_seconds = int(round(float(duration_minutes) * 60))
+                except ValueError:
+                    flash('Duration must be a number of minutes.', 'error')
+                    return render_template('admin/podcast_form.html', podcast=None, action='Create')
             data = {
                 'title': request.form.get('title'),
                 'description': request.form.get('description'),
                 'guest': request.form.get('guest'),
                 'audio_url': request.form.get('audio_url'),
                 'thumbnail_url': request.form.get('thumbnail_url'),
-                'duration': request.form.get('duration'),
+                'duration': duration_seconds,
                 'episode_number': request.form.get('episode_number'),
                 'season_number': request.form.get('season_number'),
                 'category': request.form.get('category'),
@@ -1972,13 +2205,21 @@ def edit_podcast(podcast_id):
 
     if request.method == 'POST':
         try:
+            duration_minutes = request.form.get('duration')
+            duration_seconds = None
+            if duration_minutes:
+                try:
+                    duration_seconds = int(round(float(duration_minutes) * 60))
+                except ValueError:
+                    flash('Duration must be a number of minutes.', 'error')
+                    return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
             data = {
                 'title': request.form.get('title'),
                 'description': request.form.get('description'),
                 'guest': request.form.get('guest'),
                 'audio_url': request.form.get('audio_url'),
                 'thumbnail_url': request.form.get('thumbnail_url'),
-                'duration': request.form.get('duration'),
+                'duration': duration_seconds,
                 'episode_number': request.form.get('episode_number'),
                 'season_number': request.form.get('season_number'),
                 'category': request.form.get('category'),
@@ -2094,6 +2335,28 @@ def workstreams():
             'count': Event.query.filter(Event.event_type == 'mtaani').count()
         }
     ]
+
+    # Unified events page for conference, international, and other programs
+    try:
+        workstreams_data.append({
+            'id': 'workstream_events',
+            'name': 'Events',
+            'description': 'Manage conference, global, and other workstream events',
+            'icon': 'calendar',
+            'route': 'admin.workstream_events',
+            'create_route': 'admin.create_workstream_event',
+            'count': Event.query.count()
+        })
+    except Exception:
+        workstreams_data.append({
+            'id': 'workstream_events',
+            'name': 'Events',
+            'description': 'Manage conference, global, and other workstream events',
+            'icon': 'calendar',
+            'route': 'admin.workstream_events',
+            'create_route': 'admin.create_workstream_event',
+            'count': 0
+        })
 
     # Add content-focused workstreams (media, toolkit, resources, stories)
     try:
