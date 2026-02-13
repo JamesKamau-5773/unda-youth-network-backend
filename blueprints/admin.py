@@ -3,7 +3,7 @@ import threading
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication, Podcast, Event, DailyAffirmation, SymbolicItem, MentalHealthAssessment, MediaGallery, InstitutionalToolkitItem, UMVGlobalEntry, ResourceItem, BlogPost
+from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication, Podcast, Event, EventParticipation, EventInterest, DailyAffirmation, SymbolicItem, MentalHealthAssessment, MediaGallery, InstitutionalToolkitItem, UMVGlobalEntry, ResourceItem, BlogPost
 from decorators import admin_required
 from flask_bcrypt import Bcrypt
 import secrets
@@ -1394,19 +1394,27 @@ def edit_debate_event(event_id):
 @admin_required
 def delete_debate_event(event_id):
     """Delete a Debaters Circle event"""
-    event = db.session.get(Event, event_id)
-    if not event:
-        flash('Event not found', 'warning')
-        return redirect(url_for('admin.debates'))
-    if event.event_type != 'Debaters Circle':
-        flash('This event is not part of Debaters Circle.', 'warning')
-        return redirect(url_for('admin.debates'))
+    try:
+        event = db.session.get(Event, event_id)
+        if not event:
+            flash('Event not found', 'warning')
+            return redirect(url_for('admin.debates'))
+        if event.event_type != 'Debaters Circle':
+            flash('This event is not part of Debaters Circle.', 'warning')
+            return redirect(url_for('admin.debates'))
 
-    db.session.delete(event)
-    db.session.commit()
+        EventParticipation.query.filter_by(event_id=event_id).delete(synchronize_session=False)
+        EventInterest.query.filter_by(event_id=event_id).delete(synchronize_session=False)
+        db.session.delete(event)
+        db.session.commit()
 
-    flash('Debaters Circle event deleted.', 'success')
-    return redirect(url_for('admin.debates'))
+        flash('Debaters Circle event deleted.', 'success')
+        return redirect(url_for('admin.debates'))
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception('Error deleting Debaters Circle event %s', event_id)
+        flash('Failed to delete event. Please try again.', 'danger')
+        return redirect(url_for('admin.debates'))
 
 
 # ========================================
@@ -2088,21 +2096,29 @@ def edit_workstream_event(event_id):
 @admin_required
 def delete_workstream_event(event_id):
     """Delete a workstream event."""
-    event = db.session.get(Event, event_id)
-    if not event:
-        flash('Event not found', 'warning')
+    try:
+        event = db.session.get(Event, event_id)
+        if not event:
+            flash('Event not found', 'warning')
+            return redirect(url_for('admin.workstream_events'))
+
+        normalized_type = WORKSTREAM_EVENT_ALIASES.get(event.event_type, event.event_type)
+        if normalized_type not in WORKSTREAM_EVENT_TYPE_MAP:
+            flash('This event type is not managed in Workstreams Events.', 'warning')
+            return redirect(url_for('admin.workstream_events'))
+
+        EventParticipation.query.filter_by(event_id=event_id).delete(synchronize_session=False)
+        EventInterest.query.filter_by(event_id=event_id).delete(synchronize_session=False)
+        db.session.delete(event)
+        db.session.commit()
+
+        flash('Event deleted.', 'success')
+        return redirect(url_for('admin.workstream_events', program=normalized_type))
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception('Error deleting workstream event %s', event_id)
+        flash('Failed to delete event. Please try again.', 'danger')
         return redirect(url_for('admin.workstream_events'))
-
-    normalized_type = WORKSTREAM_EVENT_ALIASES.get(event.event_type, event.event_type)
-    if normalized_type not in WORKSTREAM_EVENT_TYPE_MAP:
-        flash('This event type is not managed in Workstreams Events.', 'warning')
-        return redirect(url_for('admin.workstream_events'))
-
-    db.session.delete(event)
-    db.session.commit()
-
-    flash('Event deleted.', 'success')
-    return redirect(url_for('admin.workstream_events', program=normalized_type))
 
 
 # ========================================
@@ -2299,24 +2315,6 @@ def workstreams():
             'count': Podcast.query.count()
         },
         {
-            'id': 'debators_circle',
-            'name': 'Debators Circle',
-            'description': 'Manage debate events and champion participation',
-            'icon': 'mic',
-            'route': 'admin.debates',
-            'create_route': 'admin.create_debate_event',
-            'count': Event.query.filter(Event.event_type.in_(['debate', 'Debaters Circle'])).count()
-        },
-        {
-            'id': 'campus_edition',
-            'name': 'Campus Edition',
-            'description': 'Manage campus-based events and activities',
-            'icon': 'graduation-cap',
-            'route': 'admin.campus_edition',
-            'create_route': 'admin.create_campus_event',
-            'count': Event.query.filter(Event.event_type == 'campus').count()
-        },
-        {
             'id': 'seed_funding',
             'name': 'Seed Funding',
             'description': 'Review and approve seed funding applications',
@@ -2324,15 +2322,6 @@ def workstreams():
             'route': 'admin.seed_funding_applications',
             'create_route': None,  # Applications come from frontend
             'count': SeedFundingApplication.query.count()
-        },
-        {
-            'id': 'umv_mtaani',
-            'name': 'UMV Mtaani',
-            'description': 'Manage community barazas and mtaani events',
-            'icon': 'users',
-            'route': 'admin.umv_mtaani',
-            'create_route': 'admin.create_mtaani_event',
-            'count': Event.query.filter(Event.event_type == 'mtaani').count()
         }
     ]
 
@@ -2345,7 +2334,9 @@ def workstreams():
             'icon': 'calendar',
             'route': 'admin.workstream_events',
             'create_route': 'admin.create_workstream_event',
-            'count': Event.query.count()
+            'count': Event.query.filter(
+                ~Event.event_type.in_(['debate', 'Debaters Circle', 'campus', 'mtaani'])
+            ).count()
         })
     except Exception:
         workstreams_data.append({
