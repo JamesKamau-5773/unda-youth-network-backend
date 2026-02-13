@@ -824,7 +824,10 @@ class EventParticipation(db.Model):
   certificate_issued = db.Column(db.Boolean, default=False)
   
   # Relationships
-  event = db.relationship('Event', backref='participations')
+  event = db.relationship(
+    'Event',
+    backref=db.backref('participations', cascade='all, delete-orphan', passive_deletes=True)
+  )
   champion = db.relationship('Champion', backref='event_participations')
 
 
