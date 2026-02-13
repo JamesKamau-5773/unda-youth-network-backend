@@ -1,40 +1,191 @@
 {% extends 'admin/base.html' %}
 {% import 'admin/_admin_macros.html' as macros %}
 {% block content %}
-{{ macros.hero_header(resource and 'Edit Resource' or 'Create Resource', 'Manage external/internal resources') }}
+{{ macros.hero_header(resource and 'Edit Resource' or 'Create Resource', 'Add guides, documents, or external resources for members') }}
 
 {{ macros.form_card_start() }}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="form-group">
-    <label class="form-label">Title</label>
-    <input name="title" class="form-input" value="{{ resource.title if resource else '' }}" />
+  
+  <!-- Basic Information Section -->
+  <div class="mb-4">
+    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Basic Information</h6>
+    
+    <div class="form-group mb-3">
+      <label class="form-label">
+        <strong>Title *</strong>
+        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
+          What is this resource called? (e.g., "Mental Health Guide 2024")
+        </small>
+      </label>
+      <input 
+        name="title" 
+        class="form-input form-control" 
+        placeholder="Enter resource title"
+        value="{{ resource.title if resource else '' }}" 
+        required 
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label class="form-label">
+        <strong>Type / Category *</strong>
+        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
+          What kind of resource is this?
+        </small>
+      </label>
+      <select name="resource_type" class="form-input form-control" required>
+        <option value="">-- Select a category --</option>
+        <option value="guide" {% if resource and resource.resource_type == 'guide' %}selected{% endif %}>
+          📖 Guide (step-by-step instructions)
+        </option>
+        <option value="toolkit" {% if resource and resource.resource_type == 'toolkit' %}selected{% endif %}>
+          🛠️ Toolkit (templates, tools, checklists)
+        </option>
+        <option value="publication" {% if resource and resource.resource_type == 'publication' %}selected{% endif %}>
+          📄 Publication (reports, whitepapers, research)
+        </option>
+        <option value="video" {% if resource and resource.resource_type == 'video' %}selected{% endif %}>
+          🎥 Video (training videos, webinars)
+        </option>
+        <option value="external" {% if resource and resource.resource_type == 'external' %}selected{% endif %}>
+          🔗 External Link (articles, websites)
+        </option>
+        <option value="template" {% if resource and resource.resource_type == 'template' %}selected{% endif %}>
+          📋 Template (forms, plans, worksheets)
+        </option>
+      </select>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label class="form-label">URL</label>
-    <input name="url" class="form-input" value="{{ resource.url if resource else '' }}" />
+  <!-- Content Section -->
+  <div class="mb-4">
+    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Content</h6>
+    
+    <div class="form-group mb-3">
+      <label class="form-label">
+        <strong>Description *</strong>
+        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
+          Explain what this resource is about and who it's for (2-3 sentences)
+        </small>
+      </label>
+      <textarea 
+        name="description" 
+        class="form-input form-control" 
+        rows="4"
+        placeholder="e.g., A comprehensive guide on mental health support resources available to youth network members. Covers access, support options, and self-care strategies."
+        required
+      >{{ resource.description if resource else '' }}</textarea>
+    </div>
+
+    <div class="form-group mb-3">
+      <label class="form-label">
+        <strong>URL / Link *</strong>
+        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
+          Where can this resource be found? (full link starting with http:// or https://)
+        </small>
+      </label>
+      <input 
+        name="url" 
+        type="url"
+        class="form-input form-control" 
+        placeholder="https://example.com/resource"
+        value="{{ resource.url if resource else '' }}" 
+        required 
+      />
+    </div>
   </div>
 
-  <div class="form-group">
-    <label class="form-label">Description</label>
-    <textarea name="description" class="form-input">{{ resource.description if resource else '' }}</textarea>
+  <!-- Organization Section -->
+  <div class="mb-4">
+    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Organization</h6>
+    
+    <div class="form-group mb-3">
+      <label class="form-label">
+        <strong>Tags</strong>
+        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
+          Add keywords to help members find this resource (separate with commas)
+        </small>
+      </label>
+      <input 
+        id="tags-input"
+        type="text" 
+        class="form-input form-control" 
+        placeholder="e.g., mental-health, support, youth-mental-health"
+        value="{{ resource.tags|join(', ') if resource and resource.tags else '' }}"
+      />
+      <input type="hidden" name="tags" id="tags-hidden" value="{{ resource.tags|tojson if resource and resource.tags else '[]' }}" />
+      <small class="text-muted d-block mt-2">Tags will be automatically processed and formatted</small>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label class="form-label">Tags (JSON array)</label>
-    <textarea name="tags" class="form-input">{{ resource.tags|tojson if resource and resource.tags else '[]' }}</textarea>
+  <!-- Publishing Section -->
+  <div class="mb-4 p-3 bg-light rounded">
+    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Publishing</h6>
+    
+    <div class="form-group" style="display:flex; align-items:flex-start; gap:1rem;">
+      <input 
+        type="checkbox" 
+        name="published" 
+        value="on" 
+        id="published"
+        {% if (resource and resource.published) or not resource %}checked{% endif %}
+        style="width:1.25rem; height:1.25rem; margin-top: 0.25rem;" 
+      />
+      <div>
+        <label for="published" class="form-label" style="margin:0;">
+          <strong>Publish this resource</strong>
+        </label>
+        <small class="text-muted d-block" style="margin-top: 0.25rem;">
+          When checked, this resource will be visible to members. Leave unchecked to save as a draft.
+        </small>
+      </div>
+    </div>
   </div>
 
-  <div class="form-group" style="display:flex; align-items:center; gap:0.75rem;">
-    <input type="checkbox" name="published" value="on" id="published"
-      {% if (resource and resource.published) or not resource %}checked{% endif %}
-      style="width:1.25rem; height:1.25rem;" />
-    <label for="published" class="form-label" style="margin:0;">Published</label>
-  </div>
-
-  {{ macros.action_buttons('Save', url_for('admin.list_resources')) }}
+  {{ macros.action_buttons('Save Resource', url_for('admin.list_resources')) }}
 </form>
 {{ macros.form_card_end() }}
+
+<script>
+  // Convert comma-separated tags to JSON array on submit
+  document.querySelector('form').addEventListener('submit', function(e) {
+    const tagsInput = document.querySelector('#tags-input').value;
+    const tagsArray = tagsInput
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0);
+    document.querySelector('#tags-hidden').value = JSON.stringify(tagsArray);
+  });
+</script>
+
+<style>
+  .form-control {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+  }
+  
+  .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
+  .text-muted {
+    color: #6c757d;
+  }
+  
+  .bg-light {
+    background-color: #f8f9fa;
+  }
+  
+  .rounded {
+    border-radius: 6px;
+  }
+  
+  .p-3 {
+    padding: 1.5rem;
+  }
+</style>
 
 {% endblock %}
