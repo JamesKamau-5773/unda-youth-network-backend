@@ -1,117 +1,160 @@
 {% extends "admin/base.html" %}
 
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="row mb-4">
-    <div class="col-md-12">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Event Submissions</h2>
-        <a href="{{ url_for('admin.event_submissions_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
-      </div>
-      
-      <!-- Filters -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6">
-              <label for="statusFilter" class="form-label">Filter by Status</label>
-              <select id="statusFilter" class="form-select" onchange="applyFilters()">
-                <option value="">All Statuses</option>
-                <option value="Pending Approval" {% if current_status == 'Pending Approval' %}selected{% endif %}>Pending Approval</option>
-                <option value="Approved" {% if current_status == 'Approved' %}selected{% endif %}>Approved</option>
-                <option value="Rejected" {% if current_status == 'Rejected' %}selected{% endif %}>Rejected</option>
-              </select>
+<div class="max-w-7xl mx-auto px-6 py-8">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl font-black text-[#0B1E3B] tracking-tight">Event Submissions</h1>
+      <p class="text-[#006064] font-bold text-sm mt-1">
+        Manage and review all event submissions.
+      </p>
+    </div>
+    <div>
+        <a href="{{ url_for('admin.event_submissions_dashboard') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-[#00838F] bg-white border border-[#D6EAFC] hover:bg-[#ECF5FF] transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back to Dashboard
+        </a>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-[2rem] border border-[#D6EAFC] shadow-sm p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <label for="statusFilter" class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2">Filter by Status</label>
+            <div class="relative">
+                <select id="statusFilter" onchange="applyFilters()" class="w-full appearance-none px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-bold outline-none cursor-pointer transition-colors">
+                    <option value="">All Statuses</option>
+                    <option value="Pending Approval" {% if current_status == 'Pending Approval' %}selected{% endif %}>Pending Approval</option>
+                    <option value="Approved" {% if current_status == 'Approved' %}selected{% endif %}>Approved</option>
+                    <option value="Rejected" {% if current_status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#00838F]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
             </div>
-            <div class="col-md-6">
-              <label for="typeFilter" class="form-label">Filter by Event Type</label>
-              <select id="typeFilter" class="form-select" onchange="applyFilters()">
-                <option value="">All Types</option>
-                <option value="mtaani" {% if current_type == 'mtaani' %}selected{% endif %}>Mtaani Baraza</option>
-                <option value="baraza" {% if current_type == 'baraza' %}selected{% endif %}>Baraza</option>
-              </select>
-            </div>
-          </div>
         </div>
-      </div>
+        <div>
+            <label for="typeFilter" class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2">Filter by Event Type</label>
+            <div class="relative">
+                <select id="typeFilter" onchange="applyFilters()" class="w-full appearance-none px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-bold outline-none cursor-pointer transition-colors">
+                    <option value="">All Types</option>
+                    <option value="mtaani" {% if current_type == 'mtaani' %}selected{% endif %}>Mtaani Baraza</option>
+                    <option value="baraza" {% if current_type == 'baraza' %}selected{% endif %}>Baraza</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#00838F]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+            </div>
+        </div>
     </div>
   </div>
 
   <!-- Submissions Table -->
-  <div class="row">
-    <div class="col-md-12">
-      {% if submissions %}
-        <div class="card">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Title</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Submitted By</th>
-                  <th>Event Date</th>
-                  <th>Location</th>
-                  <th>Submitted</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for submission in submissions %}
-                  <tr>
-                    <td>
-                      <strong>{{ submission.title }}</strong>
-                      {% if submission.submission_status == 'Pending Approval' %}
-                        <span class="badge bg-warning ms-2">NEW</span>
-                      {% endif %}
-                    </td>
-                    <td>
-                      <span class="badge bg-info">{{ submission.event_type }}</span>
-                    </td>
-                    <td>
-                      {% if submission.submission_status == 'Pending Approval' %}
-                        <span class="badge bg-warning">Pending Review</span>
-                      {% elif submission.submission_status == 'Approved' %}
-                        <span class="badge bg-success">Approved</span>
-                      {% elif submission.submission_status == 'Rejected' %}
-                        <span class="badge bg-danger">Rejected</span>
-                      {% endif %}
-                    </td>
-                    <td>
-                      {% if submission._submitter %}
-                        {{ submission._submitter.full_name }}
-                      {% elif submission.submitted_by %}
-                        Unknown
-                      {% else %}
-                        N/A
-                      {% endif %}
-                    </td>
-                    <td>
-                      {% if submission.event_date %}
-                        {{ submission.event_date.strftime('%d %b %Y %H:%M') }}
-                      {% else %}
-                        N/A
-                      {% endif %}
-                    </td>
-                    <td>{{ submission.location or 'N/A' }}</td>
-                    <td>
-                      <small class="text-muted">{{ submission.created_at.strftime('%d %b %Y') }}</small>
-                    </td>
-                    <td>
-                      <a href="{{ url_for('admin.event_submission_detail', event_id=submission.event_id) }}" class="btn btn-sm btn-primary">Review</a>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      {% else %}
-        <div class="alert alert-info">
-          <h5>No submissions found</h5>
-          <p class="mb-0">Try adjusting your filters or check back later.</p>
-        </div>
-      {% endif %}
+  <div class="bg-white rounded-[2rem] border border-[#D6EAFC] shadow-sm overflow-hidden">
+    {% if submissions %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+            <tr class="bg-[#ECF5FF] text-[#006064] text-xs uppercase tracking-wider border-b border-[#D6EAFC]">
+                <th class="px-8 py-4 font-bold border-r border-[#D6EAFC]/50 last:border-r-0">Event Details</th>
+                <th class="px-8 py-4 font-bold border-r border-[#D6EAFC]/50 last:border-r-0">Type</th>
+                <th class="px-8 py-4 font-bold border-r border-[#D6EAFC]/50 last:border-r-0">Status</th>
+                <th class="px-8 py-4 font-bold border-r border-[#D6EAFC]/50 last:border-r-0">Submitted By</th>
+                <th class="px-8 py-4 font-bold border-r border-[#D6EAFC]/50 last:border-r-0">Date & Location</th>
+                <th class="px-8 py-4 font-bold border-r border-[#D6EAFC]/50 last:border-r-0">Submitted</th>
+                <th class="px-8 py-4 font-bold text-right">Action</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-[#D6EAFC]">
+          {% for submission in submissions %}
+            <tr class="hover:bg-[#F4F9FF] transition-colors group">
+                <td class="px-8 py-5">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-[#0B1E3B] text-base">{{ submission.title }}</span>
+                        {% if submission.submission_status == 'Pending Approval' %}
+                            <span class="inline-flex h-2 w-2 rounded-full bg-amber-400 ring-2 ring-white"></span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="px-8 py-5">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-100">
+                        {{ submission.event_type }}
+                    </span>
+                </td>
+                <td class="px-8 py-5">
+                    {% if submission.submission_status == 'Pending Approval' %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-100">Pending Review</span>
+                    {% elif submission.submission_status == 'Approved' %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-100">Approved</span>
+                    {% elif submission.submission_status == 'Rejected' %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-red-50 text-red-700 border border-red-100">Rejected</span>
+                    {% endif %}
+                </td>
+                <td class="px-8 py-5">
+                    <div class="flex items-center gap-2">
+                        <div class="h-8 w-8 rounded-full bg-[#E0F7FA] text-[#006064] flex items-center justify-center text-xs font-bold ring-2 ring-white">
+                            {% if submission._submitter and submission._submitter.full_name %}
+                                {{ submission._submitter.full_name[:2].upper() }}
+                            {% else %}
+                                U
+                            {% endif %}
+                        </div>
+                        <span class="text-sm font-medium text-[#1F2937]">
+                            {% if submission._submitter %}
+                                {{ submission._submitter.full_name }}
+                            {% elif submission.submitted_by %}
+                                Unknown (Overview)
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </div>
+                </td>
+                <td class="px-8 py-5">
+                    <div class="text-sm font-bold text-[#0B1E3B]">
+                        {% if submission.event_date %}
+                            {{ submission.event_date.strftime('%d %b %Y, %H:%M') }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                    <div class="text-xs text-[#006064] mt-1 flex items-center gap-1 font-medium">
+                        <svg class="w-3.5 h-3.5 text-[#00ACC1]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        {{ submission.location or 'N/A' }}
+                    </div>
+                </td>
+                <td class="px-8 py-5">
+                    <span class="text-sm text-[#4B5563] font-medium">
+                        {{ submission.created_at.strftime('%d %b %Y') }}
+                    </span>
+                </td>
+                <td class="px-8 py-5 text-right">
+                    <a href="{{ url_for('admin.event_submission_detail', event_id=submission.event_id) }}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#0B1E3B] bg-[#FFF3C4] hover:bg-[#FDE68A] transition-all hover:shadow-sm transform hover:-translate-y-0.5">
+                        {% if submission.submission_status == 'Pending Approval' %}
+                        Review
+                        {% else %}
+                        Details
+                        {% endif %}
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+    {% else %}
+        <div class="py-20 px-6 text-center flex flex-col items-center justify-center">
+            <div class="h-24 w-24 bg-[#ECF5FF] rounded-full flex items-center justify-center mb-6 border border-[#D6EAFC]">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00838F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-50"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </div>
+            <h3 class="text-[#0B1E3B] font-black text-2xl tracking-tight">No Events Found</h3>
+            <p class="text-[#006064] text-base mt-3 font-medium max-w-sm mx-auto leading-relaxed">
+            There are no events matching your selected filters. Try adjusting the filters or check again later.
+            </p>
+        </div>
+    {% endif %}
   </div>
 </div>
 
@@ -120,11 +163,14 @@ function applyFilters() {
   const status = document.getElementById('statusFilter').value;
   const type = document.getElementById('typeFilter').value;
   
-  let url = "{{ url_for('admin.event_submissions_list') }}?";
-  if (status) url += "status=" + encodeURIComponent(status) + "&";
-  if (type) url += "type=" + encodeURIComponent(type) + "&";
+  let url = new URL(window.location.href);
+  if (status) url.searchParams.set('status', status);
+  else url.searchParams.delete('status');
   
-  window.location.href = url.replace(/&$/, '');
+  if (type) url.searchParams.set('type', type);
+  else url.searchParams.delete('type');
+  
+  window.location.href = url.toString();
 }
 </script>
 {% endblock %}
