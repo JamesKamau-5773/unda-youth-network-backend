@@ -1,70 +1,197 @@
-{% extends 'admin/base.html' %}
+{% extends "base.html" %}
+
+{% block title %}Media Galleries - Unda Admin{% endblock %}
+
 {% block content %}
-<div class="hero-card">
-  <div class="hero-card__inner">
-    <div>
-      <h1 class="hero-card__title">Media Galleries</h1>
-      <p class="hero-card__subtitle">Browse and manage media galleries and their items.</p>
-    </div>
-    <div class="hero-card__actions">
-        <a href="{{ url_for('admin.create_media_gallery') }}" class="btn btn--primary">Create Gallery</a>
-        <a href="{{ url_for('admin.workstreams') }}" class="btn btn--secondary" style="margin-left:0.5rem;">Back to Workstreams</a>
-    </div>
-  </div>
-</div>
-
-<div class="table-container">
-  <div class="table-header">
-      <h2 class="section-title">Galleries</h2>
-      <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center;">
-        <label for="gallery-search" style="margin-right:0.5rem;color:var(--muted-color);">Search:</label>
-        <input id="gallery-search" type="search" placeholder="Filter galleries..." aria-label="Search galleries" style="flex:1; padding:0.5rem; border:1px solid var(--border-color); border-radius:6px;" />
-      </div>
-  </div>
-  <div class="card">
-    <ul>
-      {% for g in galleries %}
-        <li class="gallery-item" data-title="{{ g.title|lower }}" style="padding:0.75rem 0; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color);">
-          <div style="display:flex; align-items:center; gap:0.75rem;">
-            <span style="display:inline-block; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.7rem; font-weight:700; letter-spacing:0.05em;
-              {% if g.published %}background:#d1fae5; color:#065f46;{% else %}background:#fef3c7; color:#92400e;{% endif %}">
-              {{ 'Published' if g.published else 'Draft' }}
-            </span>
-            <div class="gallery-title">{{ g.title }}</div>
-          </div>
-        <div style="display:flex; gap:0.5rem;">
-          <form action="{{ url_for('admin.toggle_publish_gallery', gallery_id=g.gallery_id) }}" method="post" style="display:inline">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button class="btn btn--{{ 'warning' if g.published else 'success' }}" style="font-size:0.8rem;">
-              {{ 'Unpublish' if g.published else 'Publish' }}
-            </button>
-          </form>
-          <a href="{{ url_for('admin.edit_media_gallery', gallery_id=g.gallery_id) }}" class="btn btn--secondary">Edit</a>
-          <form action="{{ url_for('admin.delete_media_gallery', gallery_id=g.gallery_id) }}" method="post" style="display:inline">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button class="btn btn--secondary">Delete</button>
-          </form>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-[#0B1E3B]">Media Galleries</h1>
+            <p class="text-gray-500">Manage photo and video collections</p>
         </div>
-      </li>
-    {% endfor %}
-    </ul>
-  </div>
-</div>
- 
-  <script>
-  // Client-side search/filter for galleries
-  ;(function(){
-    const inp = document.getElementById('gallery-search');
-    if(!inp) return;
-    const list = Array.from(document.querySelectorAll('.gallery-item'));
-    inp.addEventListener('input', function(e){
-      const q = (e.target.value || '').trim().toLowerCase();
-      list.forEach(li => {
-        const title = li.getAttribute('data-title') || '';
-        li.style.display = q === '' || title.indexOf(q) !== -1 ? '' : 'none';
-      });
-    });
-  })();
-  </script>
+        <div class="flex gap-3">
+             <a href="{{ url_for('admin.workstreams') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm font-medium">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to Workstreams
+            </a>
+            <a href="{{ url_for('admin.create_media_gallery') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#00ACC1] hover:bg-[#0097a7] text-white rounded-lg transition-colors shadow-sm font-medium">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Create Gallery
+            </a>
+        </div>
+    </div>
 
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <i data-lucide="images" class="w-6 h-6"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-500">Total Galleries</span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-[#0B1E3B]">{{ galleries|length }}</h3>
+                <span class="text-sm text-gray-500">collections</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+             <div class="flex items-center justify-between mb-4">
+                <div class="p-2 bg-green-50 text-green-600 rounded-lg">
+                    <i data-lucide="eye" class="w-6 h-6"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-500">Published</span>
+            </div>
+            {% set published_count = galleries | selectattr('published') | list | length %}
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-[#0B1E3B]">{{ published_count }}</h3>
+                 <span class="text-sm text-gray-500">visible publicly</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                    <i data-lucide="file-edit" class="w-6 h-6"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-500">Drafts</span>
+            </div>
+             <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-[#0B1E3B]">{{ galleries|length - published_count }}</h3>
+                <span class="text-sm text-gray-500">pending publish</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+        <!-- Filter Bar -->
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row gap-4 justify-between items-center">
+             <div class="relative w-full sm:w-72">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="gallery-search" placeholder="Search galleries..." 
+                       class="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none text-sm">
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100">
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Gallery Info</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for g in galleries %}
+                    <tr class="hover:bg-gray-50/50 transition-colors group gallery-item" data-title="{{ g.title|lower }}">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 overflow-hidden">
+                                    {% if g.media_items and g.media_items|length > 0 %}
+                                         {% set cover = g.media_items[0] %}
+                                         {% if cover.type == 'image' %}
+                                            <img src="{{ cover.url }}" alt="" class="w-full h-full object-cover">
+                                         {% else %}
+                                            <i data-lucide="video" class="w-6 h-6"></i>
+                                         {% endif %}
+                                    {% else %}
+                                        <i data-lucide="image" class="w-6 h-6"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-[#0B1E3B] group-hover:text-[#00ACC1] transition-colors">
+                                        {{ g.title }}
+                                    </h3>
+                                    <p class="text-xs text-gray-500 mt-0.5 line-clamp-1 max-w-xs">
+                                        {{ g.description or 'No description' }}
+                                    </p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                                            {{ g.media_items|length }} items
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                             {% if g.published %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                    Published
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    Draft
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                             <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <form action="{{ url_for('admin.toggle_publish_gallery', gallery_id=g.gallery_id) }}" method="POST" class="inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="p-2 text-gray-400 hover:text-{{ 'amber' if g.published else 'green' }}-600 hover:bg-{{ 'amber' if g.published else 'green' }}-50 rounded-lg transition-colors"
+                                            title="{{ 'Unpublish' if g.published else 'Publish' }}">
+                                        <i data-lucide="{{ 'eye-off' if g.published else 'eye' }}" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('admin.edit_media_gallery', gallery_id=g.gallery_id) }}" 
+                                   class="p-2 text-gray-400 hover:text-[#00ACC1] hover:bg-cyan-50 rounded-lg transition-colors"
+                                   title="Edit">
+                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                </a>
+                                <form action="{{ url_for('admin.delete_media_gallery', gallery_id=g.gallery_id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this gallery? This action cannot be undone.');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="px-6 py-12 text-center text-gray-500">
+                             <div class="flex flex-col items-center justify-center">
+                                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                    <i data-lucide="image-off" class="w-6 h-6 text-gray-400"></i>
+                                </div>
+                                <p class="text-base font-medium text-gray-900">No media galleries yet</p>
+                                <p class="text-sm text-gray-500 mt-1">Create a gallery to share photos and videos.</p>
+                                <a href="{{ url_for('admin.create_media_gallery') }}" class="mt-4 text-[#00ACC1] hover:text-[#008e9e] text-sm font-medium">
+                                    Create First Gallery &rarr;
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    // Search filter
+    const searchInput = document.getElementById('gallery-search');
+    if(searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.gallery-item').forEach(row => {
+               const title = row.getAttribute('data-title');
+               if(title.includes(term)) {
+                   row.style.display = '';
+               } else {
+                   row.style.display = 'none';
+               }
+            });
+        });
+    }
+</script>
 {% endblock %}

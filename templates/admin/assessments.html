@@ -1,32 +1,199 @@
 {% extends "base.html" %}
 
-{% block title %}Assessments - Admin{% endblock %}
+{% block title %}Assessments - Unda Admin{% endblock %}
 
 {% block content %}
-<h1>Mental Health Assessments</h1>
-<p><a class="btn btn--primary" href="{{ url_for('admin.create_assessment') }}">Record Assessment</a></p>
-<table class="table">
-  <thead>
-    <tr><th>ID</th><th>Champion Code</th><th>Type</th><th>Date</th><th>Risk</th><th>Actions</th></tr>
-  </thead>
-  <tbody>
-  {% for a in assessments %}
-    <tr>
-      <td>{{ a.assessment_id }}</td>
-      <td>{{ a.champion_code }}</td>
-      <td>{{ a.assessment_type }}</td>
-      <td>{{ a.assessment_date.strftime('%Y-%m-%d') if a.assessment_date else '-' }}</td>
-      <td>{{ a.risk_category }}</td>
-      <td>
-        <form action="{{ url_for('admin.delete_assessment', assessment_id=a.assessment_id) }}" method="post" style="display:inline">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <button type="submit" class="link-like">Delete</button>
-        </form>
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="6">No assessments recorded.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-[#0B1E3B]">Mental Health Assessments</h1>
+            <p class="text-gray-500">Monitor mental health screening results (PHQ-9, GAD-7)</p>
+        </div>
+        <div class="flex gap-3">
+             <a href="{{ url_for('admin.workstreams') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm font-medium">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to Workstreams
+            </a>
+            <a href="{{ url_for('admin.create_assessment') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#00ACC1] hover:bg-[#0097a7] text-white rounded-lg transition-colors shadow-sm font-medium">
+                <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+                Record Assessment
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-500">Total Records</span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-[#0B1E3B]">{{ assessments|length }}</h3>
+                <span class="text-sm text-gray-500">screenings</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+             <div class="flex items-center justify-between mb-4">
+                <div class="p-2 bg-green-50 text-green-600 rounded-lg">
+                    <i data-lucide="smile" class="w-6 h-6"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-500">Low Risk</span>
+            </div>
+             {% set low_risk = assessments | selectattr('risk_category', 'equalto', 'Green') | list | length %}
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-[#0B1E3B]">{{ low_risk }}</h3>
+                 <span class="text-sm text-gray-500">stable</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+             <div class="flex items-center justify-between mb-4">
+                <div class="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-500">Moderate Risk</span>
+            </div>
+            {% set mod_risk = assessments | selectattr('risk_category', 'in', ['Yellow', 'Orange']) | list | length %}
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-[#0B1E3B]">{{ mod_risk }}</h3>
+                <span class="text-sm text-gray-500">monitoring</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-2 bg-red-50 text-red-600 rounded-lg">
+                    <i data-lucide="activity" class="w-6 h-6"></i>
+                </div>
+                <span class="text-sm font-medium text-gray-500">High Risk</span>
+            </div>
+            {% set high_risk = assessments | selectattr('risk_category', 'equalto', 'Red') | list | length %}
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-[#0B1E3B]">{{ high_risk }}</h3>
+                <span class="text-sm text-gray-500">action needed</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+        <!-- Filter Bar -->
+         <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row gap-4 items-center">
+            <div class="flex items-center text-sm text-gray-500 gap-2">
+                <i data-lucide="filter" class="w-4 h-4"></i>
+                <span>Filter by Risk:</span>
+            </div>
+            <div class="flex gap-2">
+                <button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">All</button>
+                <button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 border border-green-100 text-green-700 hover:bg-green-100">Low</button>
+                <button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 border border-amber-100 text-amber-700 hover:bg-amber-100">Moderate</button>
+                <button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 border border-red-100 text-red-700 hover:bg-red-100">High</button>
+            </div>
+            <div class="flex-1"></div>
+             <div class="relative w-full sm:w-64">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" placeholder="Search champion code..." 
+                       class="w-full pl-9 pr-4 py-1.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none text-sm bg-white">
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100">
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Assessment Details</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Champion Code</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Risk Level</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for a in assessments %}
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+                                    {{ a.assessment_type or 'UNK' }}
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-semibold text-[#0B1E3B]">
+                                        {{ a.assessment_type }} Screening
+                                    </h3>
+                                    <p class="text-xs text-gray-500">
+                                        {{ a.date_created.strftime('%b %d, %Y') if a.date_created else 'Date N/A' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                             <div class="flex items-center gap-2">
+                                <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-mono font-medium">
+                                    {{ a.champion_code }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if a.risk_category == 'Red' or a.risk_category == 'High' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                    High Risk
+                                </span>
+                            {% elif a.risk_category == 'Orange' or a.risk_category == 'Yellow' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    {{ a.risk_category }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                    Normal
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                             <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a href="#" 
+                                   class="p-2 text-gray-400 hover:text-[#00ACC1] hover:bg-cyan-50 rounded-lg transition-colors"
+                                   title="View Details">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </a>
+                                <form action="{{ url_for('admin.delete_assessment', assessment_id=a.assessment_id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this record?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                    <i data-lucide="clipboard-x" class="w-6 h-6 text-gray-400"></i>
+                                </div>
+                                <p class="text-base font-medium text-gray-900">No assessments found</p>
+                                <p class="text-sm text-gray-500 mt-1">Mental health screenings will appear here.</p>
+                                <a href="{{ url_for('admin.create_assessment') }}" class="mt-4 text-[#00ACC1] hover:text-[#008e9e] text-sm font-medium">
+                                    Record Assessment &rarr;
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
 {% endblock %}

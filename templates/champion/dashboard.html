@@ -1,237 +1,136 @@
 {% extends "base.html" %}
-{% block title %}Prevention Advocate Dashboard{% endblock %}
+{% block title %}Prevention Advocate Dashboard - Unda{% endblock %}
 
 {% block content %}
-<div class="dashboard-header">
-	<h1 class="dashboard-title">Welcome, {{ champion.full_name }}</h1>
-	<p class="dashboard-subtitle">
-		<span class="badge badge--primary">{{ champion.assigned_champion_code }}</span>
-		<span class="badge badge--secondary" style="margin-left: 0.5rem;">{{ champion.assigned_cohort }}</span>
-	</p>
+<div class="space-y-8">
+    
+    <!-- Welcome Header -->
+    <div class="bg-[#0B1E3B] rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-[#00ACC1] rounded-full opacity-10 blur-3xl -mr-16 -mt-16"></div>
+        
+        <div class="relative z-10">
+            <h1 class="text-3xl font-bold mb-2">Welcome, {{ champion.full_name }}</h1>
+            <div class="flex items-center gap-3 text-blue-200">
+                <span class="bg-white/10 px-3 py-1 rounded-full text-sm font-medium border border-white/20">{{ champion.assigned_champion_code }}</span>
+                <span class="bg-[#00ACC1]/20 px-3 py-1 rounded-full text-sm font-medium border border-[#00ACC1]/30">{{ champion.assigned_cohort }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Report Alert -->
+    {% set report_exists = reports|selectattr('reporting_period', 'eq', current_reporting_date)|list %}
+    {% if not report_exists %}
+    <div class="bg-amber-50 border-l-4 border-amber-500 rounded-xl p-6 shadow-sm flex items-start gap-4">
+        <div class="p-2 bg-amber-100 rounded-lg text-amber-600 flex-shrink-0">
+            <i data-lucide="alert-circle" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-amber-900 mb-1">Monthly Report Due: {{ current_reporting_date.strftime('%B %Y') }}</h3>
+            <p class="text-amber-700 mb-4">Please submit your operational data to track your impact and support circle.</p>
+            <a href="{{ url_for('champion.report_form') }}" class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <i data-lucide="file-plus" class="w-4 h-4"></i>
+                Submit Report
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Debaters Circle Section -->
+    <div>
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-[#0B1E3B]">Debaters Circle Participation</h2>
+            <p class="text-gray-500">Your debate event history and engagement score</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                <div class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Events Joined</div>
+                <div class="text-3xl font-bold text-[#0B1E3B]">{{ debate_stats.total }}</div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                <div class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Attended</div>
+                <div class="text-3xl font-bold text-[#0B1E3B]">{{ debate_stats.attended }}</div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                <div class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Certificates</div>
+                <div class="text-3xl font-bold text-[#00ACC1]">{{ debate_stats.certificates }}</div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                <div class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Engagement Score</div>
+                <div class="text-3xl font-bold text-[#0B1E3B]">{{ debate_stats.score }}</div>
+                <div class="text-xs text-gray-400 mt-1">Avg Feedback: {{ debate_stats.average_feedback if debate_stats.average_feedback is not none else 'N/A' }}</div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+                <h3 class="font-bold text-[#0B1E3B]">Participation History</h3>
+            </div>
+            
+            {% if debate_participations %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
+                            <th class="px-5 py-3">Event</th>
+                            <th class="px-5 py-3">Date</th>
+                            <th class="px-5 py-3">Status</th>
+                            <th class="px-5 py-3 text-center">Attended</th>
+                            <th class="px-5 py-3 text-center">Feedback</th>
+                            <th class="px-5 py-3 text-center">Certificate</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for p in debate_participations %}
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="px-5 py-3 font-medium text-gray-900">{{ p.event.title if p.event else 'Event removed' }}</td>
+                            <td class="px-5 py-3 text-gray-500">{{ p.event.event_date.strftime('%b %d, %Y') if p.event and p.event.event_date else 'TBD' }}</td>
+                            <td class="px-5 py-3">
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                    {{ p.registration_status|default('Registered') }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-3 text-center">
+                                {% if p.attended %}
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">Yes</span>
+                                {% else %}
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-3 text-center text-gray-500">{{ p.feedback_score if p.feedback_score else '—' }}</td>
+                            <td class="px-5 py-3 text-center">
+                                {% if p.certificate_issued %}
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100 text-center">Issued</span>
+                                {% else %}
+                                <span class="text-gray-400 text-xs">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12 px-4">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4 text-gray-400">
+                    <i data-lucide="calendar" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-1">No activity yet</h3>
+                <p class="text-gray-500 max-w-sm mx-auto mb-6">Join a Debaters Circle event to start building your participation score and unlock certificates.</p>
+                <a href="{{ url_for('champion.dashboard') }}" class="inline-flex items-center gap-2 bg-[#00ACC1] hover:bg-[#008e9e] text-white px-5 py-2.5 rounded-lg font-medium transition-colors">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                    Find Events
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
-<div class="section-header" style="margin-top: 1.5rem;">
-	<h2 class="section-title">Debaters Circle Participation</h2>
-	<p class="section-subtitle">Your debate event history and engagement score</p>
-</div>
-
-<div class="data-card" style="margin-bottom: 2rem;">
-	<div class="grid grid--4-col" style="gap: 1rem;">
-		<div class="tile">
-			<div class="tile__label">Events Joined</div>
-			<div class="tile__value">{{ debate_stats.total }}</div>
-		</div>
-		<div class="tile">
-			<div class="tile__label">Attended</div>
-			<div class="tile__value">{{ debate_stats.attended }}</div>
-		</div>
-		<div class="tile">
-			<div class="tile__label">Certificates Earned</div>
-			<div class="tile__value">{{ debate_stats.certificates }}</div>
-		</div>
-		<div class="tile">
-			<div class="tile__label">Participation Score</div>
-			<div class="tile__value">{{ debate_stats.score }}</div>
-			<div class="tile__helper">Avg feedback: {{ debate_stats.average_feedback if debate_stats.average_feedback is not none else 'N/A' }}</div>
-		</div>
-	</div>
-
-	<div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
-		{% if debate_participations %}
-		<div class="data-table-container">
-			<table class="data-table">
-				<thead>
-					<tr>
-						<th>Event</th>
-						<th>Date</th>
-						<th>Status</th>
-						<th class="text-center">Attended</th>
-						<th class="text-center">Feedback</th>
-						<th class="text-center">Certificate</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for p in debate_participations %}
-					<tr>
-						<td>{{ p.event.title if p.event else 'Event removed' }}</td>
-						<td>{{ p.event.event_date.strftime('%b %d, %Y') if p.event and p.event.event_date else 'TBD' }}</td>
-						<td><span class="badge badge--secondary">{{ p.registration_status|default('Registered') }}</span></td>
-						<td class="text-center">{% if p.attended %}<span class="badge badge--success">Yes</span>{% else %}<span class="badge badge--warning">Pending</span>{% endif %}</td>
-						<td class="text-center">{{ p.feedback_score if p.feedback_score else '—' }}</td>
-						<td class="text-center">{% if p.certificate_issued %}<span class="badge badge--success">Issued</span>{% else %}<span class="badge badge--secondary">Not yet</span>{% endif %}</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-		</div>
-		{% else %}
-		<div class="empty-state">
-			<svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<circle cx="12" cy="12" r="10"></circle>
-				<line x1="12" y1="8" x2="12" y2="12"></line>
-				<line x1="12" y1="16" x2="12.01" y2="16"></line>
-			</svg>
-			<div class="empty-state-title">No Debaters Circle activity yet</div>
-			<div class="empty-state-text">
-				Join a Debaters Circle event to start building your participation score and unlock certificates.
-			</div>
-		</div>
-		{% endif %}
-	</div>
-</div>
-
-{# Check for pending report status #}
-{% set report_exists = reports|selectattr('reporting_period', 'eq', current_reporting_date)|list %}
-
-<!-- Report Submission Status -->
-{% if not report_exists %}
-<div class="alert-card alert-card--warning" style="border-left-width: 4px; margin-bottom: 2rem;">
-	<div class="alert-header">
-		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-			<circle cx="12" cy="12" r="10"></circle>
-			<line x1="12" y1="8" x2="12" y2="12"></line>
-			<line x1="12" y1="16" x2="12.01" y2="16"></line>
-		</svg>
-		<span class="alert-title">Monthly Report Due: {{ current_reporting_date.strftime('%B %Y') }}</span>
-	</div>
-	<div class="alert-description" style="margin-top: 0.5rem;">
-		Please submit your operational data to track your impact and support circle.
-	</div>
-</div>
-
-<!-- Report Submission Form -->
-<div class="section-header">
-	<h2 class="section-title">Submit Monthly Report — {{ current_reporting_date.strftime('%B %Y') }}</h2>
-	<p class="section-subtitle">Track your operational data and impact metrics for the current month</p>
-</div>
-
-<div class="data-card">
-	<form method="POST" action="{{ url_for('champion.submit_report') }}" class="report-form">
-		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-		<div class="form-grid">
-			<div class="form-group">
-				<label for="check_in_rate" class="form-label">Weekly Check-In Completion Rate (%)</label>
-				<input type="number" step="0.01" min="0" max="100" class="form-input" id="check_in_rate" name="check_in_rate" aria-describedby="check_in_rate_hint" required>
-				<span class="form-hint" id="check_in_rate_hint">Enter 0–100 (e.g., 75 means 3 of 4 weekly check-ins completed)</span>
-			</div>
-			
-			<div class="form-group">
-				<label for="screenings_delivered" class="form-label">Monthly Mini-Screenings Delivered</label>
-				<input type="number" min="0" class="form-input" id="screenings_delivered" name="screenings_delivered" aria-describedby="screenings_hint" required>
-				<span class="form-hint" id="screenings_hint">Total PHQ-2 + GAD-2 screenings you delivered this month</span>
-			</div>
-			
-			<div class="form-group">
-				<label for="referrals_initiated" class="form-label">Referrals Initiated</label>
-				<input type="number" min="0" class="form-input" id="referrals_initiated" name="referrals_initiated" aria-describedby="referrals_hint" required>
-				<span class="form-hint" id="referrals_hint">Count of new referrals you initiated to professional care this month</span>
-			</div>
-			
-			<div class="form-group">
-				<label for="doc_quality" class="form-label">Documentation Quality Score</label>
-				<select class="form-input" id="doc_quality" name="doc_quality" aria-describedby="doc_quality_hint" required>
-					<option value="">Select quality level</option>
-					<option value="complete">Complete</option>
-					<option value="partial">Partial</option>
-					<option value="incomplete">Incomplete</option>
-				</select>
-				<span class="form-hint" id="doc_quality_hint">Self-assess record completeness for this month</span>
-			</div>
-		</div>
-		
-		<div class="form-group" style="margin-top: 1.5rem;">
-			<label for="wellbeing_check" class="form-label">Self-Reported Wellbeing Check (Monthly)</label>
-			<input type="number" class="form-input" id="wellbeing_check" name="wellbeing_check" min="1" max="10" aria-describedby="wellbeing_hint" placeholder="Rate 1-10">
-			<span class="form-hint" id="wellbeing_hint">Rate your wellbeing on a scale of 1 (very low) to 10 (excellent)</span>
-		</div>
-		
-		<div style="margin-top: 2rem;">
-			<button type="submit" class="btn btn--primary">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;" aria-hidden="true">
-					<path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
-					<polyline points="17 21 17 13 7 13 7 21"></polyline>
-					<polyline points="7 3 7 8 15 8"></polyline>
-				</svg>
-				Submit Monthly Report
-			</button>
-		</div>
-	</form>
-</div>
-{% else %}
-<div class="alert-card alert-card--success" style="border-left-width: 4px; margin-bottom: 2rem;">
-	<div class="alert-header">
-		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-			<path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-			<polyline points="22 4 12 14.01 9 11.01"></polyline>
-		</svg>
-		<span class="alert-title">Report Submitted Successfully</span>
-	</div>
-	<div class="alert-description" style="margin-top: 0.5rem;">
-		Your report for {{ current_reporting_date.strftime('%B %Y') }} has been submitted. Thank you for your timely contribution!
-	</div>
-</div>
-{% endif %}
-
-<!-- Recent Submissions -->
-<div class="section-header" style="margin-top: 3rem;">
-	<h2 class="section-title">Recent Submissions</h2>
-	<p class="section-subtitle">Your historical reporting data</p>
-</div>
-
-<div class="data-card">
-	{% if reports|length == 0 %}
-	<div class="empty-state">
-		<svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-			<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-			<path d="M9 12h6m-6 4h6"></path>
-		</svg>
-		<div class="empty-state-title">No Reports Yet</div>
-		<div class="empty-state-text">
-			You haven't submitted any monthly reports. Start tracking your impact by submitting your first report above.
-		</div>
-	</div>
-	{% else %}
-	<div class="data-table-container">
-		<table class="data-table">
-			<thead>
-				<tr>
-					<th>Reporting Period</th>
-					<th class="text-right">Check-In Rate</th>
-					<th class="text-right">Screenings</th>
-					<th class="text-right">Referrals</th>
-					<th>Quality Score</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for report in reports %}
-				<tr>
-					<td><span class="badge badge--secondary">{{ report.reporting_period.strftime('%B %Y') }}</span></td>
-					<td class="text-right">
-						<span class="metric-badge">{{ report.weekly_check_in_completion_rate|default('N/A') }}{% if report.weekly_check_in_completion_rate %}%{% endif %}</span>
-					</td>
-					<td class="text-right">
-						<span class="metric-badge">{{ report.monthly_mini_screenings_delivered|default('0') }}</span>
-					</td>
-					<td class="text-right">
-						<span class="metric-badge">{{ report.referrals_initiated|default('0') }}</span>
-					</td>
-					<td>
-						{% if report.documentation_quality_score == 'complete' %}
-							<span class="badge badge--success">Complete</span>
-						{% elif report.documentation_quality_score == 'partial' %}
-							<span class="badge badge--warning">Partial</span>
-						{% elif report.documentation_quality_score == 'incomplete' %}
-							<span class="badge badge--danger">Incomplete</span>
-						{% else %}
-							<span class="badge badge--secondary">N/A</span>
-						{% endif %}
-					</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-	</div>
-	{% endif %}
-</div>
-
+<script>
+    lucide.createIcons();
+</script>
 {% endblock %}

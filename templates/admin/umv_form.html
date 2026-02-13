@@ -1,37 +1,98 @@
 {% extends 'admin/base.html' %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-6 py-8">
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-    <div>
-      <h1 class="text-3xl font-black text-[#0B1E3B] tracking-tight">{{ entry and 'Edit' or 'Create' }} Setting</h1>
-      <p class="text-[#006064] font-bold text-sm mt-1">Configure a global system preference or value.</p>
-    </div>
-    <div class="flex gap-3">
-      <a href="{{ url_for('admin.list_umv_global') }}" class="px-5 py-2.5 rounded-xl text-sm font-bold text-[#00838F] bg-white border border-[#D6EAFC] hover:bg-[#ECF5FF]">Cancel</a>
-      <button type="submit" form="umvForm" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#00838F]">Save Changes</button>
-    </div>
-  </div>
-
-  <form method="post" id="umvForm" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-    <div class="lg:col-span-1 space-y-6">
-      <div class="bg-white p-6 rounded-[2rem] border border-[#D6EAFC] shadow-sm">
-        <h3 class="text-lg font-bold text-[#0B1E3B] mb-4">1. Name the Setting</h3>
-        <div class="form-group">
-          <label class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2">Unique Name (Key)</label>
-          <input name="key" type="text" required class="w-full px-4 py-3 rounded-xl bg-[#ECF5FF]" value="{{ entry.key if entry else '' }}" placeholder="E.G. SUPPORT_EMAIL" />
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="{{ url_for('admin.list_umv_global') }}" 
+               class="p-2 text-slate-400 hover:text-[#0B1E3B] hover:bg-slate-100 rounded-lg transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-[#0B1E3B]">
+                    {{ 'Edit' if entry else 'New' }} Configuration
+                </h1>
+                <p class="text-slate-500 mt-1">
+                    {{ 'Update existing global setting' if entry else 'Define a new global setting' }}
+                </p>
+            </div>
         </div>
-      </div>
     </div>
 
-    <div class="lg:col-span-2">
-      <div class="bg-white p-6 md:p-8 rounded-[2rem] border border-[#D6EAFC] shadow-sm h-full flex flex-col">
-        <h3 class="text-lg font-bold text-[#0B1E3B] mb-4">2. Enter the Value</h3>
-        <textarea name="value" rows="12" class="w-full" placeholder="Type the value here...">{{ entry.value if entry else '' }}</textarea>
-      </div>
-    </div>
-  </form>
+    <form method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Main Content (2 cols) -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-semibold text-[#0B1E3B]">Setting Details</h3>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <!-- Key -->
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-[#0B1E3B] mb-2">
+                            Configuration Key <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               name="key" 
+                               value="{{ entry.key if entry else '' }}"
+                               required
+                               placeholder="e.g. SUPPORT_EMAIL"
+                               class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-[#00ACC1] focus:ring-2 focus:ring-[#00ACC1]/20 outline-none transition-all font-mono text-sm uppercase">
+                        <p class="text-xs text-slate-500 mt-2">Use uppercase letters and underscores for keys.</p>
+                    </div>
+
+                    <!-- Value -->
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-[#0B1E3B] mb-2">
+                            Configuration Value
+                        </label>
+                        <textarea name="value" 
+                                  rows="8" 
+                                  placeholder="Enter the configuration value..."
+                                  class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-[#00ACC1] focus:ring-2 focus:ring-[#00ACC1]/20 outline-none transition-all font-mono text-sm">{{ entry.value if entry else '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar (1 col) -->
+        <div class="space-y-6">
+            <!-- Actions -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 class="font-semibold text-[#0B1E3B] mb-4">Actions</h3>
+                <div class="space-y-3">
+                    <button type="submit" 
+                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#00ACC1] text-white font-medium rounded-lg hover:bg-[#0097A7] transition-colors shadow-sm">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        {{ 'Update Setting' if entry else 'Create Setting' }}
+                    </button>
+                    
+                    <a href="{{ url_for('admin.list_umv_global') }}" 
+                       class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+
+            <!-- Guidelines -->
+            <div class="bg-blue-50/50 rounded-xl border border-blue-100 p-6">
+                <div class="flex items-start gap-3">
+                    <div class="p-2 bg-blue-100 text-blue-600 rounded-lg shrink-0">
+                        <i data-lucide="info" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-[#0B1E3B] text-sm">Configuration Tips</h4>
+                        <p class="text-sm text-slate-600 mt-1 leading-relaxed">
+                            Global settings affect the entire application behavior. Ensure keys are unique and values are correctly formatted (e.g., valid JSON if storing structured data).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 {% endblock %}

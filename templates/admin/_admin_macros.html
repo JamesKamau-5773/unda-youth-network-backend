@@ -1,30 +1,56 @@
 {% macro hero_header(title, subtitle='', create_url=None, create_text='Create') -%}
-<div class="hero-card">
-  <div class="hero-card__inner">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
     <div>
-      <h1 class="hero-card__title">{{ title }}</h1>
-      {% if subtitle %}<p class="hero-card__subtitle">{{ subtitle }}</p>{% endif %}
+      <h1 class="text-2xl font-bold text-[#0B1E3B]">{{ title }}</h1>
+      {% if subtitle %}<p class="text-gray-500 mt-1">{{ subtitle }}</p>{% endif %}
     </div>
     {% if create_url %}
-    <div class="hero-card__actions">
-      <a href="{{ create_url }}" class="btn btn--primary">{{ create_text }}</a>
+    <div>
+      <a href="{{ create_url }}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#00ACC1] hover:bg-[#008e9e] text-white rounded-lg shadow-sm transition-colors font-medium">
+        <!-- Lucide Plus Icon (svg literal to avoid dep on script run timing if used dynamically) -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        {{ create_text }}
+      </a>
     </div>
     {% endif %}
-  </div>
 </div>
 {%- endmacro %}
 
 {% macro form_card_start() -%}
-<div class="card" style="max-width:900px; margin: 0 auto;">
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 max-w-4xl mx-auto overflow-hidden">
+  <div class="p-6 md:p-8">
 {%- endmacro %}
 
 {% macro form_card_end() -%}
+  </div>
 </div>
 {%- endmacro %}
 
 {% macro action_buttons(save_text='Save', cancel_url=None) -%}
-<div style="display:flex; gap:1rem; margin-top:1.25rem;">
-  <button type="submit" class="btn btn--primary">{{ save_text }}</button>
-  {% if cancel_url %}<a href="{{ cancel_url }}" class="btn btn--secondary">Cancel</a>{% endif %}
+<div class="flex items-center gap-3 mt-6 pt-6 border-t border-gray-100">
+  <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#00ACC1] hover:bg-[#008e9e] text-white rounded-lg font-medium transition-colors shadow-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+    {{ save_text }}
+  </button>
+  
+  {% if cancel_url %}
+  <a href="{{ cancel_url }}" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-[#0B1E3B] rounded-lg font-medium transition-colors">
+    Cancel
+  </a>
+  {% endif %}
 </div>
+{%- endmacro %}
+
+{% macro table_badge(text, type='default') -%}
+    {% if type == 'success' %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">{{ text }}</span>
+    {% elif type == 'warning' %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">{{ text }}</span>
+    {% elif type == 'danger' or type == 'error' %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{{ text }}</span>
+    {% elif type == 'info' %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ text }}</span>
+    {% else %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ text }}</span>
+    {% endif %}
 {%- endmacro %}

@@ -1,111 +1,152 @@
-{% extends "base.html" %}
-
-{% block title %}{{ action }} UMV Mtaani Event{% endblock %}
+{% extends 'admin/base.html' %}
 
 {% block content %}
-<div class="hero-card">
-    <div class="hero-card__inner">
-        <div>
-            <h1 class="hero-card__title">{{ action }} UMV Mtaani Baraza</h1>
-            <p class="hero-card__subtitle">Plan community dialogues and barazas</p>
-        </div>
-        <div class="hero-card__actions">
-            <a href="{{ url_for('admin.umv_mtaani') }}" class="btn btn--secondary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-                Back to Events
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="{{ url_for('admin.umv_mtaani') }}" 
+               class="p-2 text-slate-400 hover:text-[#0B1E3B] hover:bg-slate-100 rounded-lg transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
             </a>
+            <div>
+                <h1 class="text-2xl font-bold text-[#0B1E3B]">
+                    {{ action }} Mtaani Baraza
+                </h1>
+                <p class="text-slate-500 mt-1">
+                    {{ 'Update existing community event' if event else 'Schedule a new community baraza or dialogue' }}
+                </p>
+            </div>
         </div>
     </div>
-</div>
 
-<div style="max-width: 820px; margin: 0 auto;">
-    <div class="data-card">
-        <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);">
-            <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: white; display: flex; align-items: center; gap: 0.6rem;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                </svg>
-                Event Details
-            </h3>
+    <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Main Content (2 cols) -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-semibold text-[#0B1E3B]">Event Details</h3>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-[#0B1E3B] mb-2">
+                            Event Title <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               name="title" 
+                               value="{{ event.title if event else '' }}"
+                               required
+                               placeholder="e.g. Kibera Youth Dialogue"
+                               class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-[#00ACC1] focus:ring-2 focus:ring-[#00ACC1]/20 outline-none transition-all">
+                    </div>
+
+                    <!-- Date & Location Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-[#0B1E3B] mb-2">
+                                Date & Time <span class="text-red-500">*</span>
+                            </label>
+                            <input type="datetime-local" 
+                                   name="event_date" 
+                                   value="{{ event.event_date.strftime('%Y-%m-%dT%H:%M') if event and event.event_date else '' }}"
+                                   required
+                                   class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-[#00ACC1] focus:ring-2 focus:ring-[#00ACC1]/20 outline-none transition-all">
+                        </div>
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-[#0B1E3B] mb-2">
+                                Location <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="location" 
+                                   value="{{ event.location if event else '' }}"
+                                   required
+                                   placeholder="e.g. Community Hall"
+                                   class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-[#00ACC1] focus:ring-2 focus:ring-[#00ACC1]/20 outline-none transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-[#0B1E3B] mb-2">
+                            Description <span class="text-red-500">*</span>
+                        </label>
+                        <textarea name="description" 
+                                  rows="6" 
+                                  required
+                                  placeholder="What themes will allow be discussed?"
+                                  class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-[#00ACC1] focus:ring-2 focus:ring-[#00ACC1]/20 outline-none transition-all">{{ event.description if event else '' }}</textarea>
+                    </div>
+
+                     <!-- Registration Link -->
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-[#0B1E3B] mb-2">
+                            Registration Link
+                        </label>
+                        <div class="relative">
+                            <i data-lucide="link" class="absolute left-3 top-3 w-5 h-5 text-slate-400"></i>
+                            <input type="url" 
+                                   name="registration_link" 
+                                   value="{{ event.registration_link if event else '' }}"
+                                   placeholder="https://..."
+                                   class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 focus:border-[#00ACC1] focus:ring-2 focus:ring-[#00ACC1]/20 outline-none transition-all">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div style="padding: 2rem;">
-            <form method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-                <div class="form-group">
-                    <label for="title" class="form-label">Title <span style="color: #ef4444;">*</span></label>
-                    <input type="text" id="title" name="title" class="form-input" required value="{{ event.title if event else '' }}" placeholder="Debate theme or motion">
-                </div>
-
-                <div class="form-group">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea id="description" name="description" class="form-input" rows="4" placeholder="What will this session cover?">{{ event.description if event else '' }}</textarea>
-                </div>
-
-                <div class="grid grid--2-col" style="gap: 1rem;">
-                    <div class="form-group">
-                        <label for="event_date" class="form-label">Event Date &amp; Time <span style="color: #ef4444;">*</span></label>
-                        <input type="datetime-local" id="event_date" name="event_date" class="form-input" required value="{{ event.event_date.strftime('%Y-%m-%dT%H:%M') if event and event.event_date else '' }}">
-                    </div>
-                    <div class="form-group">
-                        <label for="registration_deadline" class="form-label">Registration Deadline</label>
-                        <input type="datetime-local" id="registration_deadline" name="registration_deadline" class="form-input" value="{{ event.registration_deadline.strftime('%Y-%m-%dT%H:%M') if event and event.registration_deadline else '' }}">
-                    </div>
-                </div>
-
-                <div class="grid grid--2-col" style="gap: 1rem;">
-                    <div class="form-group">
-                        <label for="location" class="form-label">Location</label>
-                        <input type="text" id="location" name="location" class="form-input" value="{{ event.location if event else '' }}" placeholder="Venue or virtual link">
-                    </div>
-                    <div class="form-group">
-                        <label for="organizer" class="form-label">Organizer</label>
-                        <input type="text" id="organizer" name="organizer" class="form-input" value="{{ event.organizer if event else '' }}" placeholder="Host name or team">
-                    </div>
-                </div>
-
-                <div class="grid grid--3-col" style="gap: 1rem;">
-                    <div class="form-group">
-                        <label for="max_participants" class="form-label">Max Participants</label>
-                        <input type="number" id="max_participants" name="max_participants" class="form-input" min="1" value="{{ event.max_participants if event and event.max_participants else '' }}" placeholder="Optional cap">
-                    </div>
-                    <div class="form-group">
-                        <label for="status" class="form-label">Status</label>
-                        <select id="status" name="status" class="form-input">
-                            {% set status_value = event.status if event else 'Upcoming' %}
-                            <option value="Upcoming" {{ 'selected' if status_value == 'Upcoming' else '' }}>Upcoming</option>
-                            <option value="Ongoing" {{ 'selected' if status_value == 'Ongoing' else '' }}>Ongoing</option>
-                            <option value="Completed" {{ 'selected' if status_value == 'Completed' else '' }}>Completed</option>
-                            <option value="Cancelled" {{ 'selected' if status_value == 'Cancelled' else '' }}>Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="image_url" class="form-label">Cover Image URL</label>
-                        <input type="url" id="image_url" name="image_url" class="form-input" value="{{ event.image_url if event else '' }}" placeholder="Optional hero image">
-                    </div>
-                </div>
-
-                <div style="margin-top: 2rem; display: flex; gap: 0.75rem;">
-                    <button type="submit" class="btn btn--primary" style="flex: 1;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
-                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
-                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                            <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                        {{ 'Update Event' if event else 'Create Event' }}
+        <!-- Sidebar (1 col) -->
+        <div class="space-y-6">
+            <!-- Actions -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 class="font-semibold text-[#0B1E3B] mb-4">Publishing</h3>
+                <div class="space-y-3">
+                    <button type="submit" 
+                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#00ACC1] text-white font-medium rounded-lg hover:bg-[#0097A7] transition-colors shadow-sm">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        {{ 'Update Event' if event else 'Schedule Event' }}
                     </button>
-                    <a href="{{ url_for('admin.debates') }}" class="btn btn--secondary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                    
+                    <a href="{{ url_for('admin.umv_mtaani') }}" 
+                       class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors">
                         Cancel
                     </a>
                 </div>
-            </form>
+            </div>
+
+            <!-- Image Upload -->
+             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="font-semibold text-[#0B1E3B] text-sm">Event Image</h3>
+                </div>
+                <div class="p-6">
+                    {% if event and event.image_url %}
+                    <div class="mb-4 relative group">
+                        <img src="{{ url_for('static', filename=event.image_url) }}" class="w-full h-32 object-cover rounded-lg border border-slate-100">
+                    </div>
+                    {% endif %}
+                    
+                    <label class="block">
+                        <span class="sr-only">Choose file</span>
+                        <input type="file" 
+                               name="image" 
+                               accept="image/*"
+                               class="block w-full text-sm text-slate-500
+                                      file:mr-4 file:py-2 file:px-4
+                                      file:rounded-full file:border-0
+                                      file:text-xs file:font-semibold
+                                      file:bg-[#00ACC1]/10 file:text-[#00ACC1]
+                                      hover:file:bg-[#00ACC1]/20
+                                      transition-all"/>
+                    </label>
+                    <p class="text-xs text-slate-400 mt-2">Recommended: 1200x630px JPG/PNG</p>
+                </div>
+            </div>
         </div>
-    </div>
+    </form>
 </div>
 {% endblock %}

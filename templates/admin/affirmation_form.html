@@ -1,102 +1,162 @@
 {% extends "base.html" %}
 
-{% block title %}{% if action == 'Edit' %}Edit{% else %}Create{% endif %} Affirmation - Admin Dashboard{% endblock %}
+{% block title %}{{ 'Edit' if action == 'Edit' else 'Create' }} Affirmation - Unda Admin{% endblock %}
 
 {% block content %}
-<div class="hero-card">
-    <div class="hero-card__inner">
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="hero-card__title">{% if action == 'Edit' %}Edit{% else %}Create{% endif %} Affirmation</h1>
-            <p class="hero-card__subtitle">{% if action == 'Edit' %}Update affirmation content{% else %}Create a new daily affirmation{% endif %}</p>
+            <h1 class="text-2xl font-bold text-[#0B1E3B]">{{ 'Edit' if action == 'Edit' else 'Create' }} Affirmation</h1>
+            <p class="text-gray-500">{{ 'Update affirmation content' if action == 'Edit' else 'Create a new daily affirmation' }}</p>
         </div>
-        <div class="hero-card__actions">
-            <a href="{{ url_for('admin.affirmations') }}" class="btn btn--secondary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
+        <div>
+            <a href="{{ url_for('admin.affirmations') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm font-medium">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 Back to Affirmations
             </a>
         </div>
     </div>
-</div>
 
-<div class="tile" style="max-width: 800px;">
-        {# styles moved to static/css/admin.css #}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Form -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
+                     <div class="p-2 bg-blue-100 rounded-lg text-blue-600">
+                        <i data-lucide="edit-3" class="w-5 h-5"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-[#0B1E3B]">Affirmation Details</h2>
+                </div>
+                
+                <div class="p-6 md:p-8">
+                    <form method="POST" class="space-y-6">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-        <form method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="form-group">
-            <label for="content" class="form-label">Content *</label>
-            <textarea id="content" name="content" class="form-input" rows="6" required placeholder="Enter the affirmation content...">{% if affirmation %}{{ affirmation.content }}{% endif %}</textarea>
-            <small style="color: #6b7280; display: block; margin-top: 0.5rem;">Maximum 500 characters</small>
+                        <div>
+                            <label for="content" class="block text-sm font-semibold text-[#0B1E3B] mb-2">Content <span class="text-red-500">*</span></label>
+                            <textarea id="content" name="content" rows="4" required 
+                                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all placeholder-gray-400 text-lg leading-relaxed"
+                                      placeholder="Enter the affirmation content...">{{ affirmation.content if affirmation else '' }}</textarea>
+                            <div class="flex justify-end mt-1">
+                                <span class="text-xs text-gray-400">Keep it concise and positive</span>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="theme" class="block text-sm font-semibold text-[#0B1E3B] mb-2">Theme</label>
+                                 <div class="relative">
+                                    <input type="text" id="theme" name="theme" list="themes_list" 
+                                           value="{{ affirmation.theme if affirmation else '' }}" 
+                                           class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all placeholder-gray-400"
+                                           placeholder="Select or type a theme">
+                                    <datalist id="themes_list">
+                                        <option value="Resilience">
+                                        <option value="Self-care">
+                                        <option value="Growth">
+                                        <option value="Leadership">
+                                        <option value="Community">
+                                        <option value="Courage">
+                                        <option value="Mindfulness">
+                                        <option value="General">
+                                    </datalist>
+                                    <i data-lucide="tag" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="scheduled_date" class="block text-sm font-semibold text-[#0B1E3B] mb-2">Scheduled Date</label>
+                                <div class="relative">
+                                    <input type="date" id="scheduled_date" name="scheduled_date" 
+                                           value="{{ affirmation.scheduled_date.isoformat() if affirmation and affirmation.scheduled_date else '' }}" 
+                                           class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all text-gray-700">
+                                    <i data-lucide="calendar" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if action == 'Edit' %}
+                        <div class="pt-4 border-t border-gray-100">
+                             <label class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                                <input type="checkbox" name="active" class="w-5 h-5 text-[#00ACC1] rounded border-gray-300 focus:ring-[#00ACC1]" 
+                                       {{ 'checked' if affirmation and affirmation.active else '' }}>
+                                <div>
+                                    <span class="block font-semibold text-[#0B1E3B]">Active Status</span>
+                                    <span class="text-sm text-gray-500">Uncheck to deactivate this affirmation without deleting it.</span>
+                                </div>
+                            </label>
+                        </div>
+                        {% endif %}
+
+                        <!-- Submit Button -->
+                        <div class="pt-6 flex items-center justify-end gap-3 border-t border-gray-100 mt-6">
+                            <a href="{{ url_for('admin.affirmations') }}" class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                                Cancel
+                            </a>
+                            <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 bg-[#00ACC1] hover:bg-[#008e9e] text-white rounded-lg font-medium shadow-md shadow-cyan-900/10 transition-all hover:shadow-cyan-900/20">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                {{ 'Save Changes' if action == 'Edit' else 'Create Affirmation' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
-        <div class="grid grid--2-col">
-            <div class="form-group">
-                <label for="theme" class="form-label">Theme</label>
-                <input type="text" id="theme" name="theme" class="form-input" placeholder="e.g., Resilience, Self-care, Growth" 
-                       list="themes_list" value="{% if affirmation %}{{ affirmation.theme }}{% endif %}">
-                <datalist id="themes_list">
-                    <option value="Resilience">
-                    <option value="Self-care">
-                    <option value="Growth">
-                    <option value="Leadership">
-                    <option value="Community">
-                    <option value="Courage">
-                    <option value="Mindfulness">
-                    <option value="General">
-                </datalist>
+        <!-- Sidebar Tips -->
+        <div class="space-y-6">
+             <div class="bg-amber-50 rounded-xl border border-amber-100 p-6">
+                <div class="flex items-center gap-2 mb-4 text-amber-800">
+                    <i data-lucide="lightbulb" class="w-5 h-5"></i>
+                    <h3 class="font-bold">Tips for Great Affirmations</h3>
+                </div>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-2 text-sm text-amber-900">
+                        <i data-lucide="check" class="w-4 h-4 text-amber-600 mt-0.5 shrink-0"></i>
+                        <span>Use positive, present-tense language ("I am..." rather than "I will be...")</span>
+                    </li>
+                    <li class="flex items-start gap-2 text-sm text-amber-900">
+                        <i data-lucide="check" class="w-4 h-4 text-amber-600 mt-0.5 shrink-0"></i>
+                        <span>Keep it concise (1-2 sentences) for maximum impact.</span>
+                    </li>
+                    <li class="flex items-start gap-2 text-sm text-amber-900">
+                        <i data-lucide="check" class="w-4 h-4 text-amber-600 mt-0.5 shrink-0"></i>
+                         <span>Focus on strengths, growth, and resilience.</span>
+                    </li>
+                     <li class="flex items-start gap-2 text-sm text-amber-900">
+                        <i data-lucide="check" class="w-4 h-4 text-amber-600 mt-0.5 shrink-0"></i>
+                        <span>Themes help organize content by topic for users.</span>
+                    </li>
+                </ul>
             </div>
 
-            <div class="form-group">
-                <label for="scheduled_date" class="form-label">Scheduled Date</label>
-                <input type="date" id="scheduled_date" name="scheduled_date" class="form-input" 
-                       value="{% if affirmation and affirmation.scheduled_date %}{{ affirmation.scheduled_date.isoformat() }}{% endif %}">
+            {% if action == 'Edit' and affirmation %}
+            <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+                 <h3 class="font-bold text-[#0B1E3B] mb-4 text-sm uppercase tracking-wide">Metadata</h3>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Created:</span>
+                        <span class="text-gray-900 font-medium">{{ affirmation.created_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    {% if affirmation.updated_at %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Last Updated:</span>
+                         <span class="text-gray-900 font-medium">{{ affirmation.updated_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Times Sent:</span>
+                         <span class="text-gray-900 font-medium">{{ affirmation.times_sent or 0 }}</span>
+                    </div>
+                  </div>
             </div>
+            {% endif %}
         </div>
-
-        {% if action == 'Edit' %}
-        <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: #334155; cursor: pointer;">
-                <input type="checkbox" name="active" value="on" {% if affirmation and affirmation.active %}checked{% endif %} style="width: 18px; height: 18px;">
-                <span>Active</span>
-            </label>
-            <small style="color: #6b7280; display: block; margin-top: 0.5rem;">Uncheck to deactivate this affirmation</small>
-        </div>
-
-        <div style="padding: 1rem; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 6px;">
-            <div style="font-size: 0.875rem; color: #065f46;">
-                <strong>Created:</strong> {{ affirmation.created_at.strftime('%B %d, %Y at %I:%M %p') if affirmation else 'N/A' }}<br>
-                <strong>Times Sent:</strong> {{ affirmation.times_sent if affirmation else 0 }}<br>
-                <strong>Last Updated:</strong> {{ affirmation.updated_at.strftime('%B %d, %Y at %I:%M %p') if affirmation and affirmation.updated_at else 'N/A' }}
-            </div>
-        </div>
-        {% endif %}
-
-        <div style="display: flex; gap: 0.75rem;">
-            <button type="submit" class="btn btn--success">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
-                {% if action == 'Edit' %}Update{% else %}Create{% endif %} Affirmation
-            </button>
-            <a href="{{ url_for('admin.affirmations') }}" class="btn btn--secondary">Cancel</a>
-        </div>
-    </form>
+    </div>
 </div>
 
-<!-- Help Section -->
-<div style="margin-top: 2rem; padding: 1.5rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
-    <h3 style="margin: 0 0 0.5rem 0; color: #92400e;">Tips for Great Affirmations</h3>
-    <ul style="margin: 0; color: #a16207; font-size: 0.875rem; padding-left: 1.25rem;">
-        <li>Use positive, present-tense language</li>
-        <li>Keep it concise (1-2 sentences)</li>
-        <li>Focus on strengths and growth</li>
-        <li>Schedule different affirmations throughout the week</li>
-        <li>Themes help organize content by topic</li>
-    </ul>
-</div>
-
+<script>
+    lucide.createIcons();
+</script>
 {% endblock %}
