@@ -85,6 +85,18 @@
         {# Error Container #}
         <div id="error-container"></div>
 
+        {# TABS: Upload or URL #}
+        <div class="flex gap-2 mb-4 border-b border-[#D6EAFC]">
+          <button type="button" class="tab-button active px-4 py-2 font-bold text-sm text-[#00838F] border-b-2 border-[#00C2CB]" data-tab="upload">
+            Upload Files
+          </button>
+          <button type="button" class="tab-button px-4 py-2 font-bold text-sm text-[#00838F]/60 border-b-2 border-transparent hover:text-[#00838F]" data-tab="url">
+            Add from URL
+          </button>
+        </div>
+
+        {# UPLOAD TAB #}
+        <div id="upload-tab" class="tab-content">
            {# DRAG & DROP ZONE (responsive) #}
            <div id="drop-zone"
              data-max-file-size="{{ max_file_size if max_file_size is defined else 10485760 }}"
@@ -100,6 +112,25 @@
             </div>
             
             <p class="text-[#00838F]/60 text-xs">Max size: <span id="max-size-label">10 MB</span></p>
+        </div>
+        </div>
+
+        {# URL TAB #}
+        <div id="url-tab" class="tab-content hidden space-y-4">
+          <div class="flex flex-col md:flex-row gap-3">
+            <input 
+              type="url" 
+              id="url-input" 
+              placeholder="https://example.com/image.jpg"
+              class="flex-1 px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-medium outline-none transition-all placeholder-[#00838F]/40"
+            />
+            <button type="button" id="add-url-btn" class="px-6 py-3 rounded-xl text-sm font-bold text-white bg-[#00C2CB] hover:bg-[#0097A7] transition-colors whitespace-nowrap">
+              Add Media
+            </button>
+          </div>
+          <p class="text-xs text-[#00838F]/60">
+            Paste the full URL to an image or video you want to add to this gallery.
+          </p>
         </div>
         
         <input id="file-input" type="file" name="media_files" accept="image/*,video/*" multiple class="hidden" />
@@ -351,6 +382,88 @@
       handleAddFiles(e.dataTransfer.files);
     }
   });
+
+  // --- TAB SWITCHING & URL INPUT ---
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
+  const addUrlBtn = document.getElementById('add-url-btn');
+  const urlInput = document.getElementById('url-input');
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const activeTab = btn.getAttribute('data-tab');
+      
+      // Update active button
+      tabButtons.forEach(b => {
+        b.classList.remove('text-[#00838F]', 'border-[#00C2CB]');
+        b.classList.add('text-[#00838F]/60', 'border-transparent');
+      });
+      btn.classList.remove('text-[#00838F]/60', 'border-transparent');
+      btn.classList.add('text-[#00838F]', 'border-[#00C2CB]');
+      
+      // Update active tab content
+      tabContents.forEach(tab => tab.classList.add('hidden'));
+      document.getElementById(`${activeTab}-tab`).classList.remove('hidden');
+    });
+  });
+
+  addUrlBtn.addEventListener('click', () => {
+    const url = urlInput.value.trim();
+    
+    if (!url) {
+      showError('Please enter a valid URL');
+      return;
+    }
+
+    // Basic URL validation
+    try {
+      new URL(url);
+    } catch (e) {
+      showError('Please enter a valid URL (e.g., https://example.com/image.jpg)');
+      return;
+    }
+
+    // Determine file type from URL
+    const fileExtension = url.split('?')[0].split('#')[0].split('.').pop().toLowerCase();
+    const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+    const videoExts = ['mp4', 'webm', 'ogv', 'mov', 'avi'];
+    const fileType = imageExts.includes(fileExtension) ? 'image' : 'file';
+
+    // Extract filename from URL
+    const filename = url.split('/').pop().split('?')[0] || 'media-from-url';
+
+    // Add to existing items
+    existingItems.push({
+      title: filename,
+      filename: filename,
+      url: url,
+      type: fileType,
+      urlSource: true
+    });
+
+    syncHidden();
+    render();
+    urlInput.value = '';
+    
+    showSuccess(`Media added successfully`);
+  });
+
+  // Allow Enter key in URL input
+  urlInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addUrlBtn.click();
+    }
+  });
+
+  function showSuccess(msg) {
+    const success = document.createElement('div');
+    success.className = 'bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-r text-sm font-bold flex items-center animate-pulse';
+    success.innerHTML = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> ${msg}`;
+    elements.errorContainer.innerHTML = '';
+    elements.errorContainer.appendChild(success);
+    setTimeout(() => success.remove(), 3000);
+  }
 
   // Init
   syncHidden();
