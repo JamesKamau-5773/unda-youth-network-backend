@@ -28,9 +28,10 @@
     }
     
     .glass-card {
-        background: white;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     }
     
     .glass-input {
@@ -41,9 +42,9 @@
     
     .glass-input:focus {
         background: white;
-        border-color: #3b82f6;
+        border-color: #00ACC1;
         outline: none;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        box-shadow: 0 0 0 3px rgba(0, 172, 193, 0.1);
     }
     
     /* Autofill fix */
@@ -52,58 +53,58 @@
     input:-webkit-autofill:focus, 
     input:-webkit-autofill:active{
         -webkit-box-shadow: 0 0 0 30px #f8fafc inset !important;
-        -webkit-text-fill-color: #0f172a !important;
+        -webkit-text-fill-color: #0B1E3B !important;
         transition: background-color 5000s ease-in-out 0s;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen relative flex items-center justify-center overflow-hidden font-sans bg-slate-50">
+<div class="min-h-screen relative flex items-center justify-center overflow-hidden font-sans bg-[#0B1E3B]">
     
     <!-- Immersive Gradient Background -->
     <div class="absolute inset-0 w-full h-full">
-        <!-- Base Gradient -->
-        <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-slate-100"></div>
+        <!-- Base Gradient: Navy -->
+        <div class="absolute inset-0 bg-gradient-to-br from-[#0B1E3B] via-[#0f2a4a] to-[#003d4d]"></div>
         
-        <!-- Animated Blobs for "Fading" Effect -->
-        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-400/20 blur-[100px] animate-float"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-400/20 blur-[100px] animate-float-delayed"></div>
-        <div class="absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full bg-indigo-300/20 blur-[80px] animate-float"></div>
+        <!-- Animated Blobs (Teal and lighter Navy) -->
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#00ACC1] opacity-20 blur-[100px] animate-float"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[#4DD0E1] opacity-10 blur-[100px] animate-float-delayed"></div>
+        <div class="absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full bg-[#0B1E3B] opacity-50 blur-[80px] animate-float"></div>
     </div>
 
-    <!-- Noise Texture Overlay (Optional for composition depth) -->
+    <!-- Noise Texture Overlay -->
     <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 fill=%22black%22/%3E%3C/svg%3E');"></div>
 
     <!-- Main Content Container -->
     <div class="relative z-10 w-full max-w-5xl p-6 mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         
         <!-- Composition Element: Text/Branding (Left Side) -->
-        <div class="hidden lg:block space-y-8 animate-fade-in-up">
+        <div class="hidden lg:block space-y-8 animate-fade-in-up text-white">
             <div class="relative">
                 <!-- Branding Logo -->
-                <div class="mb-6 inline-block p-4 rounded-2xl bg-white backdrop-blur-sm border border-indigo-100 shadow-xl">
-                     <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Unda Logo" class="h-12 w-auto object-contain">
+                <div class="mb-6 inline-block p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+                     <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Unda Logo" class="h-12 w-auto object-contain brightness-0 invert">
                 </div>
 
-                <div class="absolute -left-6 top-10 w-16 h-16 border-l-2 border-indigo-400/30 rounded-tl-2xl"></div>
+                <div class="absolute -left-6 top-10 w-16 h-16 border-l-2 border-[#00ACC1]/50 rounded-tl-2xl"></div>
                 
-                <h1 class="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-800 leading-tight">
+                <h1 class="text-5xl font-bold leading-tight">
                     Empower Your <br/>
-                    <span class="text-indigo-900">Mental Journey</span>
+                    <span class="text-[#00ACC1]">Mental Journey</span>
                 </h1>
                 
-                <p class="mt-6 text-lg text-slate-600 leading-relaxed max-w-md">
+                <p class="mt-6 text-lg text-blue-100 leading-relaxed max-w-md">
                     Connect with a supportive community, track your growth, and build resilience. Your story matters here.
                 </p>
                 
                 <div class="flex items-center gap-4 mt-8">
                     <div class="flex -space-x-3">
-                        <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm bg-blue-100 flex items-center justify-center text-xs text-indigo-700">*</div>
-                        <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm bg-purple-100 flex items-center justify-center text-xs text-indigo-700">+</div>
-                        <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm bg-indigo-100 flex items-center justify-center text-xs text-indigo-700">o</div>
+                        <div class="w-10 h-10 rounded-full border-2 border-[#0B1E3B] shadow-sm bg-white flex items-center justify-center text-xs font-bold text-[#0B1E3B]">*</div>
+                        <div class="w-10 h-10 rounded-full border-2 border-[#0B1E3B] shadow-sm bg-[#00ACC1] flex items-center justify-center text-xs text-white">+</div>
+                        <div class="w-10 h-10 rounded-full border-2 border-[#0B1E3B] shadow-sm bg-blue-200 flex items-center justify-center text-xs text-[#0B1E3B]">o</div>
                     </div>
-                    <span class="text-sm text-slate-500 font-medium">Join 500+ Youth Advocates</span>
+                    <span class="text-sm text-blue-200 font-medium">Join 500+ Youth Advocates</span>
                 </div>
             </div>
         </div>
@@ -113,18 +114,18 @@
             <div class="glass-card rounded-2xl p-8 md:p-10 relative overflow-hidden group">
                 
                 <!-- Subtle internal shine effect -->
-                <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
                 
                 <!-- Mobile Logo Header -->
                 <div class="text-center mb-8">
                     <div class="inline-flex items-center justify-center mb-6 transform group-hover:scale-105 transition-transform duration-300">
-                         <!-- Logo Placeholder: Ensure file is at static/img/logo.png -->
+                         <!-- Logo Placeholder -->
                          <img src="{{ url_for('static', filename='img/logo.png') }}" 
                               alt="Unda Youth Network" 
                               class="w-20 h-20 object-contain drop-shadow-2xl"
-                              onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlPSJ3aGl0ZSI+PHBhdGggc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik0xNyAyMGg1di0yYTMgMyAwIDAwLTUuMzU2LTEuODU3TTE3IDIwSDdtMTAgMHYtMmMwLS42NTYtLjEyNi0xLjI4My0uMzU2LTEuODU3TTcgMjBIMnYtMmEzIDMgMCAwMTUuMzU2LTEuODU3TTcgMjB2LTJjMC0uNjU2LjEyNi0xLjI4My4zNTYtMS44NTdtMCAwYTUuMDAyIDUuMDAyIDAgMDE5LjI4OCAwTTE1IDdhMyAzIDAgMTEtNiAwIDMgMyAwIDAxNiAwem02IDNhMiAyIDAgMTEtNCAwIDIgMiAwIDAxNCAwek03IDEwYTIgMiAwIDExLTQgMCAyIDIgMCAwMTQgMHoiLz48L3N2Zz4='; this.parentElement.classList.add('bg-blue-600', 'p-3', 'rounded-xl');">
+                              onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlPSJ3aGl0ZSI+PHBhdGggc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik0xNyAyMGg1di0yYTMgMyAwIDAwLTUuMzU2LTEuODU3TTE3IDIwSDdtMTAgMHYtMmMwLS42NTYtLjEyNi0xLjI4My0uMzU2LTEuODU3TTcgMjBIMnYtMmEzIDMgMCAwMTUuMzU2LTEuODU3TTcgMjB2LTJjMC0uNjU2LjEyNi0xLjI4My4zNTYtMS44NTdtMCAwYTUuMDAyIDUuMDAyIDAgMDE5LjI4OCAwTTE1IDdhMyAzIDAgMTEtNCAwIDIgMiAwIDAxNiAwem02IDNhMiAyIDAgMTEtNCAwIDIgMiAwIDAxNCAwek03IDEwYTIgMiAwIDExLTQgMCAyIDIgMiAwIDAxNCAwek03IDEwYTIgMiAwIDExLTQgMCAyIDIgMiAwIDAxNCAwekIiLz48L3N2Zz4='; this.parentElement.classList.add('bg-[#0B1E3B]', 'p-3', 'rounded-xl');">
                     </div>
-                    <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Welcome Back</h2>
+                    <h2 class="text-2xl font-bold text-[#0B1E3B] tracking-tight">Welcome Back</h2>
                     <p class="text-gray-500 text-sm mt-2">Sign in to continue your progress</p>
                 </div>
 
@@ -133,19 +134,19 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     
                     <div>
-                        <label for="username" class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Username</label>
+                        <label for="username" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username</label>
                         <input type="text" id="username" name="username" required autofocus 
-                            class="glass-input w-full px-4 py-3 rounded-lg text-sm placeholder-gray-400 transition-colors duration-200"
+                            class="glass-input w-full px-4 py-3 rounded-lg text-sm placeholder-gray-400 transition-colors duration-200 focus:bg-white"
                             placeholder="Enter your username">
                     </div>
 
                     <div>
-                        <label for="password" class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Password</label>
+                        <label for="password" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
                         <div class="relative">
                             <input type="password" id="password" name="password" required
-                                class="glass-input w-full px-4 py-3 rounded-lg text-sm placeholder-gray-400 transition-colors duration-200"
+                                class="glass-input w-full px-4 py-3 rounded-lg text-sm placeholder-gray-400 transition-colors duration-200 focus:bg-white"
                                 placeholder="Enter your password">
-                            <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors focus:outline-none">
+                            <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#00ACC1] transition-colors focus:outline-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -157,22 +158,22 @@
                         </div>
                     </div>
 
-                    <button type="submit" style="width: 100%; padding: 14px 16px; background: linear-gradient(to right, #2563eb, #4f46e5); color: white; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; font-size: 16px; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);">
+                    <button type="submit" style="width: 100%; padding: 14px 16px; background: linear-gradient(135deg, #00ACC1 0%, #008e9e 100%); color: white; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; font-size: 16px; box-shadow: 0 4px 14px rgba(0, 172, 193, 0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
                         Sign In
                     </button>
                     
                     <div class="flex items-center justify-between mt-6 text-sm">
-                        <a href="https://unda-youth-network.netlify.app" class="text-slate-500 hover:text-blue-700 transition-colors flex items-center gap-1 group/link">
+                        <a href="https://unda-youth-network.netlify.app" class="text-gray-500 hover:text-[#00ACC1] transition-colors flex items-center gap-1 group/link">
                              <svg class="w-3 h-3 group-hover/link:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                              Home
                         </a>
-                        <a href="#" class="text-slate-500 hover:text-blue-700 transition-colors">Forgot Password?</a>
+                        <a href="#" class="text-gray-500 hover:text-[#00ACC1] transition-colors">Forgot Password?</a>
                     </div>
                 </form>
             </div>
             
-            <p class="text-center text-slate-400 text-xs mt-6">
-                &copy; 2026 Unda Youth Network
+            <p class="text-center text-white/40 text-xs mt-6">
+                &copy; {{ date_today.year if date_today else '2026' }} Unda Youth Network
             </p>
         </div>
     </div>

@@ -1,45 +1,140 @@
-{% extends "admin/base.html" %}
-{% import 'admin/_admin_macros.html' as macros %}
+{% extends "base.html" %}
 
-{% block title %}Record Assessment - Admin{% endblock %}
+{% block title %}Record Assessment - Unda Admin{% endblock %}
 
 {% block content %}
-{{ macros.hero_header('Record Assessment', 'Create a new assessment record (privacy-first)') }}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-[#0B1E3B]">Record Assessment</h1>
+            <p class="text-gray-500">Create a new assessment record (Privacy-First)</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.list_assessments_admin') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm font-medium">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to List
+            </a>
+        </div>
+    </div>
 
-{{ macros.form_card_start() }}
-<form method="post">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="form-group">
-    <label class="form-label">Champion Code *</label>
-    <input name="champion_code" class="form-input" required />
-  </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Form -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
+                     <div class="p-2 bg-blue-100 rounded-lg text-blue-600">
+                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-[#0B1E3B]">Screening Details</h2>
+                </div>
+                
+                <div class="p-6 md:p-8">
+                    <form method="POST" class="space-y-6">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-  <div class="form-group">
-    <label class="form-label">Assessment Type *</label>
-    <select name="assessment_type" class="form-input" required>
-      <option value="PHQ-9">PHQ-9</option>
-      <option value="GAD-7">GAD-7</option>
-    </select>
-  </div>
+                        <div>
+                            <label for="champion_code" class="block text-sm font-semibold text-[#0B1E3B] mb-2">Champion Code <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="text" id="champion_code" name="champion_code" required 
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all placeholder-gray-400 font-mono tracking-wide"
+                                       placeholder="e.g. CHP-2024-88A">
+                                <i data-lucide="shield" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Unique identifier for the champion (Do not use real names).</p>
+                        </div>
 
-  <div class="form-group">
-    <label class="form-label">Risk Category *</label>
-    <select name="risk_category" class="form-input" required>
-      <option value="Green">Green</option>
-      <option value="Blue">Blue</option>
-      <option value="Purple">Purple</option>
-      <option value="Orange">Orange</option>
-      <option value="Red">Red</option>
-    </select>
-  </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="assessment_type" class="block text-sm font-semibold text-[#0B1E3B] mb-2">Assessment Type <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <select id="assessment_type" name="assessment_type" required 
+                                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all bg-white appearance-none">
+                                        <option value="" disabled selected>Select type...</option>
+                                        <option value="PHQ-9">PHQ-9 (Depression)</option>
+                                        <option value="GAD-7">GAD-7 (Anxiety)</option>
+                                        <option value="PHQ-2">PHQ-2 (Brief)</option>
+                                        <option value="GAD-2">GAD-2 (Brief)</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="risk_category" class="block text-sm font-semibold text-[#0B1E3B] mb-2">Risk Category <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                     <select id="risk_category" name="risk_category" required 
+                                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all bg-white appearance-none">
+                                        <option value="" disabled selected>Select level...</option>
+                                        <option value="Green">Green (Minimal)</option>
+                                        <option value="Yellow">Yellow (Mild)</option>
+                                        <option value="Orange">Orange (Moderate)</option>
+                                        <option value="Red">Red (Severe)</option>
+                                    </select>
+                                     <i data-lucide="activity" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                        </div>
 
-  <div class="form-group">
-    <label class="form-label">Notes</label>
-    <textarea name="notes" class="form-input"></textarea>
-  </div>
+                        <div>
+                            <label for="notes" class="block text-sm font-semibold text-[#0B1E3B] mb-2">Clinical Notes</label>
+                            <textarea id="notes" name="notes" rows="4" 
+                                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all placeholder-gray-400 leading-relaxed"
+                                      placeholder="Enter any relevant observations available..."></textarea>
+                        </div>
 
-  {{ macros.action_buttons('Save', url_for('admin.list_assessments_admin')) }}
-</form>
-{{ macros.form_card_end() }}
+                        <!-- Submit Button -->
+                         <div class="pt-6 flex items-center justify-end gap-3 border-t border-gray-100 mt-6">
+                            <a href="{{ url_for('admin.list_assessments_admin') }}" class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                                Cancel
+                            </a>
+                            <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 bg-[#00ACC1] hover:bg-[#008e9e] text-white rounded-lg font-medium shadow-md shadow-cyan-900/10 transition-all hover:shadow-cyan-900/20">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                Save Record
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
+        <!-- Sidebar Info -->
+         <div class="space-y-6">
+             <div class="bg-blue-50 rounded-xl border border-blue-100 p-6">
+                <div class="flex items-center gap-2 mb-3 text-blue-800">
+                    <i data-lucide="lock" class="w-5 h-5"></i>
+                    <h3 class="font-bold">Privacy Protocol</h3>
+                </div>
+                <p class="text-sm text-blue-900 mb-4 leading-relaxed">
+                    This system uses <strong>Champion Codes</strong> to protect user identity. Never enter real names or PII in the notes field.
+                </p>
+                <div class="p-3 bg-white rounded-lg border border-blue-100 text-xs text-blue-800">
+                    <strong>Reminder:</strong> High-risk cases (Red) trigger immediate supervisor alerts.
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+                 <h3 class="font-bold text-[#0B1E3B] mb-4 text-sm uppercase tracking-wide">Risk Assessment Guide</h3>
+                 <ul class="space-y-3">
+                     <li class="flex items-center gap-3 text-xs bg-green-50 p-2 rounded-lg text-green-800 border-l-4 border-green-500">
+                         <strong>Green:</strong> No immediate concern. Routine follow-up.
+                     </li>
+                      <li class="flex items-center gap-3 text-xs bg-yellow-50 p-2 rounded-lg text-yellow-800 border-l-4 border-yellow-500">
+                         <strong>Yellow:</strong> Mild symptoms. Monitor weekly.
+                     </li>
+                      <li class="flex items-center gap-3 text-xs bg-orange-50 p-2 rounded-lg text-orange-800 border-l-4 border-orange-500">
+                         <strong>Orange:</strong> Moderate. Refer to specialist.
+                     </li>
+                      <li class="flex items-center gap-3 text-xs bg-red-50 p-2 rounded-lg text-red-800 border-l-4 border-red-500">
+                         <strong>Red:</strong> Severe danger. Immediate intervention.
+                     </li>
+                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
 {% endblock %}

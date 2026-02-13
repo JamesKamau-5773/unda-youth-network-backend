@@ -1,262 +1,162 @@
+{% extends "base.html" %}
 
-{% extends 'admin/base.html' %}
+{% block title %}{{ 'Edit' if item else 'Create' }} Toolkit Item - Unda Admin{% endblock %}
+
 {% block content %}
-
-<div class="max-w-7xl mx-auto px-6 py-8">
-  <div
-    class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8"
-  >
-    <div>
-      <h1 class="text-3xl font-black text-[#0B1E3B] tracking-tight">
-        {{ item and 'Edit' or 'Create' }} Toolkit Item
-      </h1>
-      <p class="text-[#006064] font-bold text-sm mt-1">
-        Manage guides, templates, and downloadable resources.
-      </p>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-[#0B1E3B]">
+                {{ 'Edit' if item else 'Create' }} Toolkit Item
+            </h1>
+            <p class="text-gray-500">
+                {{ 'Update toolkit resource details' if item else 'Add a new resource to the institutional toolkit' }}
+            </p>
+        </div>
+        <a href="{{ url_for('admin.list_toolkit_items') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm font-medium">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Back to List
+        </a>
     </div>
 
-    <div class="flex gap-3">
-      <a
-        href="{{ url_for('admin.list_toolkit_items') }}"
-        class="px-5 py-2.5 rounded-xl text-sm font-bold text-[#00838F] bg-white border border-[#D6EAFC] hover:bg-[#ECF5FF] transition-colors"
-      >
-        Cancel
-      </a>
-      <button
-        type="submit"
-        form="toolkitForm"
-        class="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#00838F] hover:bg-[#006064] shadow-lg shadow-[#00838F]/20 transition-transform hover:-translate-y-0.5"
-      >
-        Save Item
-      </button>
-    </div>
-  </div>
+    <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <!-- Main Form -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Basic Info Card -->
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+                <h2 class="text-lg font-semibold text-[#0B1E3B] mb-4">Resource Details</h2>
+                
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
+                    <input type="text" name="title" id="title" required
+                           value="{{ item.title if item else '' }}"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                           placeholder="e.g. Mental Health Policy Template">
+                </div>
 
-  <form
-    method="post"
-    id="toolkitForm"
-    class="grid grid-cols-1 lg:grid-cols-3 gap-8"
-  >
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-   
-    <div class="lg:col-span-2 space-y-6">
-        <div
-        class="bg-white p-6 md:p-8 rounded-[2rem] border border-[#D6EAFC] shadow-sm"
-      >
-        <h3
-          class="text-lg font-bold text-[#0B1E3B] mb-6 border-b border-[#D6EAFC] pb-2"
-        >
-          Item Details
-        </h3>
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select name="category" id="category"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all">
+                        <option value="policy" {% if item and item.category == 'policy' %}selected{% endif %}>Policy & Guidelines</option>
+                        <option value="template" {% if item and item.category == 'template' %}selected{% endif %}>Templates & Forms</option>
+                        <option value="guide" {% if item and item.category == 'guide' %}selected{% endif %}>Implementation Guides</option>
+                        <option value="training" {% if item and item.category == 'training' %}selected{% endif %}>Training Materials</option>
+                        <option value="other" {% if item and item.category == 'other' %}selected{% endif %}>Other Resources</option>
+                    </select>
+                </div>
 
+                <div>
+                    <label for="summary" class="block text-sm font-medium text-gray-700 mb-1">Summary</label>
+                    <textarea name="summary" id="summary" rows="3"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                              placeholder="Brief description of this resource...">{{ item.summary if item else '' }}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">Shown in the card preview.</p>
+                </div>
+            </div>
+
+            <!-- Content Card -->
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+                <h2 class="text-lg font-semibold text-[#0B1E3B] mb-4">Content & Files</h2>
+
+                <div>
+                    <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Detailed Content</label>
+                    <textarea name="content" id="content" rows="10"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all font-mono text-sm"
+                              placeholder="# Section 1\nDetails here...">{{ item.content if item else '' }}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">You may use Markdown for formatting.</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Attachments</label>
+                    
+                    {% if item and item.attachments %}
+                    <div class="mb-4 space-y-2">
+                        <p class="text-xs font-semibold text-gray-500 uppercase">Current Files:</p>
+                        <ul class="space-y-2">
+                            {% for att in item.attachments %}
+                            <li class="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded border border-gray-200">
+                                <i data-lucide="paperclip" class="w-4 h-4 text-gray-400"></i>
+                                {% if att.filename %}
+                                    <span class="text-gray-700 flex-1 truncate">{{ att.filename }}</span>
+                                {% else %}
+                                    <span class="text-gray-700 flex-1 truncate">Attachment {{ loop.index }}</span>
+                                {% endif %}
+                                <!-- Note: Currently no UI to delete individual attachments via form updates -->
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex items-center justify-center w-full">
+                        <label for="attachments" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-400 mb-2"></i>
+                                <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                <p class="text-xs text-gray-500">PDF, DOCX, XLSX (Max 10MB)</p>
+                            </div>
+                            <input id="attachments" name="attachments" type="file" class="hidden" multiple />
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
         <div class="space-y-6">
-          <div class="form-group">
-            <label
-              class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2"
-              >Title</label
-            >
-            <input
-              name="title"
-              type="text"
-              required
-              class="w-full px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-bold outline-none transition-all placeholder-[#00838F]/40"
-              value="{{ item.title if item else '' }}"
-              placeholder="e.g. Q1 Financial Reporting Template"
-            />
-          </div>
+            <!-- Publish Card -->
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                <h3 class="font-semibold text-[#0B1E3B]">Publication Status</h3>
+                
+                <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input type="checkbox" name="published" class="w-5 h-5 text-[#00ACC1] rounded focus:ring-[#00ACC1]" 
+                           {% if item and item.published %}checked{% endif %}>
+                    <div>
+                        <span class="block text-sm font-medium text-gray-900">Publised</span>
+                        <span class="block text-xs text-gray-500">Visible to all partners</span>
+                    </div>
+                </label>
 
-          <div class="form-group">
-            <label
-              class="block text-xs font-bold text-[#006064] uppercase tracking-wider mb-2"
-              >Description / Content</label
-            >
-            <textarea
-              name="content"
-              rows="12"
-              class="w-full px-4 py-3 rounded-xl bg-[#ECF5FF] border border-transparent focus:bg-white focus:border-[#00ACC1] text-[#0B1E3B] font-medium outline-none transition-all placeholder-[#00838F]/40 resize-none leading-relaxed"
-              placeholder="Provide instructions on how to use this toolkit item..."
-            >
-{{ item.content if item else '' }}</textarea
-            >
-          </div>
+                <div class="pt-4 border-t border-gray-100">
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#00ACC1] hover:bg-[#0097a7] text-white rounded-lg transition-colors shadow-sm font-medium">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Save Resource
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="bg-gradient-to-br from-[#0B1E3B] to-[#1a3b66] p-6 rounded-xl shadow-sm text-white space-y-4">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-white/10 rounded-lg">
+                        <i data-lucide="lightbulb" class="w-5 h-5 text-[#00ACC1]"></i>
+                    </div>
+                    <h3 class="font-semibold">Toolkit Tips</h3>
+                </div>
+                <ul class="space-y-3 text-sm text-gray-200">
+                    <li class="flex gap-2">
+                        <i data-lucide="check" class="w-4 h-4 mt-0.5 text-[#00ACC1]"></i>
+                        <span><strong>Policies:</strong> Upload formal PDF documents for download.</span>
+                    </li>
+                    <li class="flex gap-2">
+                        <i data-lucide="check" class="w-4 h-4 mt-0.5 text-[#00ACC1]"></i>
+                        <span><strong>Templates:</strong> Provide editable formats like DOCX or XLSX.</span>
+                    </li>
+                    <li class="flex gap-2">
+                        <i data-lucide="check" class="w-4 h-4 mt-0.5 text-[#00ACC1]"></i>
+                        <span><strong>Summary:</strong> Keep it short (1-2 sentences) for the card preview.</span>
+                    </li>
+                </ul>
+            </div>
         </div>
-      </div>
-    </div>
-
-   
-    <div class="lg:col-span-1">
-      <div
-        class="bg-white p-6 rounded-[2rem] border border-[#D6EAFC] shadow-sm h-full flex flex-col"
-      >
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-bold text-[#0B1E3B]">Settings</h3>
-        </div>
-
-        <div class="mb-6">
-          <label class="flex items-center gap-3 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              name="published"
-              value="on"
-              {% if (item and item.published) or not item %}checked{% endif %}
-              class="w-5 h-5 rounded border-[#D6EAFC] text-[#00838F] focus:ring-[#00ACC1]"
-            />
-            <span class="text-sm font-bold text-[#0B1E3B]">Published</span>
-          </label>
-          <p class="text-xs text-[#00838F]/60 mt-1 ml-8">When checked, this item is visible on the public site.</p>
-        </div>
-
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-bold text-[#0B1E3B]">Attachments</h3>
-          <span
-            id="attach-count"
-            class="text-xs font-bold bg-[#D6EAFC] text-[#006064] px-3 py-1 rounded-full"
-            >0 Files</span
-          >
-        </div>
-
-        <p class="text-xs text-[#00838F] mb-4 leading-snug">
-          Add links to files or external resources for this toolkit item.
-        </p>
-
-       
-        <div id="attachments-list" class="space-y-3 mb-6 flex-1 min-h-[100px]">
-          {# Items injected by JS #}
-        </div>
-
-     
-        <div class="bg-[#ECF5FF] p-4 rounded-xl border border-[#D6EAFC]/50">
-          <p
-            class="text-[10px] font-bold text-[#006064] uppercase mb-3 tracking-wider"
-          >
-            Add New Resource
-          </p>
-
-          <div class="space-y-3">
-            <input
-              id="new-name"
-              type="text"
-              placeholder="Display Name (e.g. PDF Guide)"
-              class="w-full px-3 py-2 rounded-lg bg-white border border-[#D6EAFC] text-sm text-[#0B1E3B] focus:border-[#00ACC1] outline-none font-bold placeholder-[#00838F]/40"
-            />
-
-            <input
-              id="new-url"
-              type="text"
-              placeholder="URL / File Path"
-              class="w-full px-3 py-2 rounded-lg bg-white border border-[#D6EAFC] text-sm text-[#0B1E3B] focus:border-[#00ACC1] outline-none font-medium placeholder-[#00838F]/40"
-            />
-
-            <button
-              type="button"
-              onclick="addAttachment()"
-              class="w-full py-2.5 rounded-lg bg-[#0B1E3B] text-white text-xs font-bold hover:bg-[#1a2e4d] transition-colors flex items-center justify-center gap-2"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-              >
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Add to List
-            </button>
-          </div>
-        </div>
-
-        {# Hidden Input that sends JSON to Flask #}
-        <textarea name="attachments" id="attachments-json" class="hidden">
-{{ item.attachments|tojson if item and item.attachments else '[]' }}</textarea
-        >
-      </div>
-    </div>
-  </form>
+    </form>
 </div>
 
 <script>
-  // State Management
-  let attachments = [];
-  const hiddenInput = document.getElementById("attachments-json");
-  const listContainer = document.getElementById("attachments-list");
-  const countLabel = document.getElementById("attach-count");
-
-  // Load initial data
-  try {
-    attachments = JSON.parse(hiddenInput.value || "[]");
-  } catch (e) {
-    attachments = [];
-  }
-
-  // Render function
-  function render() {
-    listContainer.innerHTML = "";
-
-     if (attachments.length === 0) {
-      listContainer.innerHTML = `
-          <div class="text-center py-6 border-2 border-dashed border-[#D6EAFC] rounded-xl">
-            <span class="text-xs text-[#00838F] font-bold opacity-60">No attachments yet</span>
-          </div>`;
-     }
-
-    attachments.forEach((att, index) => {
-      const item = document.createElement("div");
-      item.className =
-        "group flex items-center gap-3 bg-white p-3 rounded-xl border border-[#D6EAFC] shadow-sm hover:border-[#00ACC1] transition-all";
-
-      item.innerHTML = `
-             <div class="h-10 w-10 bg-[#ECF5FF] rounded-lg flex items-center justify-center text-[#00ACC1] flex-shrink-0">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-             </div>
-             <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-[#0B1E3B] truncate">${att.name || att.title || "Untitled"}</p>
-                <p class="text-[10px] text-[#00838F] truncate opacity-70">${att.url || att.path || "#"}</p>
-             </div>
-             <button type="button" onclick="removeAttachment(${index})" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-             </button>
-          `;
-      listContainer.appendChild(item);
-    });
-
-    // Update Counter & Hidden Input
-    countLabel.textContent = `${attachments.length} Files`;
-    hiddenInput.value = JSON.stringify(attachments);
-  }
-
-  // Add Item Logic
-  function addAttachment() {
-    const nameInput = document.getElementById("new-name");
-    const urlInput = document.getElementById("new-url");
-
-    const name = nameInput.value.trim();
-    const url = urlInput.value.trim();
-
-    if (!name || !url) {
-      alert("Please enter both a name and a URL/Path");
-      return;
-    }
-
-    // Add to array
-    attachments.push({ name: name, url: url });
-
-    // Clear inputs
-    nameInput.value = "";
-    urlInput.value = "";
-
-    render();
-  }
-
-  // Remove Item Logic
-  function removeAttachment(index) {
-    attachments.splice(index, 1);
-    render();
-  }
-
-  // Initial Render
-  document.addEventListener("DOMContentLoaded", render);
+    lucide.createIcons();
 </script>
 {% endblock %}

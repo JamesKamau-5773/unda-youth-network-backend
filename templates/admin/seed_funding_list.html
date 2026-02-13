@@ -1,166 +1,154 @@
 {% extends "base.html" %}
 
-{% block title %}Seed Funding Applications - Admin{% endblock %}
+{% block title %}Seed Funding Applications - Unda Admin{% endblock %}
 
 {% block content %}
-<div class="hero-card">
-    <div class="hero-card__inner">
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="hero-card__title">Seed Funding Applications</h1>
-            <p class="hero-card__subtitle">Review and manage Campus Edition seed funding requests</p>
+            <h1 class="text-2xl font-bold text-[#0B1E3B]">Seed Funding</h1>
+            <p class="text-gray-500">Review and manage grant applications</p>
         </div>
-        <div class="hero-card__actions">
-            <a href="{{ url_for('admin.workstreams') }}" class="btn btn--secondary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
+        <div>
+             <a href="{{ url_for('admin.workstreams') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm font-medium">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 Back to Workstreams
             </a>
         </div>
     </div>
-</div>
 
-<!-- Statistics Cards -->
-<div class="grid grid--4-col" style="gap: 1rem; margin-bottom: 2rem;">
-    <div class="stat-card">
-        <div class="stat-card__value">{{ stats.total }}</div>
-        <div class="stat-card__label">Total Applications</div>
-    </div>
-    <div class="stat-card stat-card--warning">
-        <div class="stat-card__value">{{ stats.pending }}</div>
-        <div class="stat-card__label">Pending Review</div>
-    </div>
-    <div class="stat-card stat-card--success">
-        <div class="stat-card__value">{{ stats.approved + stats.funded }}</div>
-        <div class="stat-card__label">Approved</div>
-    </div>
-    <div class="stat-card stat-card--info">
-        <div class="stat-card__value">KES {{ "{:,.0f}".format(stats.total_approved) }}</div>
-        <div class="stat-card__label">Total Approved</div>
-    </div>
-</div>
-
-<!-- Filter Tabs -->
-<div class="filter-tabs">
-    <a href="{{ url_for('admin.seed_funding_applications', status='all') }}" 
-       class="filter-tab {% if status_filter == 'all' %}filter-tab--active{% endif %}">
-        All ({{ stats.total }})
-    </a>
-    <a href="{{ url_for('admin.seed_funding_applications', status='Pending') }}" 
-       class="filter-tab {% if status_filter == 'Pending' %}filter-tab--active{% endif %}">
-        Pending ({{ stats.pending }})
-    </a>
-    <a href="{{ url_for('admin.seed_funding_applications', status='Under Review') }}" 
-       class="filter-tab {% if status_filter == 'Under Review' %}filter-tab--active{% endif %}">
-        Under Review ({{ stats.under_review }})
-    </a>
-    <a href="{{ url_for('admin.seed_funding_applications', status='Approved') }}" 
-       class="filter-tab {% if status_filter == 'Approved' %}filter-tab--active{% endif %}">
-        Approved ({{ stats.approved }})
-    </a>
-    <a href="{{ url_for('admin.seed_funding_applications', status='Funded') }}" 
-       class="filter-tab {% if status_filter == 'Funded' %}filter-tab--active{% endif %}">
-        Funded ({{ stats.funded }})
-    </a>
-    <a href="{{ url_for('admin.seed_funding_applications', status='Rejected') }}" 
-       class="filter-tab {% if status_filter == 'Rejected' %}filter-tab--active{% endif %}">
-        Rejected ({{ stats.rejected }})
-    </a>
-</div>
-
-<!-- Applications List -->
-<div style="margin-top: 1.5rem;">
-    {% if applications %}
-        {% for app in applications %}
-        <div class="data-card" style="margin-bottom: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                <div>
-                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 600; color: #111827;">
-                        {{ app.project_title }}
-                    </h3>
-                    <p style="margin: 0 0 0.25rem 0; color: #6b7280; font-size: 0.875rem;">
-                        <strong>Applicant:</strong> {{ app.applicant_name }} | {{ app.email }}
-                    </p>
-                    <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">
-                        Applied {{ app.submitted_at.strftime('%B %d, %Y at %I:%M %p') }}
-                    </p>
-                </div>
-                <div style="text-align: right;">
-                    <div class="pill pill--{{ 
-                        'warning' if app.status == 'Pending' else 
-                        ('info' if app.status == 'Under Review' else 
-                        ('success' if app.status in ['Approved', 'Funded'] else 'danger'))
-                    }}">
-                        {{ app.status }}
-                    </div>
-                    <div style="margin-top: 0.5rem; font-size: 1.125rem; font-weight: 700; color: #1e40af;">
-                        KES {{ "{:,.2f}".format(app.total_budget_requested) }}
-                    </div>
-                    {% if app.approved_amount %}
-                    <div style="font-size: 0.875rem; color: #059669;">
-                        Approved: KES {{ "{:,.2f}".format(app.approved_amount) }}
-                    </div>
-                    {% endif %}
-                </div>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-gray-500">Total Apps</span>
+                <i data-lucide="file-text" class="w-5 h-5 text-indigo-500"></i>
             </div>
+            <div class="text-2xl font-bold text-[#0B1E3B]">{{ stats.total }}</div>
+        </div>
 
-            <div style="margin-bottom: 1rem;">
-                <p style="color: #374151; line-height: 1.6; margin: 0;">
-                    {{ app.project_description[:200] }}{% if app.project_description|length > 200 %}...{% endif %}
-                </p>
+        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-gray-500">Pending</span>
+                <i data-lucide="clock" class="w-5 h-5 text-amber-500"></i>
             </div>
+            <div class="text-2xl font-bold text-[#0B1E3B]">{{ stats.pending }}</div>
+        </div>
 
-            <div class="grid grid--3-col" style="gap: 1rem; margin-bottom: 1rem;">
-                {% if app.institution_name %}
-                <div>
-                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Institution</div>
-                    <div style="font-weight: 500; color: #111827;">{{ app.institution_name }}</div>
-                </div>
-                {% endif %}
-                {% if app.project_category %}
-                <div>
-                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Category</div>
-                    <div style="font-weight: 500; color: #111827;">{{ app.project_category }}</div>
-                </div>
-                {% endif %}
-                {% if app.team_size %}
-                <div>
-                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Team Size</div>
-                    <div style="font-weight: 500; color: #111827;">{{ app.team_size }} members</div>
-                </div>
-                {% endif %}
+        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+             <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-gray-500">Approved</span>
+                <i data-lucide="check-circle" class="w-5 h-5 text-emerald-500"></i>
             </div>
+            <div class="text-2xl font-bold text-[#0B1E3B]">{{ stats.approved + stats.funded }}</div>
+        </div>
 
-            <div style="display: flex; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-                <a href="{{ url_for('admin.seed_funding_detail', application_id=app.application_id) }}" 
-                   class="btn btn--primary btn--sm">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    View Details
+        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+             <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-gray-500">Total Funded</span>
+                <i data-lucide="coins" class="w-5 h-5 text-[#00ACC1]"></i>
+            </div>
+            <div class="text-xl font-bold text-[#0B1E3B]">KES {{ "{:,.0f}".format(stats.total_approved) }}</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+            {% for tab in ['all', 'Pending', 'Under Review', 'Approved', 'Funded', 'Rejected'] %}
+                <a href="{{ url_for('admin.seed_funding_applications', status=tab) }}"
+                   class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                   {% if status_filter == tab %}
+                       border-[#00ACC1] text-[#00ACC1]
+                   {% else %}
+                       border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300
+                   {% endif %}">
+                   {% if tab == 'all' %}All Applications{% else %}{{ tab }}{% endif %}
                 </a>
-                
-                {% if app.status == 'Pending' %}
-                <form method="POST" action="{{ url_for('admin.update_seed_funding_review_status', application_id=app.application_id) }}" style="display: inline;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn--secondary btn--sm">
-                        Mark Under Review
-                    </button>
-                </form>
-                {% endif %}
-            </div>
+            {% endfor %}
+        </nav>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100">
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Project Details</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Applicant</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Budget</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for app in applications %}
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="px-6 py-4">
+                            <div>
+                                <h3 class="font-bold text-[#0B1E3B] text-sm group-hover:text-[#00ACC1] transition-colors">
+                                    {{ app.project_title }}
+                                </h3>
+                                <div class="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                                    <i data-lucide="building" class="w-3 h-3"></i>
+                                    {{ app.institution_name or 'Independent' }}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ app.applicant_name }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">{{ app.submitted_at.strftime('%b %d, %Y') }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">KES {{ "{:,.0f}".format(app.total_budget_requested) }}</div>
+                            {% if app.approved_amount %}
+                                <div class="text-xs text-emerald-600 font-medium">Approved: {{ "{:,.0f}".format(app.approved_amount) }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium 
+                                {% if app.status == 'Pending' %} bg-amber-50 text-amber-700 border border-amber-100
+                                {% elif app.status == 'Under Review' %} bg-blue-50 text-blue-700 border border-blue-100
+                                {% elif app.status in ['Approved', 'Funded'] %} bg-emerald-50 text-emerald-700 border border-emerald-100
+                                {% else %} bg-red-50 text-red-700 border border-red-100 {% endif %}">
+                                <span class="w-1.5 h-1.5 rounded-full 
+                                    {% if app.status == 'Pending' %} bg-amber-500
+                                    {% elif app.status == 'Under Review' %} bg-blue-500
+                                    {% elif app.status in ['Approved', 'Funded'] %} bg-emerald-500
+                                    {% else %} bg-red-500 {% endif %}"></span>
+                                {{ app.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                             <a href="{{ url_for('admin.seed_funding_detail', application_id=app.application_id) }}" 
+                               class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 hover:bg-[#00ACC1] hover:text-white hover:border-transparent text-gray-600 rounded-lg text-xs font-medium transition-all shadow-sm">
+                                Review
+                                <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                             <div class="flex flex-col items-center justify-center">
+                                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                    <i data-lucide="inbox" class="w-6 h-6 text-gray-400"></i>
+                                </div>
+                                <p class="text-base font-medium text-gray-900">No applications found</p>
+                                <p class="text-sm text-gray-500 mt-1">Try changing the filter status.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        {% endfor %}
-    {% else %}
-        <div class="empty-state">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-            </svg>
-            <h3>No Applications Found</h3>
-            <p>{% if status_filter != 'all' %}No {{ status_filter|lower }} applications at the moment.{% else %}No seed funding applications submitted yet.{% endif %}</p>
-        </div>
-    {% endif %}
+    </div>
 </div>
+
+<script>
+    lucide.createIcons();
+</script>
 {% endblock %}

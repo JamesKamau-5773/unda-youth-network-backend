@@ -1,192 +1,124 @@
-{% extends 'admin/base.html' %}
-{% import 'admin/_admin_macros.html' as macros %}
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Resource' if resource else 'Create Resource' }} - Admin Dashboard{% endblock %}
+
 {% block content %}
-<script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
-{{ macros.hero_header(resource and 'Edit Resource' or 'Create Resource', 'Add guides, documents, or external resources for members') }}
-
-{{ macros.form_card_start() }}
-<form method="post">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  
-  <!-- Basic Information Section -->
-  <div class="mb-4">
-    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Basic Information</h6>
-    
-    <div class="form-group mb-3">
-      <label class="form-label">
-        <strong>Title *</strong>
-        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
-          What is this resource called? (e.g., "Mental Health Guide 2024")
-        </small>
-      </label>
-      <input 
-        name="title" 
-        class="form-input form-control" 
-        placeholder="Enter resource title"
-        value="{{ resource.title if resource else '' }}" 
-        required 
-      />
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-[#0B1E3B]">{{ 'Edit Resource' if resource else 'Create Resource' }}</h1>
+            <p class="text-gray-500">
+                {{ 'Update resource details' if resource else 'Add a new resource for members' }}
+            </p>
+        </div>
+        <a href="{{ url_for('admin.resources') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm font-medium">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Back to List
+        </a>
     </div>
 
-    <div class="form-group mb-3">
-      <label class="form-label">
-        <strong>Type / Category *</strong>
-        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
-          What kind of resource is this?
-        </small>
-      </label>
-      <select name="resource_type" class="form-input form-control" required data-type="resource-select">
-        <option value="">-- Select a category --</option>
-        <option value="guide" {% if resource and resource.resource_type == 'guide' %}selected{% endif %} data-icon="book-open">
-          Guide (step-by-step instructions)
-        </option>
-        <option value="toolkit" {% if resource and resource.resource_type == 'toolkit' %}selected{% endif %} data-icon="wrench">
-          Toolkit (templates, tools, checklists)
-        </option>
-        <option value="publication" {% if resource and resource.resource_type == 'publication' %}selected{% endif %} data-icon="file-text">
-          Publication (reports, whitepapers, research)
-        </option>
-        <option value="video" {% if resource and resource.resource_type == 'video' %}selected{% endif %} data-icon="video">
-          Video (training videos, webinars)
-        </option>
-        <option value="external" {% if resource and resource.resource_type == 'external' %}selected{% endif %} data-icon="external-link">
-          External Link (articles, websites)
-        </option>
-        <option value="template" {% if resource and resource.resource_type == 'template' %}selected{% endif %} data-icon="copy">
-          Template (forms, plans, worksheets)
-        </option>
-      </select>
-    </div>
-  </div>
+    <form method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <!-- Main Form -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Basic Info Card -->
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+                <h2 class="text-lg font-semibold text-[#0B1E3B] mb-4">Resource Details</h2>
+                
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
+                    <input type="text" name="title" id="title" required
+                           value="{{ resource.title if resource else '' }}"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                           placeholder="e.g. Mental Health Guide 2024">
+                </div>
 
-  <!-- Content Section -->
-  <div class="mb-4">
-    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Content</h6>
-    
-    <div class="form-group mb-3">
-      <label class="form-label">
-        <strong>Description *</strong>
-        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
-          Explain what this resource is about and who it's for (2-3 sentences)
-        </small>
-      </label>
-      <textarea 
-        name="description" 
-        class="form-input form-control" 
-        rows="4"
-        placeholder="e.g., A comprehensive guide on mental health support resources available to youth network members. Covers access, support options, and self-care strategies."
-        required
-      >{{ resource.description if resource else '' }}</textarea>
-    </div>
+                <div>
+                    <label for="url" class="block text-sm font-medium text-gray-700 mb-1">URL / Link <span class="text-red-500">*</span></label>
+                    <div class="flex gap-2">
+                        <div class="p-2 border border-r-0 border-gray-300 rounded-l-lg bg-gray-50 text-gray-500">
+                            <i data-lucide="link" class="w-5 h-5"></i>
+                        </div>
+                        <input type="url" name="url" id="url" required
+                               value="{{ resource.url if resource else '' }}"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                               placeholder="https://example.com/guide.pdf">
+                    </div>
+                </div>
 
-    <div class="form-group mb-3">
-      <label class="form-label">
-        <strong>URL / Link *</strong>
-        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
-          Where can this resource be found? (full link starting with http:// or https://)
-        </small>
-      </label>
-      <input 
-        name="url" 
-        type="url"
-        class="form-input form-control" 
-        placeholder="https://example.com/resource"
-        value="{{ resource.url if resource else '' }}" 
-        required 
-      />
-    </div>
-  </div>
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description <span class="text-red-500">*</span></label>
+                    <textarea name="description" id="description" rows="4" required
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                              placeholder="Explain what this resource is about...">{{ resource.description if resource else '' }}</textarea>
+                </div>
+            </div>
+        </div>
 
-  <!-- Organization Section -->
-  <div class="mb-4">
-    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Organization</h6>
-    
-    <div class="form-group mb-3">
-      <label class="form-label">
-        <strong>Tags</strong>
-        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
-          Add keywords to help members find this resource (separate with commas)
-        </small>
-      </label>
-      <input 
-        id="tags-input"
-        type="text" 
-        class="form-input form-control" 
-        placeholder="e.g., mental-health, support, youth-mental-health"
-        value="{{ resource.tags|join(', ') if resource and resource.tags else '' }}"
-      />
-      <input type="hidden" name="tags" id="tags-hidden" value="{{ resource.tags|tojson if resource and resource.tags else '[]' }}" />
-      <small class="text-muted d-block mt-2">Tags will be automatically processed and formatted</small>
-    </div>
-  </div>
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Publish Card -->
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+                <div>
+                    <label for="resource_type" class="block text-sm font-medium text-gray-700 mb-1">Resource Type</label>
+                    <select name="resource_type" id="resource_type" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all">
+                        <option value="">-- Select Type --</option>
+                        <option value="guide" {% if resource and resource.resource_type == 'guide' %}selected{% endif %}>Guide</option>
+                        <option value="toolkit" {% if resource and resource.resource_type == 'toolkit' %}selected{% endif %}>Toolkit</option>
+                        <option value="publication" {% if resource and resource.resource_type == 'publication' %}selected{% endif %}>Publication</option>
+                        <option value="video" {% if resource and resource.resource_type == 'video' %}selected{% endif %}>Video</option>
+                        <option value="external" {% if resource and resource.resource_type == 'external' %}selected{% endif %}>External Link</option>
+                        <option value="template" {% if resource and resource.resource_type == 'template' %}selected{% endif %}>Template</option>
+                    </select>
+                </div>
 
-  <!-- Publishing Section -->
-  <div class="mb-4 p-3 bg-light rounded">
-    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Publishing</h6>
-    
-    <div class="form-group" style="display:flex; align-items:flex-start; gap:1rem;">
-      <input 
-        type="checkbox" 
-        name="published" 
-        value="on" 
-        id="published"
-        {% if (resource and resource.published) or not resource %}checked{% endif %}
-        style="width:1.25rem; height:1.25rem; margin-top: 0.25rem;" 
-      />
-      <div>
-        <label for="published" class="form-label" style="margin:0;">
-          <strong>Publish this resource</strong>
-        </label>
-        <small class="text-muted d-block" style="margin-top: 0.25rem;">
-          When checked, this resource will be visible to members. Leave unchecked to save as a draft.
-        </small>
-      </div>
-    </div>
-  </div>
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input type="checkbox" name="published" class="w-5 h-5 text-[#00ACC1] rounded focus:ring-[#00ACC1]" 
+                               {% if resource and resource.published %}checked{% endif %}>
+                        <div>
+                            <span class="block text-sm font-medium text-gray-900">Published</span>
+                            <span class="block text-xs text-gray-500">Visible to users</span>
+                        </div>
+                    </label>
+                </div>
 
-  {{ macros.action_buttons('Save Resource', url_for('admin.list_resources')) }}
-</form>
-{{ macros.form_card_end() }}
+                <div class="pt-4 border-t border-gray-100">
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#00ACC1] hover:bg-[#0097a7] text-white rounded-lg transition-colors shadow-sm font-medium">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Save Resource
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="bg-gradient-to-br from-[#0B1E3B] to-[#1a3b66] p-6 rounded-xl shadow-sm text-white space-y-4">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-white/10 rounded-lg">
+                        <i data-lucide="lightbulb" class="w-5 h-5 text-[#00ACC1]"></i>
+                    </div>
+                    <h3 class="font-semibold">Helpful Tips</h3>
+                </div>
+                <ul class="space-y-3 text-sm text-gray-200">
+                    <li class="flex gap-2">
+                        <i data-lucide="check" class="w-4 h-4 mt-0.5 text-[#00ACC1]"></i>
+                        <span>Use <strong>external</strong> for 3rd party sites.</span>
+                    </li>
+                    <li class="flex gap-2">
+                        <i data-lucide="check" class="w-4 h-4 mt-0.5 text-[#00ACC1]"></i>
+                        <span>Guides should link to stable PDFs or pages.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </form>
+</div>
 
 <script>
-  // Convert comma-separated tags to JSON array on submit
-  document.querySelector('form').addEventListener('submit', function(e) {
-    const tagsInput = document.querySelector('#tags-input').value;
-    const tagsArray = tagsInput
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0);
-    document.querySelector('#tags-hidden').value = JSON.stringify(tagsArray);
-  });
+    lucide.createIcons();
 </script>
-
-<style>
-  .form-control {
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    padding: 0.75rem;
-  }
-  
-  .form-control:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  }
-  
-  .text-muted {
-    color: #6c757d;
-  }
-  
-  .bg-light {
-    background-color: #f8f9fa;
-  }
-  
-  .rounded {
-    border-radius: 6px;
-  }
-  
-  .p-3 {
-    padding: 1.5rem;
-  }
-</style>
-
 {% endblock %}

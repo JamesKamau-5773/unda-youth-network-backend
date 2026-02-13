@@ -1,225 +1,177 @@
 {% extends "base.html" %}
 
-{% block title %}{{ action }} Podcast - Admin Dashboard{% endblock %}
+{% block title %}{{ 'Edit' if podcast else 'Create' }} Podcast - Unda Admin{% endblock %}
 
 {% block content %}
-<div class="hero-card">
-    <div class="hero-card__inner">
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="hero-card__title">{{ action }} Podcast</h1>
-            <p class="hero-card__subtitle">{% if podcast %}Edit podcast details{% else %}Add a new podcast episode{% endif %}</p>
+            <h1 class="text-2xl font-bold text-[#0B1E3B]">{{ 'Edit' if podcast else 'Create' }} Podcast</h1>
+            <p class="text-gray-500">
+                {{ 'Update episode details' if podcast else 'Add a new episode to the library' }}
+            </p>
         </div>
-        <div class="hero-card__actions">
-            <a href="{{ url_for('admin.podcasts') }}" class="btn btn--secondary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-                Back to Podcasts
-            </a>
-        </div>
+        <a href="{{ url_for('admin.podcasts') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm font-medium">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Back to List
+        </a>
     </div>
-</div>
 
-<div style="max-width: 800px; margin: 0 auto;">
-    <div class="data-card">
-        <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-            <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: white; display: flex; align-items: center;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.75rem;">
-                    <path d="M9 18V5l12-2v13M9 18l-7 2V7l7-2m0 13c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zm12-2c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z"/>
-                </svg>
-                Podcast Details
-            </h3>
-        </div>
+    <form method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         
-        <div style="padding: 2rem;">
-            <form method="POST" id="podcastForm">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <!-- Main Form -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Details Card -->
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+                <h2 class="text-lg font-semibold text-[#0B1E3B] mb-4">Episode Details</h2>
                 
-                <!-- Title -->
-                <div class="form-group">
-                    <label for="title" class="form-label">Title <span style="color: #ef4444;">*</span></label>
-                    <input type="text" id="title" name="title" class="form-input" required 
-                           value="{{ podcast.title if podcast else '' }}" 
-                           placeholder="Episode title">
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Episode Title <span class="text-red-500">*</span></label>
+                    <input type="text" name="title" id="title" required
+                           value="{{ podcast.title if podcast else '' }}"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                           placeholder="e.g. Overcoming Anxiety with Dr. Smith">
                 </div>
-                
-                <!-- Description -->
-                <div class="form-group">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea id="description" name="description" class="form-input" rows="4" 
-                              placeholder="Brief description of the podcast episode">{{ podcast.description if podcast else '' }}</textarea>
-                </div>
-                
-                <!-- Guest -->
-                <div class="form-group">
-                    <label for="guest" class="form-label">Guest</label>
-                    <input type="text" id="guest" name="guest" class="form-input" 
-                           value="{{ podcast.guest if podcast else '' }}" 
-                           placeholder="Guest name(s)">
-                    <small style="color: #6b7280; font-size: 0.875rem;">Name of the guest(s) featured in this episode</small>
-                </div>
-                
-                <!-- Audio URL -->
-                <div class="form-group">
-                    <label for="audio_url" class="form-label">Audio URL <span style="color: #ef4444;">*</span></label>
-                    <input type="url" id="audio_url" name="audio_url" class="form-input" required 
-                           value="{{ podcast.audio_url if podcast else '' }}" 
-                           placeholder="https://example.com/audio.mp3">
-                    <small style="color: #6b7280; font-size: 0.875rem;">Direct link to the audio file (MP3, WAV, etc.)</small>
-                </div>
-                
-                <!-- Thumbnail URL -->
-                <div class="form-group">
-                    <label for="thumbnail_url" class="form-label">Thumbnail URL</label>
-                    <input type="url" id="thumbnail_url" name="thumbnail_url" class="form-input" 
-                           value="{{ podcast.thumbnail_url if podcast else '' }}" 
-                           placeholder="https://example.com/thumbnail.jpg">
-                    <small style="color: #6b7280; font-size: 0.875rem;">Optional cover image for the podcast</small>
-                </div>
-                
-                <!-- Episode Details -->
-                <div class="grid grid--3-col" style="gap: 1rem;">
-                    <div class="form-group">
-                       <label for="duration" class="form-label">Duration (minutes)</label>
-                       <input type="number" id="duration" name="duration" class="form-input" min="0" step="0.1"
-                           value="{{ ('%.1f' % (podcast.duration / 60)) if podcast and podcast.duration else '' }}"
-                           placeholder="e.g., 30">
-                       <small style="color: #6b7280; font-size: 0.875rem;">Total length in minutes</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="season_number" class="form-label">Season</label>
-                        <input type="number" id="season_number" name="season_number" class="form-input" min="1" 
-                               value="{{ podcast.season_number if podcast else '' }}" 
-                               placeholder="e.g., 1">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="episode_number" class="form-label">Episode Number</label>
-                        <input type="number" id="episode_number" name="episode_number" class="form-input" min="1" 
-                               value="{{ podcast.episode_number if podcast else '' }}" 
-                               placeholder="e.g., 1">
+
+                 <div>
+                    <label for="guest" class="block text-sm font-medium text-gray-700 mb-1">Guest Name</label>
+                    <div class="flex gap-2">
+                        <div class="p-2 border border-r-0 border-gray-300 rounded-l-lg bg-gray-50 text-gray-500">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                        </div>
+                         <input type="text" name="guest" id="guest"
+                                value="{{ podcast.guest if podcast else '' }}"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                                placeholder="e.g. Jane Doe">
                     </div>
                 </div>
-                
-                <!-- Category -->
-                <div class="form-group">
-                    <label for="category" class="form-label">Category</label>
-                    <input type="text" id="category" name="category" class="form-input" 
-                           value="{{ podcast.category if podcast else '' }}" 
-                           placeholder="e.g., Mental Health, Youth Empowerment" 
-                           list="categoryList">
-                    <datalist id="categoryList">
-                        <option value="Mental Health">
-                        <option value="Youth Empowerment">
-                        <option value="Community Stories">
-                        <option value="Health & Wellness">
-                        <option value="Education">
-                    </datalist>
-                    <small style="color: #6b7280; font-size: 0.875rem;">Helps organize podcasts by topic</small>
+
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="description" id="description" rows="5"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                              placeholder="Episode summary and show notes...">{{ podcast.description if podcast else '' }}</textarea>
                 </div>
-                
-                <!-- Tags -->
-                <div class="form-group">
-                    <label for="tags" class="form-label">Tags</label>
-                    <input type="text" id="tags" name="tags" class="form-input" 
-                           value="{{ podcast.tags|join(', ') if podcast and podcast.tags else '' }}" 
-                           placeholder="mental health, mindfulness, wellness">
-                    <small style="color: #6b7280; font-size: 0.875rem;">Comma-separated tags for searchability</small>
+            </div>
+
+            <!-- Media Card -->
+             <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+                <h2 class="text-lg font-semibold text-[#0B1E3B] mb-4">Media Links</h2>
+
+                <div>
+                    <label for="audio_url" class="block text-sm font-medium text-gray-700 mb-1">Audio Source URL <span class="text-red-500">*</span></label>
+                     <div class="flex gap-2">
+                        <div class="p-2 border border-r-0 border-gray-300 rounded-l-lg bg-gray-50 text-gray-500">
+                            <i data-lucide="music" class="w-5 h-5"></i>
+                        </div>
+                        <input type="url" name="audio_url" id="audio_url" required
+                               value="{{ podcast.audio_url if podcast else '' }}"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                               placeholder="https://...">
+                    </div>
                 </div>
-                
-                <!-- Published Status -->
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                        <input type="checkbox" id="published" name="published" 
-                               {% if podcast and podcast.published %}checked{% endif %}
-                               style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
-                        <span style="font-weight: 600; color: #334155;">Publish this podcast</span>
-                    </label>
-                    <small style="color: #6b7280; font-size: 0.875rem; display: block; margin-left: 2rem;">
-                        Published podcasts will be visible to all users. Unpublished podcasts are saved as drafts.
-                    </small>
+
+                <div>
+                    <label for="thumbnail_url" class="block text-sm font-medium text-gray-700 mb-1">Thumbnail URL</label>
+                     <div class="flex gap-2">
+                        <div class="p-2 border border-r-0 border-gray-300 rounded-l-lg bg-gray-50 text-gray-500">
+                            <i data-lucide="image" class="w-5 h-5"></i>
+                        </div>
+                        <input type="url" name="thumbnail_url" id="thumbnail_url"
+                               value="{{ podcast.thumbnail_url if podcast else '' }}"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                               placeholder="https://...">
+                    </div>
                 </div>
-                
-                <!-- Submit Buttons -->
-                <div style="display: flex; gap: 0.75rem; margin-top: 2rem;">
-                    <button type="submit" class="btn btn--primary" style="flex: 1;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
-                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
-                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                            <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                        {{ 'Update Podcast' if podcast else 'Create Podcast' }}
-                    </button>
-                    <a href="{{ url_for('admin.podcasts') }}" class="btn btn--secondary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                        Cancel
-                    </a>
-                </div>
-            </form>
+             </div>
         </div>
-    </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Metadata Card -->
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="season_number" class="block text-sm font-medium text-gray-700 mb-1">Season</label>
+                        <input type="number" name="season_number" id="season_number" min="1"
+                               value="{{ podcast.season_number if podcast else '1' }}"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all">
+                    </div>
+                    <div>
+                        <label for="episode_number" class="block text-sm font-medium text-gray-700 mb-1">Episode</label>
+                        <input type="number" name="episode_number" id="episode_number" min="1"
+                               value="{{ podcast.episode_number if podcast else '' }}"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="duration" class="block text-sm font-medium text-gray-700 mb-1">Duration (Seconds)</label>
+                    <input type="number" name="duration" id="duration" min="0"
+                           value="{{ podcast.duration if podcast else '' }}"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                           placeholder="e.g. 1800 for 30 min">
+                    <p class="text-xs text-gray-500 mt-1">Total length in seconds.</p>
+                </div>
+
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select name="category" id="category"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all">
+                        <option value="Mental Health" {% if podcast and podcast.category == 'Mental Health' %}selected{% endif %}>Mental Health</option>
+                        <option value="Wellness" {% if podcast and podcast.category == 'Wellness' %}selected{% endif %}>Wellness</option>
+                        <option value="Community" {% if podcast and podcast.category == 'Community' %}selected{% endif %}>Community</option>
+                        <option value="Education" {% if podcast and podcast.category == 'Education' %}selected{% endif %}>Education</option>
+                        <option value="Inspiration" {% if podcast and podcast.category == 'Inspiration' %}selected{% endif %}>Inspiration</option>
+                    </select>
+                </div>
+
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input type="checkbox" name="published" class="w-5 h-5 text-[#00ACC1] rounded focus:ring-[#00ACC1]" 
+                               {% if podcast and podcast.published %}checked{% endif %}>
+                        <div>
+                            <span class="block text-sm font-medium text-gray-900">Published</span>
+                            <span class="block text-xs text-gray-500">Visible to users</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="pt-4 border-t border-gray-100">
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#00ACC1] hover:bg-[#0097a7] text-white rounded-lg transition-colors shadow-sm font-medium">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Save Episode
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="bg-gradient-to-br from-[#0B1E3B] to-[#1a3b66] p-6 rounded-xl shadow-sm text-white space-y-4">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-white/10 rounded-lg">
+                        <i data-lucide="lightbulb" class="w-5 h-5 text-[#00ACC1]"></i>
+                    </div>
+                    <h3 class="font-semibold">Podcast Tips</h3>
+                </div>
+                <ul class="space-y-3 text-sm text-gray-200">
+                    <li class="flex gap-2">
+                        <i data-lucide="check" class="w-4 h-4 mt-0.5 text-[#00ACC1]"></i>
+                        <span>Upload <strong>square</strong> thumbnails (1080x1080).</span>
+                    </li>
+                    <li class="flex gap-2">
+                        <i data-lucide="check" class="w-4 h-4 mt-0.5 text-[#00ACC1]"></i>
+                        <span>Include <strong>guest names</strong> for better search.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </form>
 </div>
 
 <script>
-// Form validation
-document.getElementById('podcastForm').addEventListener('submit', function(e) {
-    const title = document.getElementById('title').value.trim();
-    const audioUrl = document.getElementById('audio_url').value.trim();
-    
-    if (!title) {
-        e.preventDefault();
-        alert('Please enter a podcast title');
-        return;
-    }
-    
-    if (!audioUrl) {
-        e.preventDefault();
-        alert('Please enter an audio URL');
-        return;
-    }
-    
-    // Validate URL format
-    try {
-        new URL(audioUrl);
-    } catch (err) {
-        e.preventDefault();
-        alert('Please enter a valid audio URL');
-        return;
-    }
-});
-
-// Auto-calculate duration from audio file (if browser supports it)
-document.getElementById('audio_url').addEventListener('blur', function() {
-    const url = this.value.trim();
-    const durationField = document.getElementById('duration');
-    
-    if (url && !durationField.value) {
-        const audio = new Audio(url);
-        audio.addEventListener('loadedmetadata', function() {
-            if (audio.duration && audio.duration !== Infinity) {
-                durationField.value = (audio.duration / 60).toFixed(1);
-            }
-        });
-    }
-});
-
-// Convert minutes to seconds before submit (storage remains seconds)
-const podcastForm = document.getElementById('podcastForm');
-if (podcastForm) {
-    podcastForm.addEventListener('submit', function() {
-        const durationField = document.getElementById('duration');
-        if (durationField && durationField.value) {
-            const minutes = parseFloat(durationField.value);
-            if (!Number.isNaN(minutes)) {
-                durationField.value = Math.round(minutes * 60);
-            }
-        }
-    });
-}
+    lucide.createIcons();
 </script>
-
 {% endblock %}
