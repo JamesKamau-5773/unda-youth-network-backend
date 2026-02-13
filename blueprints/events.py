@@ -231,10 +231,19 @@ def register_event_interest(event_id):
         
         data = request.get_json(silent=True) or {}
         
+        # Normalize field names (accept both camelCase and snake_case)
+        full_name = data.get('full_name') or data.get('fullName', '').strip()
+        email = data.get('email', '').strip()
+        phone = data.get('phone', '').strip()
+        organization = data.get('organization', '').strip()
+        
         # Validate required fields
-        required_fields = ['full_name', 'email']
-        missing = [f for f in required_fields if not data.get(f, '').strip()]
-        if missing:
+        if not full_name or not email:
+            missing = []
+            if not full_name:
+                missing.append('full_name')
+            if not email:
+                missing.append('email')
             return jsonify({
                 'success': False,
                 'error': f'Missing required fields: {", ".join(missing)}'
@@ -242,17 +251,17 @@ def register_event_interest(event_id):
         
         # Validate email format
         email_re = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-        email = data['email'].strip().lower()
+        email = email.lower()
         if not email_re.match(email):
             return jsonify({'success': False, 'error': 'Invalid email address'}), 400
         
         # Create interest registration
         interest = EventInterest(
             event_id=event_id,
-            full_name=data['full_name'].strip(),
+            full_name=full_name,
             email=email,
-            phone=data.get('phone', '').strip() or None,
-            organization=data.get('organization', '').strip() or None,
+            phone=phone or None,
+            organization=organization or None,
             user_id=current_user.user_id if current_user.is_authenticated else None
         )
         

@@ -36,13 +36,13 @@ def migrate_champion_roles():
             # Verify migration
             remaining = User.query.filter_by(role='Champion').count()
             if remaining == 0:
-                print("✅ Migration verified - no Champion roles remain")
+                print("[CheckCircle] Migration verified - no Champion roles remain")
             else:
-                print(f"⚠️  Warning: {remaining} Champion roles still exist")
+                print(f"[AlertTriangle] Warning: {remaining} Champion roles still exist")
                 
         except Exception as e:
             db.session.rollback()
-            print(f"❌ Migration failed: {str(e)}")
+            print(f"[XCircle] ERROR: Migration failed: {str(e)}")
             raise
 
 if __name__ == '__main__':
