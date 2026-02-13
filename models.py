@@ -1558,7 +1558,6 @@ class EventInterest(db.Model):
       'registeredAt': self.registered_at.isoformat() if self.registered_at else None,
       'user_id': self.user_id,
       'userId': self.user_id,
-      'event': self.event.to_dict() if self.event else None,
     }
 
 
