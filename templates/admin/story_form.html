@@ -7,35 +7,163 @@
 {{ macros.form_card_start() }}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="form-group">
-    <label class="form-label">Title</label>
-    <input name="title" class="form-input" value="{{ post.title if post else '' }}" />
+  
+  <!-- Basic Information Section -->
+  <div class="mb-6">
+    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Basic Information</h6>
+    
+    <div class="form-group mb-3">
+      <label class="form-label">
+        <strong>Title *</strong>
+        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
+          A compelling headline for the story (e.g., "How Sarah Found Her Voice Through Our Program")
+        </small>
+      </label>
+      <input 
+        name="title" 
+        class="form-input form-control" 
+        placeholder="Enter story title"
+        value="{{ post.title if post else '' }}" 
+        required 
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label class="form-label">
+        <strong>Excerpt / Summary *</strong>
+        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
+          A 1-2 sentence summary that captures the essence of the story (shown in listings)
+        </small>
+      </label>
+      <textarea 
+        name="excerpt" 
+        class="form-input form-control" 
+        rows="2"
+        placeholder="e.g., Meet Sarah, a champion who transformed her life through our mental health program and is now mentoring others."
+        required
+      >{{ post.excerpt if post else '' }}</textarea>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label class="form-label">Excerpt</label>
-    <textarea name="excerpt" class="form-input">{{ post.excerpt if post else '' }}</textarea>
+  <!-- Story Content Section -->
+  <div class="mb-6">
+    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Story Content</h6>
+    
+    <div class="form-group mb-3">
+      <label class="form-label">
+        <strong>Full Story *</strong>
+        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
+          Tell the complete story. Include challenges, turning points, and impact. You can use line breaks for readability.
+        </small>
+      </label>
+      <textarea 
+        name="content" 
+        class="form-input form-control" 
+        rows="8"
+        placeholder="Write the full story here. Include:&#10;• Background and context&#10;• Key challenges faced&#10;• How the program helped&#10;• Results and impact&#10;• Lessons learned"
+        required
+      >{{ post.content if post else '' }}</textarea>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label class="form-label">Content</label>
-    <textarea name="content" class="form-input">{{ post.content if post else '' }}</textarea>
+  <!-- Media & Visibility Section -->
+  <div class="mb-6">
+    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Featured Image & Visibility</h6>
+    
+    <div class="form-group mb-3">
+      <label class="form-label">
+        <strong>Featured Image URL</strong>
+        <small class="text-muted d-block" style="font-weight: 400; margin-top: 0.25rem;">
+          Link to an image that represents this story (displayed as a header image)
+        </small>
+      </label>
+      <input 
+        name="featured_image" 
+        type="url"
+        class="form-input form-control" 
+        placeholder="https://example.com/story-image.jpg"
+        value="{{ post.featured_image if post else '' }}" 
+      />
+      <small class="text-muted d-block mt-2">Optional. Recommended size: at least 1200×600 pixels for best appearance.</small>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label class="form-label">Featured Image URL</label>
-    <input name="featured_image" class="form-input" value="{{ post.featured_image if post else '' }}" />
+  <!-- Publishing Section -->
+  <div class="mb-4 p-3 bg-light rounded">
+    <h6 class="text-muted mb-3" style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">Publishing Status</h6>
+    
+    <div class="form-group" style="display:flex; align-items:flex-start; gap:1rem;">
+      <input 
+        type="checkbox" 
+        name="published" 
+        value="on" 
+        id="published"
+        {% if (post and post.published) or not post %}checked{% endif %}
+        style="width:1.25rem; height:1.25rem; margin-top: 0.25rem;" 
+      />
+      <div>
+        <label for="published" class="form-label" style="margin:0;">
+          <strong>Publish this story</strong>
+        </label>
+        <small class="text-muted d-block" style="margin-top: 0.25rem;">
+          When checked, this story will be visible on the community highlights page and available via public APIs. Leave unchecked to save as a draft.
+        </small>
+      </div>
+    </div>
   </div>
 
-  <div class="form-group" style="display:flex; align-items:center; gap:0.75rem;">
-    <input type="checkbox" name="published" value="on" id="published"
-      {% if (post and post.published) or not post %}checked{% endif %}
-      style="width:1.25rem; height:1.25rem;" />
-    <label for="published" class="form-label" style="margin:0;">Published</label>
-  </div>
-
-  {{ macros.action_buttons('Save', url_for('admin.list_stories')) }}
+  {{ macros.action_buttons('Save Story', url_for('admin.list_stories')) }}
 </form>
 {{ macros.form_card_end() }}
+
+<style>
+  .form-control {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+    font-family: inherit;
+  }
+  
+  .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
+  .text-muted {
+    color: #6c757d;
+  }
+  
+  .bg-light {
+    background-color: #f8f9fa;
+  }
+  
+  .rounded {
+    border-radius: 6px;
+  }
+  
+  .p-3 {
+    padding: 1.5rem;
+  }
+  
+  .mb-3 {
+    margin-bottom: 1rem;
+  }
+  
+  .mb-4 {
+    margin-bottom: 1.5rem;
+  }
+  
+  .mb-6 {
+    margin-bottom: 2rem;
+  }
+  
+  .d-block {
+    display: block;
+  }
+  
+  .mt-2 {
+    margin-top: 0.5rem;
+  }
+</style>
 
 {% endblock %}
