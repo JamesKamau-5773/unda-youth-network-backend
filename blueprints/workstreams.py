@@ -178,6 +178,47 @@ def get_resources():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@workstreams_bp.route('/api/workstreams/<workstream_type>/resources', methods=['GET'])
+def get_workstream_resources(workstream_type):
+    """List resources for a specific workstream type."""
+    try:
+        # Support both workstream-specific resource queries
+        # For now, just return all published resources
+        # Future: can map workstream_type to specific resource categories
+        
+        query = ResourceItem.query.filter_by(published=True)
+        
+        # Optionally filter by resource type if it matches workstream
+        if workstream_type:
+            query = query.filter_by(resource_type=workstream_type)
+        
+        resources = query.order_by(ResourceItem.created_at.desc()).all()
+        
+        # Transform to frontend expected format
+        result = []
+        for r in resources:
+            result.append({
+                'id': r.resource_id,
+                'title': r.title,
+                'description': r.description,
+                'category': r.resource_type,
+                'downloadUrl': r.url,
+                'thumbnail': None,
+                'tags': r.tags or [],
+                'published': r.published,
+                'createdAt': r.created_at.isoformat() if r.created_at else None
+            })
+        
+        return jsonify({
+            'success': True,
+            'resources': result,
+            'count': len(result)
+        }), 200
+    except Exception as e:
+        current_app.logger.exception(f'Error fetching workstream resources: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @workstreams_bp.route('/api/workstreams/resources/<int:resource_id>', methods=['GET'])
 def get_resource(resource_id):
     """Get single resource by ID (published only)."""
