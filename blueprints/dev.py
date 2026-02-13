@@ -181,9 +181,9 @@ def dashboard():
         </style>
     </head>
     <body>
-        <h1>🔧 Developer Dashboard</h1>
+        <h1>Developer Dashboard</h1>
         <div class="warning">
-            <strong>⚠️ Warning:</strong> This is a hidden developer route. 
+            <strong>[AlertCircle] Warning:</strong> This is a hidden developer route. 
             Do not share the access URL with anyone. Keep your DEV_SECRET_KEY secure.
         </div>
         
@@ -285,12 +285,12 @@ def file_structure():
                 
                 full_path = os.path.join(path, entry)
                 if os.path.isdir(full_path):
-                    items.append(f"{prefix}📁 {entry}/")
+                    items.append(f"{prefix}[Folder] {entry}/")
                     items.extend(get_directory_structure(full_path, prefix + "  ", max_depth, current_depth + 1))
                 else:
-                    items.append(f"{prefix}📄 {entry}")
+                    items.append(f"{prefix}{entry}")
         except PermissionError:
-            items.append(f"{prefix}❌ Permission Denied")
+            items.append(f"{prefix}[Ban] Permission Denied")
         
         return items
     

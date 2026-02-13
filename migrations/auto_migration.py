@@ -33,7 +33,7 @@ def create_event_submission_columns(db, app):
                 print("✅ All submission tracking columns already exist")
                 return True
             
-            print(f"⚠️  Missing columns: {missing_columns}")
+            print(f"[AlertTriangle] Missing columns: {missing_columns}")
             print("Creating missing columns...")
             
             with db.engine.connect() as conn:
@@ -79,15 +79,15 @@ def create_event_submission_columns(db, app):
                 try:
                     conn.execute(text(migration_sql))
                     conn.commit()
-                    print("✅ All event submission columns created successfully")
+                    print("[CheckCircle] All event submission columns created successfully")
                     return True
                 except ProgrammingError as e:
-                    print(f"⚠️  Column creation issue: {e}")
+                    print(f"[AlertTriangle] Column creation issue: {e}")
                     # Columns might already exist, which is fine
                     return True
                     
     except Exception as e:
-        print(f"⚠️  Could not auto-create columns: {e}")
+        print(f"[AlertTriangle] Could not auto-create columns: {e}")
         print("Note: This is fine if using Flask-Migrate. Migration will run separately.")
         return False
 

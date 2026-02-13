@@ -1,6 +1,7 @@
 {% extends 'admin/base.html' %}
 {% import 'admin/_admin_macros.html' as macros %}
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
 {{ macros.hero_header(resource and 'Edit Resource' or 'Create Resource', 'Add guides, documents, or external resources for members') }}
 
 {{ macros.form_card_start() }}
@@ -34,25 +35,25 @@
           What kind of resource is this?
         </small>
       </label>
-      <select name="resource_type" class="form-input form-control" required>
+      <select name="resource_type" class="form-input form-control" required data-type="resource-select">
         <option value="">-- Select a category --</option>
-        <option value="guide" {% if resource and resource.resource_type == 'guide' %}selected{% endif %}>
-          📖 Guide (step-by-step instructions)
+        <option value="guide" {% if resource and resource.resource_type == 'guide' %}selected{% endif %} data-icon="book-open">
+          Guide (step-by-step instructions)
         </option>
-        <option value="toolkit" {% if resource and resource.resource_type == 'toolkit' %}selected{% endif %}>
-          🛠️ Toolkit (templates, tools, checklists)
+        <option value="toolkit" {% if resource and resource.resource_type == 'toolkit' %}selected{% endif %} data-icon="wrench">
+          Toolkit (templates, tools, checklists)
         </option>
-        <option value="publication" {% if resource and resource.resource_type == 'publication' %}selected{% endif %}>
-          📄 Publication (reports, whitepapers, research)
+        <option value="publication" {% if resource and resource.resource_type == 'publication' %}selected{% endif %} data-icon="file-text">
+          Publication (reports, whitepapers, research)
         </option>
-        <option value="video" {% if resource and resource.resource_type == 'video' %}selected{% endif %}>
-          🎥 Video (training videos, webinars)
+        <option value="video" {% if resource and resource.resource_type == 'video' %}selected{% endif %} data-icon="video">
+          Video (training videos, webinars)
         </option>
-        <option value="external" {% if resource and resource.resource_type == 'external' %}selected{% endif %}>
-          🔗 External Link (articles, websites)
+        <option value="external" {% if resource and resource.resource_type == 'external' %}selected{% endif %} data-icon="external-link">
+          External Link (articles, websites)
         </option>
-        <option value="template" {% if resource and resource.resource_type == 'template' %}selected{% endif %}>
-          📋 Template (forms, plans, worksheets)
+        <option value="template" {% if resource and resource.resource_type == 'template' %}selected{% endif %} data-icon="copy">
+          Template (forms, plans, worksheets)
         </option>
       </select>
     </div>
