@@ -206,18 +206,31 @@ def update_event(event_id):
 @login_required
 @admin_required
 def delete_event(event_id):
-    """Delete an event (Admin only)."""
-    event = db.session.get(Event, event_id)
-    if not event:
-        return jsonify({'success': False, 'message': 'Event not found'}), 404
+    """Delete an event (Admin only). Cascades to related records."""
+    try:
+        event = db.session.get(Event, event_id)
+        if not event:
+            return jsonify({'success': False, 'message': 'Event not found'}), 404
+        
+        # Delete the event (cascade deletes will handle EventInterest and EventParticipation)
+        db.session.delete(event)
+        db.session.commit()
+        
+        # Expunge all objects from session to prevent DetachedInstanceError
+        db.session.expunge_all()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Event deleted successfully'
+        }), 200
     
-    db.session.delete(event)
-    db.session.commit()
-    
-    return jsonify({
-        'success': True,
-        'message': 'Event deleted successfully'
-    }), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error deleting event {event_id}: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'message': 'Failed to delete event'
+        }), 500
 
 
 @events_bp.route('/<int:event_id>/register-interest', methods=['POST'])
