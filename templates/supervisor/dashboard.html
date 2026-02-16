@@ -146,10 +146,10 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-700 font-bold text-sm">
-                                        {{ champion.first_name[0] }}{{ champion.last_name[0] }}
+                                        {{ champion.full_name.split()[0][0] }}{{ champion.full_name.split()[-1][0] if champion.full_name.split()|length > 1 else '' }}
                                     </div>
                                     <div>
-                                        <div class="font-semibold text-slate-900">{{ champion.first_name }} {{ champion.last_name }}</div>
+                                        <div class="font-semibold text-slate-900">{{ champion.full_name }}</div>
                                         <div class="text-sm text-slate-600">{{ champion.email }}</div>
                                     </div>
                                 </div>
