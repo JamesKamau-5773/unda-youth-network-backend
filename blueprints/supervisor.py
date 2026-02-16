@@ -7,7 +7,7 @@ from decorators import supervisor_required
 supervisor_bp = Blueprint('supervisor', __name__, url_prefix='/supervisor', template_folder='templates')
 
 
-@supervisor_bp.route('/dashboard',)
+@supervisor_bp.route('/dashboard')
 @login_required
 @supervisor_required
 def dashboard():

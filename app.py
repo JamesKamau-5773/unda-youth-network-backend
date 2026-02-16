@@ -513,7 +513,18 @@ def create_app(test_config=None):
                 'status': 500
             }), 500
         
-        flash('An unexpected error occurred. Our team has been notified. Please try again later.', 'danger')
+        # Prevent redirect loops: if the error occurred on a dashboard page
+        # while the user is authenticated, log them out first to break the cycle.
+        try:
+            if current_user.is_authenticated and request.path != '/auth/login':
+                from flask_login import logout_user as _logout
+                _logout()
+                session.clear()
+                flash('An error occurred. You have been logged out for safety. Please log in again.', 'danger')
+            else:
+                flash('An unexpected error occurred. Our team has been notified. Please try again later.', 'danger')
+        except Exception:
+            flash('An unexpected error occurred. Please try again later.', 'danger')
         # Safely redirect to login (avoid redirect loops)
         return redirect('/auth/login')
 
