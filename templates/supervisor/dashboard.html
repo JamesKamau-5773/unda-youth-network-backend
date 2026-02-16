@@ -15,7 +15,7 @@
             <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div class="space-y-4 max-w-2xl">
                     <h1 class="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
-                        Welcome back, <span class="text-cyan-800">{{ current_user.full_name or 'Supervisor' }}</span>
+                        Welcome back, <span class="text-cyan-800">{{ current_user.username or 'Supervisor' }}</span>
                     </h1>
                     <p class="text-lg text-slate-700">
                         Here is your team snapshot for today. Manage your assigned advocates and monitor their progress.
