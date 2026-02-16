@@ -99,10 +99,11 @@ def register():
 def login():
     if current_user.is_authenticated:
         # Redirect authenticated users directly to their role dashboard
-        role = current_user.role or ''
-        if role == 'Admin':
+        role = (current_user.role or '').strip()
+        role_lower = role.lower()
+        if role_lower == 'admin':
             return redirect(url_for('admin.dashboard'))
-        elif role == 'Supervisor':
+        elif role_lower == 'supervisor':
             return redirect(url_for('supervisor.dashboard'))
         else:
             # Prevention Advocates and unknown roles should not use backend
@@ -139,7 +140,9 @@ def login():
             # Check password
             if user.check_password(password):
                 # Prevention Advocates must login via frontend, not backend
-                if user.role == 'Prevention Advocate':
+                role_value = (user.role or '').strip()
+                role_lower = role_value.lower()
+                if role_lower in ['prevention advocate', 'champion']:
                     frontend_url = os.environ.get('FRONTEND_URL', 'https://undayouth.org')
                     if request.is_json:
                         return jsonify({
@@ -199,10 +202,11 @@ def login():
 
                 # Else form login: flash and redirect as before
                 flash('Logged in successfully', 'success')
-                role = user.role or ''
-                if role == 'Admin':
+                role = (user.role or '').strip()
+                role_lower = role.lower()
+                if role_lower == 'admin':
                     return redirect(url_for('admin.dashboard'))
-                elif role == 'Supervisor':
+                elif role_lower == 'supervisor':
                     return redirect(url_for('supervisor.dashboard'))
                 else:
                     # Only Admin and Supervisor can use backend UI
