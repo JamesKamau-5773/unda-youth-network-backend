@@ -1,9 +1,9 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app, abort
+from flask import Blueprint, render_template, request, flash as flask_flash, redirect, url_for, jsonify, current_app, abort
 import threading
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication, Podcast, Event, EventParticipation, EventInterest, DailyAffirmation, SymbolicItem, MentalHealthAssessment, MediaGallery, InstitutionalToolkitItem, UMVGlobalEntry, ResourceItem, BlogPost
+from models import db, Champion, YouthSupport, RefferalPathway, TrainingRecord, get_champions_needing_refresher, get_high_risk_champions, get_overdue_reviews, User, MemberRegistration, ChampionApplication, Podcast, Event, EventParticipation, EventInterest, DailyAffirmation, SymbolicItem, MentalHealthAssessment, MediaGallery, InstitutionalToolkitItem, UMVGlobalEntry, ResourceItem, BlogPost, SeedFundingApplication
 from decorators import admin_required
 from flask_bcrypt import Bcrypt
 import secrets
@@ -28,6 +28,50 @@ def slugify(value: str) -> str:
     return value
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+
+
+def _looks_technical_error(message: str) -> bool:
+    """Heuristic to identify raw developer errors that should not be shown to end users."""
+    text = (message or '').lower()
+    technical_markers = (
+        'traceback',
+        'sqlalchemy',
+        'psycopg2',
+        'integrityerror',
+        'operationalerror',
+        'programmingerror',
+        'database',
+        'constraint',
+        'null value',
+        'foreign key',
+        '[sql:',
+        'error creating',
+        'error updating',
+        'error deleting',
+        'error resetting',
+        'error changing',
+    )
+    return any(marker in text for marker in technical_markers)
+
+
+def flash(message, category='message'):
+    """Use friendly user error text while logging technical details for developers."""
+    if category == 'danger':
+        raw_message = str(message or '')
+        if _looks_technical_error(raw_message):
+            try:
+                current_app.logger.error(
+                    'User-facing admin error suppressed: endpoint=%s path=%s user_id=%s detail=%s',
+                    request.endpoint,
+                    request.path,
+                    getattr(current_user, 'user_id', None),
+                    raw_message,
+                )
+            except Exception:
+                pass
+            message = 'We could not complete your request right now. Please try again. If the issue persists, contact support.'
+
+    return flask_flash(message, category)
 
 
 @admin_bp.before_app_request
@@ -2760,10 +2804,10 @@ def test_email():
 
         try:
             current_app.logger.info(f"Admin {current_user.username} testing email to {test_recipient}")
-            email_sent = send_password_email(
-                recipient_email=test_recipient,
+            email_sent = mailer.send_password(
+                email=test_recipient,
                 username="test_user",
-                temp_password="TestPass123!"
+                password="TestPass123!"
             )
             
             if email_sent:

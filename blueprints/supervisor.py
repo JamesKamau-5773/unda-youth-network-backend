@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash as flask_flash, abort, current_app
 from flask_login import login_required, current_user
 from models import db, Champion, YouthSupport, RefferalPathway, AccessAuditLog
 from decorators import supervisor_required
@@ -7,6 +7,47 @@ from sqlalchemy import func, or_
 from services import user_service
 
 supervisor_bp = Blueprint('supervisor', __name__, url_prefix='/supervisor', template_folder='templates')
+
+
+def _looks_technical_error(message: str) -> bool:
+  text = (message or '').lower()
+  technical_markers = (
+    'traceback',
+    'sqlalchemy',
+    'psycopg2',
+    'integrityerror',
+    'operationalerror',
+    'programmingerror',
+    'database',
+    'constraint',
+    'null value',
+    'foreign key',
+    '[sql:',
+    'error changing',
+    'error updating',
+    'error deleting',
+    'error creating',
+  )
+  return any(marker in text for marker in technical_markers)
+
+
+def flash(message, category='message'):
+  if category == 'danger':
+    raw_message = str(message or '')
+    if _looks_technical_error(raw_message):
+      try:
+        current_app.logger.error(
+          'User-facing supervisor error suppressed: endpoint=%s path=%s user_id=%s detail=%s',
+          request.endpoint,
+          request.path,
+          getattr(current_user, 'user_id', None),
+          raw_message,
+        )
+      except Exception:
+        pass
+      message = 'We could not complete your request right now. Please try again. If the issue persists, contact support.'
+
+  return flask_flash(message, category)
 
 
 def _build_supervisor_advocates_context():
