@@ -1,5 +1,15 @@
 # Changelog
 
+## Documentation Navigation
+
+- [Project Overview](README.md)
+- [Quick Start](QUICK_START.md)
+- [Deployment Guide](DEPLOYMENT.md)
+- [Deployment Status](DEPLOYMENT_STATUS.md)
+- [Security Overview](SECURITY.md)
+- [Security Implementation](SECURITY_IMPLEMENTATION.md)
+- [User Guide](USER_GUIDE.md)
+
 All notable changes to the UNDA Youth Network project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
