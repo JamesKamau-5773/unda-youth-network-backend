@@ -593,29 +593,38 @@
             position: fixed;
             left: 0;
             top: 0;
-            width: 18px;
+            width: 16px;
             height: 100vh;
-            z-index: 1002;
+            z-index: 900;
             background: transparent;
         }
 
         body.desktop-sidebar-autohide .sidebar {
-            top: 12px;
-            left: 8px;
-            height: calc(100vh - 24px);
-            border-radius: 14px;
-            transform: translateX(calc(-100% + 20px)) !important;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            border-radius: 0;
+            transform: translateX(calc(-100% - 6px)) !important;
             transition: transform 220ms ease-in-out;
-            box-shadow: 0 14px 30px rgba(11, 30, 59, 0.28);
+            box-shadow: none;
+            border-right-color: transparent !important;
         }
 
         body.desktop-sidebar-autohide.desktop-sidebar-open .sidebar,
         body.desktop-sidebar-autohide .sidebar:hover {
             transform: translateX(0) !important;
+            box-shadow: 0 12px 24px rgba(11, 30, 59, 0.22);
+            border-right-color: #1e3a8a !important;
         }
 
         body.desktop-sidebar-autohide .main-content {
             margin-left: 0 !important;
+            transition: margin-left 220ms ease-in-out;
+        }
+
+        body.desktop-sidebar-autohide.desktop-sidebar-open .main-content,
+        body.desktop-sidebar-autohide .sidebar:hover ~ .main-content {
+            margin-left: var(--sidebar-width, 280px) !important;
         }
     }
     
