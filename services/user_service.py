@@ -119,11 +119,11 @@ def delete_user(user_id: int, current_user_id: int) -> None:
         raise ValueError('Cannot delete own account')
 
     try:
-            champion_filters = [Champion.user_id == user.user_id]
-            if user.champion_id:
-                champion_filters.append(Champion.champion_id == user.champion_id)
+        champion_filters = [Champion.user_id == user.user_id]
+        if user.champion_id:
+            champion_filters.append(Champion.champion_id == user.champion_id)
 
-            champion_profiles = Champion.query.filter(or_(*champion_filters)).all()
+        champion_profiles = Champion.query.filter(or_(*champion_filters)).all()
 
         for champion in champion_profiles:
             db.session.delete(champion)
