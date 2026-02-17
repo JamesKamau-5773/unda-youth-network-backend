@@ -6,12 +6,12 @@ A comprehensive web application for managing youth mental health engagement prog
 
 Unda Youth Network is a professional platform designed to support youth mental health initiatives by facilitating the management of peer prevention advocates who work directly with young people in their communities. The system provides role-based dashboards for administrators, supervisors, and prevention advocates to track engagement, monitor wellbeing, manage referrals, and ensure safeguarding compliance.
 
-**Latest Update (v1.1.0 - January 2026)**: 
-- Terminology updated: "Champion" → "Prevention Advocate"
-- Email functionality added with Flask-Mail integration
-- Comprehensive user manual and documentation
-- Enhanced security and developer tools
-- Full backwards compatibility maintained
+**Latest Update (v1.1.1 - February 2026)**:
+- User deletion stability fix for linked prevention advocate records (`youth_supports` integrity-safe cleanup)
+- Friendly user-facing error messages with detailed developer logs (admin/supervisor + global HTTP handlers)
+- Admin dashboard visual standardization to strict Unda palette with readability and mobile improvements
+- Supervisor/Admin dashboard reliability updates (real metric binding, route consistency)
+- Deployment hardening updates (favicon handling and reduced Render host warning noise)
 
 ## Features
 
@@ -51,6 +51,7 @@ Unda Youth Network is a professional platform designed to support youth mental h
 - **Security Headers**: Content Security Policy, X-Frame-Options, X-Content-Type-Options, HSTS
 - **Environment-Based Configuration**: Secret keys and credentials stored in environment variables
 - **SQL Injection Protection**: SQLAlchemy ORM with parameterized queries
+- **Error Disclosure Safety**: Technical exceptions are logged for developers while users receive friendly actionable messages
 
 ### Modern Professional Design
 - **Medical/SaaS Aesthetic**: Clean, professional interface with Deep Navy and Trust Blue color scheme
@@ -66,6 +67,12 @@ Unda Youth Network is a professional platform designed to support youth mental h
 - **Responsive Navigation**: Sidebar converts to sticky horizontal navigation on mobile devices
 - **Mobile-Optimized Forms**: 16px input font size to prevent iOS zoom
 - **Progressive Enhancement**: Works across all modern browsers and devices
+
+### Recent Production Stability Improvements (Feb 2026)
+- **Delete User Reliability**: Prevents not-null FK failures when deleting users linked to prevention advocates and support records
+- **Operational Logging**: Structured logs added for 400/403/404/429/500 handlers with endpoint and user context
+- **Brand/UI Consistency**: Admin dashboard cards and alerts aligned to Unda-only design language
+- **Readability Improvements**: Hero text contrast and KPI card uniformity improved for admin users
 
 ## Technology Stack
 
