@@ -9,10 +9,10 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-[#0B1E3B]">Workstreams Management</h1>
-            <p class="text-gray-500">Manage all content, events, and features from one unified dashboard</p>
+            <p class="text-unda-navy-600">Manage all content, events, and features from one unified dashboard</p>
         </div>
         <div>
-             <a href="{{ url_for('admin.dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm">
+             <a href="{{ url_for('admin.dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-unda-light-blue-100 rounded-lg text-unda-navy-700 hover:bg-unda-light-blue-50 bg-white transition-colors shadow-sm">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 Back to Dashboard
             </a>
@@ -22,28 +22,28 @@
     <!-- Quick Stats Summary -->
     {% set total_items = workstreams | map(attribute='count') | sum %}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl shadow-sm">
-            <div class="text-xs font-bold text-blue-600 uppercase tracking-widest">Total Content</div>
+        <div class="bg-unda-light-blue-50 border-l-4 border-unda-teal-600 p-4 rounded-r-xl shadow-sm">
+            <div class="text-xs font-bold text-unda-teal-700 uppercase tracking-widest">Total Content</div>
             <div class="flex items-end gap-2 mt-1">
                 <div class="text-3xl font-bold text-[#0B1E3B]">{{ total_items }}</div>
-                <div class="text-sm text-blue-600 font-medium mb-1">items</div>
+                <div class="text-sm text-unda-teal-700 font-medium mb-1">items</div>
             </div>
         </div>
         
-        <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl shadow-sm">
-             <div class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Active Streams</div>
+        <div class="bg-unda-light-blue-50 border-l-4 border-unda-teal-600 p-4 rounded-r-xl shadow-sm">
+             <div class="text-xs font-bold text-unda-teal-700 uppercase tracking-widest">Active Streams</div>
              <div class="flex items-end gap-2 mt-1">
                 <div class="text-3xl font-bold text-[#0B1E3B]">{{ workstreams | length }}</div>
-                <div class="text-sm text-emerald-600 font-medium mb-1">modules</div>
+                <div class="text-sm text-unda-teal-700 font-medium mb-1">modules</div>
             </div>
         </div>
 
-        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm flex items-center justify-between">
+        <div class="bg-unda-light-blue-50 border-l-4 border-unda-teal-700 p-4 rounded-r-xl shadow-sm flex items-center justify-between">
              <div>
-                <div class="text-xs font-bold text-amber-700 uppercase tracking-widest">Management</div>
-                <div class="text-amber-800 text-sm mt-1">Centralized Control</div>
+                <div class="text-xs font-bold text-unda-teal-700 uppercase tracking-widest">Management</div>
+                <div class="text-unda-navy-700 text-sm mt-1">Centralized Control</div>
              </div>
-             <div class="p-2 bg-amber-100 rounded-full text-amber-600">
+             <div class="p-2 bg-unda-light-blue-100 rounded-full text-unda-teal-700">
                 <i data-lucide="settings" class="w-5 h-5"></i>
              </div>
         </div>
@@ -52,29 +52,29 @@
     <!-- Workstreams Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for ws in workstreams %}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 hover:border-[#00ACC1] hover:shadow-md transition-all duration-200 flex flex-col h-full group">
+        <div class="bg-white rounded-xl shadow-sm border border-unda-light-blue-100 hover:border-[#00ACC1] hover:shadow-md transition-all duration-200 flex flex-col h-full group">
             <div class="p-6 flex-1">
                 <div class="flex items-start justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-gray-50 group-hover:bg-blue-50 flex items-center justify-center text-[#0B1E3B] group-hover:text-[#00ACC1] transition-colors">
+                    <div class="w-12 h-12 rounded-xl bg-unda-light-blue-50 group-hover:bg-unda-light-blue-100 flex items-center justify-center text-[#0B1E3B] group-hover:text-[#00ACC1] transition-colors">
                         <i data-lucide="{{ ws.icon }}" class="w-6 h-6"></i>
                     </div>
-                    <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-xs font-semibold">
+                    <span class="bg-unda-light-blue-100 text-unda-navy-600 px-2.5 py-1 rounded-full text-xs font-semibold">
                         {{ ws.count }} item{{ 's' if ws.count != 1 else '' }}
                     </span>
                 </div>
                 
                 <h3 class="text-lg font-bold text-[#0B1E3B] mb-2 group-hover:text-[#00ACC1] transition-colors">{{ ws.name }}</h3>
-                <p class="text-gray-500 text-sm leading-relaxed">{{ ws.description }}</p>
+                <p class="text-unda-navy-600 text-sm leading-relaxed">{{ ws.description }}</p>
             </div>
             
-            <div class="p-4 border-t border-gray-50 bg-gray-50/50 rounded-b-xl grid grid-cols-2 gap-3">
+            <div class="p-4 border-t border-unda-light-blue-50 bg-unda-light-blue-50/50 rounded-b-xl grid grid-cols-2 gap-3">
                 {% if ws.route %}
-                <a href="{% if ws.id == 'affirmations' %}{{ url_for('admin.affirmations') }}{% else %}{{ url_for(ws.route) }}{% endif %}" class="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 hover:text-[#0B1E3B] hover:border-gray-300 transition-colors">
+                <a href="{% if ws.id == 'affirmations' %}{{ url_for('admin.affirmations') }}{% else %}{{ url_for(ws.route) }}{% endif %}" class="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-unda-light-blue-100 text-unda-navy-700 rounded-lg text-sm font-medium hover:bg-unda-light-blue-50 hover:text-[#0B1E3B] hover:border-unda-light-blue-200 transition-colors">
                     <i data-lucide="eye" class="w-4 h-4"></i>
                     View
                 </a>
                 {% else %}
-                 <span class="flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 border border-transparent text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed">
+                 <span class="flex items-center justify-center gap-2 px-3 py-2 bg-unda-light-blue-100 border border-transparent text-unda-navy-400 rounded-lg text-sm font-medium cursor-not-allowed">
                     <i data-lucide="eye-off" class="w-4 h-4"></i>
                     View
                 </span>
@@ -86,7 +86,7 @@
                     Add New
                 </a>
                 {% else %}
-                <span class="flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 border border-transparent text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed">
+                <span class="flex items-center justify-center gap-2 px-3 py-2 bg-unda-light-blue-100 border border-transparent text-unda-navy-400 rounded-lg text-sm font-medium cursor-not-allowed">
                     <i data-lucide="plus" class="w-4 h-4"></i>
                     Add
                 </span>
@@ -97,13 +97,13 @@
     </div>
 
     <!-- Help Tip -->
-    <div class="bg-blue-50 rounded-xl p-4 flex items-start gap-3 border border-blue-100">
-        <div class="bg-blue-100 p-2 rounded-lg text-blue-600 flex-shrink-0">
+    <div class="bg-unda-light-blue-50 rounded-xl p-4 flex items-start gap-3 border border-unda-light-blue-100">
+        <div class="bg-unda-light-blue-100 p-2 rounded-lg text-unda-teal-700 flex-shrink-0">
             <i data-lucide="lightbulb" class="w-5 h-5"></i>
         </div>
         <div>
-            <h4 class="text-sm font-bold text-blue-900">Quick Tips</h4>
-            <ul class="text-sm text-blue-700 mt-1 space-y-1 ml-4 list-disc">
+            <h4 class="text-sm font-bold text-unda-navy-900">Quick Tips</h4>
+            <ul class="text-sm text-unda-navy-700 mt-1 space-y-1 ml-4 list-disc">
                 <li>Click "View" to see existing items and perform detailed management.</li>
                 <li>Click "Add New" to immediately create content for that specific workstream.</li>
                 <li>System logs track all modifications for security and auditing.</li>

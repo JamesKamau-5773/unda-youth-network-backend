@@ -593,15 +593,20 @@
             position: fixed;
             left: 0;
             top: 0;
-            width: 14px;
+            width: 18px;
             height: 100vh;
             z-index: 1002;
             background: transparent;
         }
 
         body.desktop-sidebar-autohide .sidebar {
-            transform: translateX(calc(-100% + 12px)) !important;
+            top: 12px;
+            left: 8px;
+            height: calc(100vh - 24px);
+            border-radius: 14px;
+            transform: translateX(calc(-100% + 20px)) !important;
             transition: transform 220ms ease-in-out;
+            box-shadow: 0 14px 30px rgba(11, 30, 59, 0.28);
         }
 
         body.desktop-sidebar-autohide.desktop-sidebar-open .sidebar,
@@ -610,13 +615,7 @@
         }
 
         body.desktop-sidebar-autohide .main-content {
-            margin-left: 12px !important;
-            transition: margin-left 220ms ease-in-out;
-        }
-
-        body.desktop-sidebar-autohide.desktop-sidebar-open .main-content,
-        body.desktop-sidebar-autohide .sidebar:hover ~ .main-content {
-            margin-left: var(--sidebar-width) !important;
+            margin-left: 0 !important;
         }
     }
     
