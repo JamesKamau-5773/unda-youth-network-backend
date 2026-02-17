@@ -31,12 +31,12 @@ Three new endpoints for frontend testing and connectivity:
    - Confirms CORS is working
 
 ### Files Created
-- [blueprints/api_status.py](blueprints/api_status.py) - New API status blueprint
+- [blueprints/api_status.py](../blueprints/api_status.py) - New API status blueprint
 - [FRONTEND_INTEGRATION_GUIDE.md](FRONTEND_INTEGRATION_GUIDE.md) - Complete frontend integration documentation
-- [test_backend_api.sh](test_backend_api.sh) - Quick backend test script
+- Manual API connectivity checks (commands below)
 
 ### Files Modified
-- [blueprints/__init__.py](blueprints/__init__.py) - Registered `api_status_bp`
+- [blueprints/__init__.py](../blueprints/__init__.py) - Registered `api_status_bp`
 
 ---
 
@@ -50,7 +50,9 @@ cd /home/james/projects/unda
 
 ### 2. Test Connectivity
 ```bash
-./test_backend_api.sh
+curl -s http://localhost:5000/api/health
+curl -s http://localhost:5000/api/status
+curl -s http://localhost:5000/api/cors-test
 ```
 
 This will test:
@@ -134,7 +136,7 @@ api.get('/api/health')
 
 ## CORS Configuration ✅
 
-Already configured in [app.py](app.py) (lines 80-102):
+Already configured in [app.py](../app.py) (lines 80-102):
 
 ```python
 def is_valid_origin(origin):
@@ -167,7 +169,9 @@ CORS(app,
 ./run.sh
 
 # In another terminal, test endpoints
-./test_backend_api.sh
+curl -s http://localhost:5000/api/health
+curl -s http://localhost:5000/api/status
+curl -s http://localhost:5000/api/cors-test
 ```
 
 Expected output:
