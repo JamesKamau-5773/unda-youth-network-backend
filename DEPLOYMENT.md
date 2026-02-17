@@ -154,6 +154,12 @@ flask db upgrade
 python -c "from wsgi import app; from flask_migrate import upgrade; upgrade()"
 ```
 
+### Recent Render Operational Notes (Feb 2026)
+
+- The application now includes explicit favicon handling (`/favicon.ico`) and a base template favicon link, reducing repeated favicon 404 noise in logs.
+- Cookie-domain mismatch warnings are now suppressed for expected `*.onrender.com` host probes while preserving warnings for real misconfiguration on primary domains.
+- If you use a custom domain (e.g. `api.undayouth.org`) with `SESSION_COOKIE_DOMAIN=.undayouth.org`, verify browser login/session behavior against the custom domain, not the Render temporary hostname.
+
 
 ---
 
