@@ -6,77 +6,77 @@
 YES! Admin has FULL CRUD access to all 4 workstreams through the admin dashboard.
 
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ 🎙️  WORKSTREAM 1: PODCASTS                                                  │
+│   WORKSTREAM 1: PODCASTS                                                  │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ ✅ CREATE   → /admin/podcasts/create                                         │
+│  CREATE   → /admin/podcasts/create                                         │
 │              - Title, Description, Guest, Audio URL, Duration, Category      │
 │              - Published status toggle                                       │
 │                                                                              │
-│ ✅ READ     → /admin/podcasts                                                │
+│  READ     → /admin/podcasts                                                │
 │              - Filter by: Status (All, Published, Draft), Category          │
 │              - View: Total, Published, Draft counts                         │
 │                                                                              │
-│ ✅ UPDATE   → /admin/podcasts/<id>/edit                                      │
+│  UPDATE   → /admin/podcasts/<id>/edit                                      │
 │              - Edit all fields, toggle publish status                       │
 │                                                                              │
-│ ✅ DELETE   → /admin/podcasts/<id>/delete                                    │
+│  DELETE   → /admin/podcasts/<id>/delete                                    │
 │              - Permanent deletion from database                             │
 └──────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ 🎤  WORKSTREAM 2: DEBATORS CIRCLE                                            │
+│   WORKSTREAM 2: DEBATORS CIRCLE                                            │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ ✅ CREATE   → /admin/debates/create                                          │
+│  CREATE   → /admin/debates/create                                          │
 │              - Title, Description, Date/Time, Location, Organizer            │
 │              - Max Participants, Registration Deadline, Status, Image       │
 │              - Event Type: Automatically set to 'debate'                    │
 │                                                                              │
-│ ✅ READ     → /admin/debates                                                 │
+│  READ     → /admin/debates                                                 │
 │              - Filter by: All, Upcoming, Ongoing, Completed, Cancelled      │
 │              - Stats: Total Debates, Upcoming, Completed                    │
 │                                                                              │
-│ ✅ UPDATE   → /admin/debates/<id>/edit                                       │
+│  UPDATE   → /admin/debates/<id>/edit                                       │
 │              - Edit all event fields, change status                         │
 │                                                                              │
-│ ✅ DELETE   → /admin/debates/<id>/delete                                     │
+│  DELETE   → /admin/debates/<id>/delete                                     │
 │              - Removes event and all participations                         │
 └──────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ 🎓  WORKSTREAM 3: CAMPUS EDITION                                             │
+│   WORKSTREAM 3: CAMPUS EDITION                                             │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ ✅ CREATE   → /admin/campus-edition/create                                   │
+│  CREATE   → /admin/campus-edition/create                                   │
 │              - Title, Description, Date/Time, Location, Organizer            │
 │              - Max Participants, Registration Deadline, Status, Image       │
 │              - Event Type: Automatically set to 'campus'                    │
 │                                                                              │
-│ ✅ READ     → /admin/campus-edition                                          │
+│  READ     → /admin/campus-edition                                          │
 │              - Filter by: All, Upcoming, Ongoing, Completed, Cancelled      │
 │              - Stats: Total Events, Upcoming, Completed                     │
 │                                                                              │
-│ ✅ UPDATE   → /admin/campus-edition/<id>/edit                                │
+│  UPDATE   → /admin/campus-edition/<id>/edit                                │
 │              - Edit all event fields, manage campus activities              │
 │                                                                              │
-│ ✅ DELETE   → /admin/campus-edition/<id>/delete                              │
+│  DELETE   → /admin/campus-edition/<id>/delete                              │
 │              - Removes campus event from system                             │
 └──────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ 🏘️  WORKSTREAM 4: UMV MTAANI                                                 │
+│   WORKSTREAM 4: UMV MTAANI                                                 │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ ✅ CREATE   → /admin/umv-mtaani/create                                       │
+│  CREATE   → /admin/umv-mtaani/create                                       │
 │              - Title, Description, Date/Time, Location, Organizer            │
 │              - Max Participants, Registration Deadline, Status, Image       │
 │              - Event Type: Automatically set to 'mtaani'                    │
 │                                                                              │
-│ ✅ READ     → /admin/umv-mtaani                                              │
+│  READ     → /admin/umv-mtaani                                              │
 │              - Filter by: All, Upcoming, Ongoing, Completed, Cancelled      │
 │              - Stats: Total Barazas, Upcoming, Completed                    │
 │                                                                              │
-│ ✅ UPDATE   → /admin/umv-mtaani/<id>/edit                                    │
+│  UPDATE   → /admin/umv-mtaani/<id>/edit                                    │
 │              - Edit all event fields, manage community barazas              │
 │                                                                              │
-│ ✅ DELETE   → /admin/umv-mtaani/<id>/delete                                  │
+│  DELETE   → /admin/umv-mtaani/<id>/delete                                  │
 │              - Removes mtaani event from system                             │
 └──────────────────────────────────────────────────────────────────────────────┘
 
@@ -107,7 +107,7 @@ Step 3: Choose Your Action
 ║                          EXAMPLE WORKFLOWS                                   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-📝 CREATE A NEW DEBATE EVENT:
+ CREATE A NEW DEBATE EVENT:
    1. Workstreams → Debators Circle → "Add New"
    2. Fill form:
       - Title: "Youth Leadership Debate"
@@ -115,34 +115,34 @@ Step 3: Choose Your Action
       - Location: "Community Center"
       - Status: Upcoming
    3. Click "Create Event"
-   4. ✅ Event created!
+   4.  Event created!
 
-✏️ EDIT A PODCAST:
+ EDIT A PODCAST:
    1. Workstreams → Podcasts → "View All"
    2. Find podcast in list
    3. Click "Edit" button
    4. Update fields (e.g., change category)
    5. Click "Update Podcast"
-   6. ✅ Changes saved!
+   6.  Changes saved!
 
-🗑️ DELETE A CAMPUS EVENT:
+ DELETE A CAMPUS EVENT:
    1. Workstreams → Campus Edition → "View All"
    2. Find event in list
    3. Click "Delete" button
    4. Confirm deletion in browser
-   5. ✅ Event removed!
+   5.  Event removed!
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                           ACCESS CONTROL                                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-✅ ADMINS CAN:
+ ADMINS CAN:
    • Access /admin/workstreams
    • Create, Read, Update, Delete ALL 4 workstreams
    • View statistics and filter results
    • Manage all content centrally
 
-❌ SUPERVISORS/CHAMPIONS CANNOT:
+ SUPERVISORS/CHAMPIONS CANNOT:
    • Access workstreams dashboard
    • Modify any workstream content
    • See admin-specific routes

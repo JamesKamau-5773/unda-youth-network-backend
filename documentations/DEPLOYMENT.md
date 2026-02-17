@@ -1,4 +1,4 @@
-# 🚀 Production Deployment Guide
+#  Production Deployment Guide
 
 ## Documentation Navigation
 
@@ -14,17 +14,17 @@ This guide covers deploying the UNDA Youth Network application to production hos
 
 ---
 
-## 📋 Pre-Deployment Checklist
+##  Pre-Deployment Checklist
 
 All three production requirements have been implemented:
 
-✅ **Environment Variables** - `.env.example` template with all required variables  
-✅ **Production Web Server** - `gunicorn==21.2.0` in requirements.txt  
-✅ **Database Migrations** - All migrations verified (including 33-field prevention advocate update)
+ **Environment Variables** - `.env.example` template with all required variables  
+ **Production Web Server** - `gunicorn==21.2.0` in requirements.txt  
+ **Database Migrations** - All migrations verified (including 33-field prevention advocate update)
 
 ---
 
-## 🔧 Quick Start - Local Production Test
+##  Quick Start - Local Production Test
 
 ### 1. Install Dependencies
 ```bash
@@ -64,7 +64,7 @@ gunicorn -w 4 -b 0.0.0.0:5000 --timeout 120 app:app
 
 ---
 
-## 🌐 Platform-Specific Deployment
+##  Platform-Specific Deployment
 
 ### Railway.app (Recommended)
 
@@ -218,7 +218,7 @@ python -c "from wsgi import app; from flask_migrate import upgrade; upgrade()"
 
 ---
 
-## 🔒 Security Checklist
+##  Security Checklist
 
 Before going live:
 
@@ -234,7 +234,7 @@ Before going live:
 
 ---
 
-## 📊 Database Migrations
+##  Database Migrations
 
 The application includes 3 migrations:
 
@@ -254,7 +254,7 @@ flask db current
 
 ---
 
-## ⚠️ Database connectivity & startup checks
+##  Database connectivity & startup checks
 
 The application now performs a production-only startup connectivity check to
 avoid silently falling back to an ephemeral SQLite database (which would
@@ -275,7 +275,7 @@ like `Database connectivity check failed at startup` and verify the
 `DATABASE_URL` value in your deployment environment.
 
 
-## ⚙️ Gunicorn Configuration
+##  Gunicorn Configuration
 
 ### Basic Command
 ```bash
@@ -316,7 +316,7 @@ gunicorn -c gunicorn.conf.py app:app
 
 ---
 
-## 🧪 Testing Production Settings Locally
+##  Testing Production Settings Locally
 
 1. Set environment to production:
 ```bash
@@ -347,7 +347,7 @@ echo "FLASK_ENV=development" > .env
 
 ---
 
-## 📞 Support Resources
+##  Support Resources
 
 - **Railway Docs**: https://docs.railway.app/
 - **Render Docs**: https://render.com/docs
@@ -357,7 +357,7 @@ echo "FLASK_ENV=development" > .env
 
 ---
 
-## 🚨 Troubleshooting
+##  Troubleshooting
 
 ### Issue: `SECRET_KEY not set`
 **Solution**: Add `SECRET_KEY` to `.env` or platform environment variables
@@ -387,7 +387,7 @@ lsof -ti:5000 | xargs kill -9  # Kill process on port 5000
 
 ---
 
-## 📝 Post-Deployment
+##  Post-Deployment
 
 After successful deployment:
 
@@ -418,4 +418,4 @@ After successful deployment:
 
 ---
 
-**🎉 Your UNDA Youth Network application is production-ready!**
+** Your UNDA Youth Network application is production-ready!**

@@ -1,4 +1,4 @@
-# 📖 UNDA Youth Network - Complete User Manual
+#  UNDA Youth Network - Complete User Manual
 
 ## Documentation Navigation
 
@@ -15,7 +15,7 @@
 
 ---
 
-## 📌 Table of Contents
+##  Table of Contents
 
 1. [What is UNDA Youth Network?](#what-is-unda-youth-network)
 2. [Getting Started](#getting-started)
@@ -34,7 +34,7 @@
 
 ---
 
-## 🎯 What is UNDA Youth Network?
+##  What is UNDA Youth Network?
 
 **UNDA Youth Network** is a digital platform designed to support youth mental health initiatives through a peer prevention advocate network. It's a comprehensive system that helps:
 
@@ -45,17 +45,17 @@
 ### Why UNDA?
 
 Think of UNDA as your **all-in-one youth support hub** that brings together:
-- ✅ Mental health screening and support
-- ✅ Daily motivational affirmations
-- ✅ Community events and workshops
-- ✅ Seed funding for youth projects
-- ✅ Educational resources through blogs and podcasts
-- ✅ Performance tracking and reporting
-- ✅ Secure communication and data management
+-  Mental health screening and support
+-  Daily motivational affirmations
+-  Community events and workshops
+-  Seed funding for youth projects
+-  Educational resources through blogs and podcasts
+-  Performance tracking and reporting
+-  Secure communication and data management
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Step 1: Access the Platform
 
@@ -86,11 +86,11 @@ After your first login, complete your profile with:
 
 ---
 
-## 👥 User Roles Explained
+##  User Roles Explained
 
 UNDA has three main user roles, each with specific permissions and features:
 
-### 🎓 Prevention Advocate (Young Person)
+###  Prevention Advocate (Young Person)
 **Who:** Youth participants in the UNDA network  
 **What they can do:**
 - Complete mental health assessments
@@ -101,7 +101,7 @@ UNDA has three main user roles, each with specific permissions and features:
 - View their personal dashboard and history
 - Submit feedback and ratings
 
-### 👔 Supervisor
+###  Supervisor
 **Who:** Youth workers managing prevention advocates  
 **What they can do:**
 - Everything a Prevention Advocate can do, PLUS:
@@ -112,7 +112,7 @@ UNDA has three main user roles, each with specific permissions and features:
 - Make referrals to professional services
 - Rate prevention advocate performance
 
-### 🔑 Administrator
+###  Administrator
 **Who:** Program managers and system administrators  
 **What they can do:**
 - Everything Supervisors and Prevention Advocates can do, PLUS:
@@ -127,7 +127,7 @@ UNDA has three main user roles, each with specific permissions and features:
 
 ---
 
-## 🔐 Login & Account Security
+##  Login & Account Security
 
 ### How to Log In
 
@@ -164,13 +164,13 @@ If locked out:
 
 ### Security Tips
 
-✅ **DO:**
+ **DO:**
 - Keep your password private
 - Use a unique password (don't reuse passwords from other sites)
 - Log out when using shared computers
 - Contact admin if you notice suspicious activity
 
-❌ **DON'T:**
+ **DON'T:**
 - Share your password with anyone
 - Write your password down where others can see it
 - Use simple passwords like "password123"
@@ -178,7 +178,7 @@ If locked out:
 
 ---
 
-## 🎓 Prevention Advocate Guide
+##  Prevention Advocate Guide
 
 As a Prevention Advocate, your dashboard is your personal hub for mental health support, personal development, and community engagement.
 
@@ -186,13 +186,13 @@ As a Prevention Advocate, your dashboard is your personal hub for mental health 
 
 When you log in, you'll see:
 
-#### 📊 Quick Stats
+####  Quick Stats
 - Your completion rate for assessments
 - Upcoming events you're registered for
 - Recent affirmations
 - Your participation history
 
-#### 🧠 Mental Health Assessments
+####  Mental Health Assessments
 
 **What are they?**  
 Standardized questionnaires (PHQ-9, GAD-7) that help assess your mental health and wellbeing.
@@ -210,9 +210,9 @@ Standardized questionnaires (PHQ-9, GAD-7) that help assess your mental health a
 5. View your results and personalized recommendations
 
 **Your results are:**
-- ✅ Confidential (only you and authorized supervisors can see them)
-- ✅ Used to provide you with appropriate support
-- ✅ Tracked over time to monitor your progress
+-  Confidential (only you and authorized supervisors can see them)
+-  Used to provide you with appropriate support
+-  Tracked over time to monitor your progress
 
 **Severity Levels Explained:**
 - **Minimal:** You're doing well! Keep up your self-care routines
@@ -220,7 +220,7 @@ Standardized questionnaires (PHQ-9, GAD-7) that help assess your mental health a
 - **Moderate:** Support recommended - speak with your supervisor
 - **Moderately Severe/Severe:** Immediate support needed - you'll be contacted by a supervisor
 
-#### 💪 Daily Affirmations
+####  Daily Affirmations
 
 **What are they?**  
 Positive, encouraging messages delivered daily to boost your mental wellbeing.
@@ -242,7 +242,7 @@ Positive, encouraging messages delivered daily to boost your mental wellbeing.
 - Social connection
 - Hope and positivity
 
-#### 📅 Events & Workshops
+####  Events & Workshops
 
 **What are they?**  
 Quarterly pillar events covering mental health topics, skills training, and community building.
@@ -275,7 +275,7 @@ Quarterly pillar events covering mental health topics, skills training, and comm
 - **Waitlisted:** Event is full, you're on the waiting list
 - **Cancelled:** You've cancelled your registration
 
-#### 💰 Seed Funding Applications
+####  Seed Funding Applications
 
 **What is it?**  
 Financial support for youth-led projects that benefit your community.
@@ -319,13 +319,13 @@ Students and young people with project ideas related to:
    - Confirm disbursement details
 
 **Tips for a Strong Application:**
-- ✅ Be specific about your project goals
-- ✅ Provide a realistic budget
-- ✅ Explain how you'll measure success
-- ✅ Show community need and impact
-- ✅ Include a clear timeline
+-  Be specific about your project goals
+-  Provide a realistic budget
+-  Explain how you'll measure success
+-  Show community need and impact
+-  Include a clear timeline
 
-#### 📰 Blog & Learning Resources
+####  Blog & Learning Resources
 
 **What's available?**
 - Mental health articles
@@ -339,7 +339,7 @@ Students and young people with project ideas related to:
 3. Read full articles
 4. Share helpful content with peers
 
-#### 🎧 Podcasts
+####  Podcasts
 
 **What are they?**  
 Audio content featuring:
@@ -354,7 +354,7 @@ Audio content featuring:
 3. Click to play directly in your browser
 4. Download episodes for offline listening (if available)
 
-#### 🎁 Symbolic Items
+####  Symbolic Items
 
 **What are they?**  
 Physical items you earn through participation:
@@ -385,13 +385,13 @@ Physical items you earn through participation:
 
 ---
 
-## 👔 Supervisor Guide
+##  Supervisor Guide
 
 As a Supervisor, you're responsible for supporting and monitoring your assigned prevention advocates while ensuring their safety and wellbeing.
 
 ### Your Supervisor Dashboard
 
-#### 📋 Prevention Advocate Management
+####  Prevention Advocate Management
 
 **View Your Prevention Advocates:**
 1. Dashboard shows all assigned prevention advocates
@@ -408,7 +408,7 @@ As a Supervisor, you're responsible for supporting and monitoring your assigned 
 - Event participation
 - Funding applications
 
-#### 📊 Weekly Reporting
+####  Weekly Reporting
 
 **What to report:**
 Submit weekly performance data for each prevention advocate:
@@ -442,7 +442,7 @@ Submit weekly performance data for each prevention advocate:
 - Track trends over time
 - Compare performance periods
 
-#### 🛡️ Safeguarding
+####  Safeguarding
 
 **Your Responsibilities:**
 
@@ -464,7 +464,7 @@ Submit weekly performance data for each prevention advocate:
    - Follow up on outcomes
    - Maintain confidentiality
 
-#### 📞 Prevention Advocate Support
+####  Prevention Advocate Support
 
 **How to support your prevention advocates:**
 
@@ -492,7 +492,7 @@ Submit weekly performance data for each prevention advocate:
    - Acknowledge achievements
    - Support improvement areas
 
-#### 📈 Performance Monitoring
+####  Performance Monitoring
 
 **Key Metrics to Track:**
 - Attendance rates at events and training
@@ -510,7 +510,7 @@ Submit weekly performance data for each prevention advocate:
 
 ---
 
-## 🔑 Admin Guide
+##  Admin Guide
 
 As an Administrator, you have full control over the UNDA system and are responsible for overall program management.
 
@@ -518,7 +518,7 @@ As an Administrator, you have full control over the UNDA system and are responsi
 
 Your dashboard provides comprehensive system analytics:
 
-#### 📊 System-Wide Metrics
+####  System-Wide Metrics
 
 **Prevention Advocate Overview:**
 - Total prevention advocates (Active/Inactive/On Hold)
@@ -798,7 +798,7 @@ Your dashboard provides comprehensive system analytics:
 
 ---
 
-## 🧠 Mental Health Features
+##  Mental Health Features
 
 UNDA provides comprehensive mental health support tools designed to promote wellbeing and early intervention.
 
@@ -867,7 +867,7 @@ UNDA provides comprehensive mental health support tools designed to promote well
 
 #### Privacy & Confidentiality
 
-✅ Your assessment results are:
+ Your assessment results are:
 - Stored securely
 - Only accessible to authorized staff (supervisor, admin)
 - Used only to provide you with support
@@ -906,7 +906,7 @@ Each day, you'll get a positive message like:
 
 ---
 
-## 📅 Events & Activities
+##  Events & Activities
 
 UNDA hosts quarterly pillar events covering key mental health topics and life skills.
 
@@ -993,7 +993,7 @@ UNDA hosts quarterly pillar events covering key mental health topics and life sk
 
 ---
 
-## 💰 Seed Funding Applications
+##  Seed Funding Applications
 
 UNDA supports youth-led projects through seed funding grants.
 
@@ -1150,7 +1150,7 @@ UNDA supports youth-led projects through seed funding grants.
 
 ### Tips for Success
 
-✅ **DO:**
+ **DO:**
 - Start with a clear, specific problem
 - Show genuine community need
 - Provide realistic timelines
@@ -1159,7 +1159,7 @@ UNDA supports youth-led projects through seed funding grants.
 - Submit complete applications
 - Follow up professionally
 
-❌ **DON'T:**
+ **DON'T:**
 - Ask for unrealistic amounts
 - Provide vague project descriptions
 - Submit incomplete applications
@@ -1169,7 +1169,7 @@ UNDA supports youth-led projects through seed funding grants.
 
 ---
 
-## 📰 Blog & Resources
+##  Blog & Resources
 
 UNDA's blog provides valuable mental health resources and community stories.
 
@@ -1226,7 +1226,7 @@ UNDA's blog provides valuable mental health resources and community stories.
 
 ---
 
-## 💳 Payments & M-Pesa
+##  Payments & M-Pesa
 
 UNDA uses M-Pesa for quick, secure mobile payments.
 
@@ -1279,7 +1279,7 @@ UNDA uses M-Pesa for quick, secure mobile payments.
 
 ---
 
-## 🎧 Podcasts
+##  Podcasts
 
 UNDA's podcast library offers audio content on mental health, personal development, and youth empowerment.
 
@@ -1313,7 +1313,7 @@ Check "Featured" or "Most Popular" sections for staff-recommended episodes.
 
 ---
 
-## ❓ FAQs & Troubleshooting
+##  FAQs & Troubleshooting
 
 ### Account & Login
 
@@ -1422,7 +1422,7 @@ A: We welcome feedback! Submit via:
 
 ---
 
-## 🎉 Getting the Most Out of UNDA
+##  Getting the Most Out of UNDA
 
 ### Tips for Prevention Advocates
 
@@ -1453,7 +1453,7 @@ A: We welcome feedback! Submit via:
 
 ---
 
-## 📞 Support & Contact
+##  Support & Contact
 
 ### Need Help?
 
@@ -1482,15 +1482,15 @@ If you're in crisis, contact:
 
 ---
 
-## 🌟 Welcome to the UNDA Community!
+##  Welcome to the UNDA Community!
 
 You're now part of a network dedicated to youth mental health and empowerment. Whether you're a prevention advocate seeking support, a supervisor providing care, or an admin managing the program, you play a vital role.
 
 **Remember:**
-- 💙 Your mental health matters
-- 🤝 You're not alone - support is available
-- 🌱 Every small step is progress
-- ✨ Your story and voice make a difference
+-  Your mental health matters
+-  You're not alone - support is available
+-  Every small step is progress
+-  Your story and voice make a difference
 
 **Let's grow together!**
 

@@ -238,11 +238,11 @@ Delete: POST /admin/umv-mtaani/<id>/delete
 
 ## Access Control
 
-✅ **All routes protected with:**
+ **All routes protected with:**
 - `@login_required` - Must be logged in
 - `@admin_required` - Must have Admin role
 
-❌ **Supervisors and Prevention Advocates cannot:**
+ **Supervisors and Prevention Advocates cannot:**
 - Access workstreams dashboard
 - Create, edit, or delete any workstream content
 - View admin-specific routes
@@ -332,10 +332,10 @@ Workstreams (Sidebar)
 
 ## Summary
 
-✅ **Yes, admins can fully manage all 4 workstreams:**
-- ✅ **Create** new items with comprehensive forms
-- ✅ **Read/View** all items with filtering and statistics
-- ✅ **Update** existing items with edit forms
-- ✅ **Delete** items with confirmation
+ **Yes, admins can fully manage all 4 workstreams:**
+-  **Create** new items with comprehensive forms
+-  **Read/View** all items with filtering and statistics
+-  **Update** existing items with edit forms
+-  **Delete** items with confirmation
 
 All operations are accessible through the unified Workstreams dashboard with consistent UI patterns across all workstreams.

@@ -82,7 +82,7 @@ GET /__dev__/routes?key=YOUR_SECRET_KEY
 curl "https://your-app.com/__dev__/routes?key=YOUR_SECRET_KEY"
 ```
 
-## 🔑 Authentication Methods
+##  Authentication Methods
 
 You can provide the secret key in two ways:
 
