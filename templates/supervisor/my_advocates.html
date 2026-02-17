@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}My Advocates | Unda Youth{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-unda-light-blue-50 font-sans text-unda-navy-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-unda-light-blue-50 rounded-2xl shadow-sm border border-unda-light-blue-200 overflow-hidden">
+            <div class="p-6 border-b border-unda-light-blue-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h1 class="text-2xl font-bold text-unda-navy-900">My Advocates</h1>
+
+                <form method="get" class="flex flex-wrap gap-3">
+                    <select name="status" onchange="this.form.submit()"
+                            class="px-4 py-2 bg-unda-light-blue-50 border border-unda-light-blue-200 rounded-lg text-sm focus:outline-none focus:border-unda-teal-500 focus:ring-1 focus:ring-unda-teal-500">
+                        <option value="all" {% if current_filters.status == 'all' %}selected{% endif %}>All Statuses</option>
+                        <option value="Active" {% if current_filters.status == 'Active' %}selected{% endif %}>Active</option>
+                        <option value="Inactive" {% if current_filters.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+
+                    <select name="risk" onchange="this.form.submit()"
+                            class="px-4 py-2 bg-unda-light-blue-50 border border-unda-light-blue-200 rounded-lg text-sm focus:outline-none focus:border-unda-teal-500 focus:ring-1 focus:ring-unda-teal-500">
+                        <option value="all" {% if current_filters.risk == 'all' %}selected{% endif %}>All Risk Levels</option>
+                        <option value="Low" {% if current_filters.risk == 'Low' %}selected{% endif %}>Low Risk</option>
+                        <option value="Medium" {% if current_filters.risk == 'Medium' %}selected{% endif %}>Medium Risk</option>
+                        <option value="High" {% if current_filters.risk == 'High' %}selected{% endif %}>High Risk</option>
+                    </select>
+                </form>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-unda-light-blue-100/60 text-unda-navy-700 text-xs uppercase tracking-wider">
+                            <th class="px-6 py-4 font-bold">Name / Contact</th>
+                            <th class="px-6 py-4 font-bold">Location</th>
+                            <th class="px-6 py-4 font-bold">Institution</th>
+                            <th class="px-6 py-4 font-bold">Status</th>
+                            <th class="px-6 py-4 font-bold">Risk Level</th>
+                            <th class="px-6 py-4 font-bold text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-unda-light-blue-200">
+                        {% for champion in champions %}
+                        <tr class="hover:bg-unda-light-blue-100/80 transition-colors group">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-unda-teal-100 flex items-center justify-center text-unda-teal-700 font-bold text-sm">
+                                        {{ champion.full_name.split()[0][0] }}{{ champion.full_name.split()[-1][0] if champion.full_name.split()|length > 1 else '' }}
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-unda-navy-900">{{ champion.full_name }}</div>
+                                        <div class="text-sm text-unda-navy-600">{{ champion.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-unda-navy-700">{{ champion.county_sub_county }}</td>
+                            <td class="px-6 py-4 text-sm text-unda-navy-700">{{ champion.education_institution_name }}</td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if champion.champion_status == 'Active' %} bg-unda-teal-50 text-unda-teal-700 {% else %} bg-unda-light-blue-100 text-unda-navy-600 {% endif %}">
+                                    {{ champion.champion_status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border {% if champion.risk_level == 'High' %} bg-unda-light-blue-100 text-unda-navy-700 border-unda-light-blue-200 {% elif champion.risk_level == 'Medium' %} bg-unda-teal-100 text-unda-teal-700 border-unda-teal-200 {% else %} bg-unda-teal-50 text-unda-teal-700 border-unda-teal-100 {% endif %}">
+                                    {{ champion.risk_level }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="{{ url_for('supervisor.review_champion', champion_id=champion.champion_id) }}"
+                                   class="text-unda-teal-700 hover:text-unda-teal-900 transition-colors font-medium text-sm inline-flex items-center gap-1">
+                                   View Profile <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-unda-navy-700">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="p-4 bg-unda-light-blue-100 rounded-full mb-3">
+                                        <i data-lucide="users" class="w-8 h-8 text-unda-navy-400"></i>
+                                    </div>
+                                    <p class="text-lg font-medium text-unda-navy-900">No advocates found</p>
+                                    <p class="text-sm">Try adjusting your filters to see more results.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="px-6 py-4 border-t border-unda-light-blue-200 bg-unda-light-blue-100/40 flex items-center justify-between">
+                <span class="text-sm text-unda-navy-700 font-medium">Showing all {{ champions|length }} records</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

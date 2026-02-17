@@ -1,59 +1,155 @@
-from datetime import datetime, timezone
-from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
+from datetime import datetime, timezone, timedelta
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, current_app
 from flask_login import login_required, current_user
 from models import db, Champion, YouthSupport, RefferalPathway, AccessAuditLog
 from decorators import supervisor_required
+from sqlalchemy import func, or_
+from services import user_service
 
 supervisor_bp = Blueprint('supervisor', __name__, url_prefix='/supervisor', template_folder='templates')
+
+
+def _build_supervisor_advocates_context():
+  """Build common advocates/filter context for supervisor pages."""
+  query = Champion.query.filter_by(supervisor_id=current_user.user_id)
+
+  filter_status = request.args.get('status')
+  filter_risk = request.args.get('risk')
+  filter_county = request.args.get('county')
+  filter_institution = request.args.get('institution')
+
+  if filter_status and filter_status != 'all':
+    query = query.filter_by(champion_status=filter_status)
+
+  if filter_risk and filter_risk != 'all':
+    query = query.filter_by(risk_level=filter_risk)
+
+  if filter_county and filter_county != 'all':
+    query = query.filter_by(county_sub_county=filter_county)
+
+  if filter_institution and filter_institution != 'all':
+    query = query.filter_by(education_institution_name=filter_institution)
+
+  champions = query.all()
+
+  all_counties = db.session.query(Champion.county_sub_county).filter(
+    Champion.supervisor_id == current_user.user_id
+  ).distinct().all()
+
+  all_institutions = db.session.query(Champion.education_institution_name).filter(
+    Champion.supervisor_id == current_user.user_id
+  ).distinct().all()
+
+  return {
+    'champions': champions,
+    'all_counties': [c[0] for c in all_counties if c[0]],
+    'all_institutions': [i[0] for i in all_institutions if i[0]],
+    'current_filters': {
+      'status': filter_status or 'all',
+      'risk': filter_risk or 'all',
+      'county': filter_county or 'all',
+      'institution': filter_institution or 'all'
+    }
+  }
 
 
 @supervisor_bp.route('/dashboard')
 @login_required
 @supervisor_required
 def dashboard():
-  # SECURITY FILTER: Only fetch champions assigned to this supervisor
-  # Filter champions where supervisor_id matches current user's ID
-  query = Champion.query.filter_by(supervisor_id=current_user.user_id)
-  
-  # ADVANCED FILTERING
-  filter_status = request.args.get('status')
-  filter_risk = request.args.get('risk')
-  filter_county = request.args.get('county')
-  filter_institution = request.args.get('institution')
-  
-  if filter_status and filter_status != 'all':
-    query = query.filter_by(champion_status=filter_status)
-  
-  if filter_risk and filter_risk != 'all':
-    query = query.filter_by(risk_level=filter_risk)
-  
-  if filter_county and filter_county != 'all':
-    query = query.filter_by(county_sub_county=filter_county)
-  
-  if filter_institution and filter_institution != 'all':
-    query = query.filter_by(education_institution_name=filter_institution)
-  
-  champions = query.all()
-  
-  # Get unique values for filter dropdowns (only from assigned champions)
-  all_counties = db.session.query(Champion.county_sub_county).filter(
-    Champion.supervisor_id == current_user.user_id
-  ).distinct().all()
-  
-  all_institutions = db.session.query(Champion.education_institution_name).filter(
-    Champion.supervisor_id == current_user.user_id
-  ).distinct().all()
+  context = _build_supervisor_advocates_context()
+  champions = context['champions']
+
+  # Dashboard metrics (real computed values)
+  today = datetime.now(timezone.utc).date()
+  week_start = today - timedelta(days=7)
+
+  active_cases_count = (
+    db.session.query(func.count(func.distinct(YouthSupport.champion_id)))
+    .join(Champion, YouthSupport.champion_id == Champion.champion_id)
+    .filter(
+      Champion.supervisor_id == current_user.user_id,
+      YouthSupport.reporting_period >= week_start
+    )
+    .scalar()
+  ) or 0
+
+  pending_review_count = (
+    db.session.query(func.count(YouthSupport.support_id))
+    .join(Champion, YouthSupport.champion_id == Champion.champion_id)
+    .filter(
+      Champion.supervisor_id == current_user.user_id,
+      or_(
+        YouthSupport.supervisor_notes.is_(None),
+        func.trim(YouthSupport.supervisor_notes) == ''
+      )
+    )
+    .scalar()
+  ) or 0
+
+  team_health_rate = (
+    db.session.query(func.avg(YouthSupport.weekly_check_in_completion_rate))
+    .join(Champion, YouthSupport.champion_id == Champion.champion_id)
+    .filter(Champion.supervisor_id == current_user.user_id)
+    .scalar()
+  )
+  team_health_rate = int(round(float(team_health_rate))) if team_health_rate is not None else 0
+  team_health_rate = max(0, min(team_health_rate, 100))
 
   return render_template('supervisor/dashboard.html', 
                         champions=champions,
-                        all_counties=[c[0] for c in all_counties if c[0]],
-                        all_institutions=[i[0] for i in all_institutions if i[0]],
-                        current_filters={
-                          'status': filter_status or 'all',
-                          'risk': filter_risk or 'all',
-                          'county': filter_county or 'all',
-                          'institution': filter_institution or 'all'
-                        })
+                        all_counties=context['all_counties'],
+                        all_institutions=context['all_institutions'],
+                        active_cases_count=active_cases_count,
+                        pending_review_count=pending_review_count,
+                        team_health_rate=team_health_rate,
+                        current_filters=context['current_filters'])
+
+
+@supervisor_bp.route('/my-advocates')
+@login_required
+@supervisor_required
+def my_advocates():
+  context = _build_supervisor_advocates_context()
+  return render_template('supervisor/my_advocates.html',
+                        champions=context['champions'],
+                        all_counties=context['all_counties'],
+                        all_institutions=context['all_institutions'],
+                        current_filters=context['current_filters'])
+
+
+@supervisor_bp.route('/change-password', methods=['GET', 'POST'])
+@login_required
+@supervisor_required
+def change_password():
+  if request.method == 'POST':
+    current_password = request.form.get('current_password', '')
+    new_password = request.form.get('new_password', '')
+    confirm_password = request.form.get('confirm_password', '')
+
+    if not current_password or not new_password or not confirm_password:
+      flash('All fields are required', 'danger')
+      return render_template('admin/change_password.html')
+
+    if new_password != confirm_password:
+      flash('New passwords do not match', 'danger')
+      return render_template('admin/change_password.html')
+
+    try:
+      user_service.change_password(current_user.user_id, current_password, new_password)
+      flash('Password changed successfully!', 'success')
+      flash('You can now use your new password on next login.', 'info')
+      return redirect(url_for('supervisor.dashboard'))
+    except ValueError as e:
+      flash(str(e), 'danger')
+      return render_template('admin/change_password.html')
+    except Exception as e:
+      db.session.rollback()
+      current_app.logger.exception('Error changing password for supervisor')
+      flash(f'Error changing password: {str(e)}', 'danger')
+      return render_template('admin/change_password.html')
+
+  return render_template('admin/change_password.html')
 
 @supervisor_bp.route('/review/<int:champion_id>', methods=['GET', 'POST'])
 @login_required
