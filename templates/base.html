@@ -581,6 +581,44 @@
     .sidebar-nav-link.active svg {
         opacity: 1;
     }
+
+    /* Desktop auto-hide sidebar (taskbar-like behavior) */
+    .sidebar-hover-zone {
+        display: none;
+    }
+
+    @media (min-width: 768px) {
+        body.desktop-sidebar-autohide .sidebar-hover-zone {
+            display: block;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 14px;
+            height: 100vh;
+            z-index: 1002;
+            background: transparent;
+        }
+
+        body.desktop-sidebar-autohide .sidebar {
+            transform: translateX(calc(-100% + 12px)) !important;
+            transition: transform 220ms ease-in-out;
+        }
+
+        body.desktop-sidebar-autohide.desktop-sidebar-open .sidebar,
+        body.desktop-sidebar-autohide .sidebar:hover {
+            transform: translateX(0) !important;
+        }
+
+        body.desktop-sidebar-autohide .main-content {
+            margin-left: 12px !important;
+            transition: margin-left 220ms ease-in-out;
+        }
+
+        body.desktop-sidebar-autohide.desktop-sidebar-open .main-content,
+        body.desktop-sidebar-autohide .sidebar:hover ~ .main-content {
+            margin-left: var(--sidebar-width) !important;
+        }
+    }
     
     /* Global Animated Background Overlay Tint */
     .global-animated-bg::after {
@@ -626,6 +664,7 @@
     
     <!-- Sidebar Overlay for Mobile -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="sidebar-hover-zone" id="sidebarHoverZone" aria-hidden="true"></div>
     
     <div class="dashboard-layout">
         <aside class="sidebar bg-unda-navy-900 border-r border-unda-navy-800 text-white w-64 fixed h-full overflow-y-auto z-50 transition-transform duration-300 md:translate-x-0 -translate-x-full" id="sidebar">
@@ -1059,6 +1098,54 @@
                         sidebarOverlay.classList.remove('active');
                     }
                 });
+            });
+        }
+
+        // Desktop auto-hide sidebar (taskbar-like behavior)
+        const sidebarHoverZone = document.getElementById('sidebarHoverZone');
+        if (sidebar && sidebarHoverZone) {
+            const desktopQuery = window.matchMedia('(min-width: 768px)');
+            let closeSidebarTimer = null;
+
+            const isDesktop = () => desktopQuery.matches;
+
+            const openDesktopSidebar = () => {
+                if (!isDesktop()) return;
+                if (closeSidebarTimer) {
+                    clearTimeout(closeSidebarTimer);
+                    closeSidebarTimer = null;
+                }
+                document.body.classList.add('desktop-sidebar-open');
+            };
+
+            const closeDesktopSidebar = () => {
+                if (!isDesktop()) return;
+                if (closeSidebarTimer) clearTimeout(closeSidebarTimer);
+                closeSidebarTimer = setTimeout(() => {
+                    document.body.classList.remove('desktop-sidebar-open');
+                }, 120);
+            };
+
+            const syncDesktopSidebarMode = () => {
+                if (isDesktop()) {
+                    document.body.classList.add('desktop-sidebar-autohide');
+                } else {
+                    document.body.classList.remove('desktop-sidebar-autohide', 'desktop-sidebar-open');
+                }
+            };
+
+            syncDesktopSidebarMode();
+            desktopQuery.addEventListener('change', syncDesktopSidebarMode);
+
+            sidebarHoverZone.addEventListener('mouseenter', openDesktopSidebar);
+            sidebar.addEventListener('mouseenter', openDesktopSidebar);
+            sidebar.addEventListener('mouseleave', closeDesktopSidebar);
+            sidebarHoverZone.addEventListener('mouseleave', closeDesktopSidebar);
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    document.body.classList.remove('desktop-sidebar-open');
+                }
             });
         }
         
