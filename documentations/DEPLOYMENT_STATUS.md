@@ -1,5 +1,15 @@
 # UMV Privacy-First Implementation - DEPLOYMENT CHECKLIST
 
+## Documentation Navigation
+
+- [Project Overview](README.md)
+- [Quick Start](QUICK_START.md)
+- [Deployment Guide](DEPLOYMENT.md)
+- [Security Overview](SECURITY.md)
+- [Security Implementation](SECURITY_IMPLEMENTATION.md)
+- [User Guide](USER_GUIDE.md)
+- [Changelog](CHANGELOG.md)
+
 ## COMPLETED TASKS
 
 ## LATEST DEPLOYMENT UPDATE (2026-02-17)
