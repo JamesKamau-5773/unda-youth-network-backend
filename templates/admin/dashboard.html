@@ -7,18 +7,18 @@
 <div class="space-y-8">
 
     <!-- Welcome Hero Section -->
-    <div class="bg-[#0B1E3B] rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+    <div class="bg-[#0B1E3B] rounded-2xl p-5 sm:p-8 text-white shadow-lg relative overflow-hidden">
         <!-- Decoration Circles -->
         <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-[#00ACC1] rounded-full opacity-10 blur-3xl"></div>
         <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-[#00ACC1] rounded-full opacity-10 blur-2xl"></div>
 
         <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-                <h1 class="text-5xl font-black mb-3 tracking-tight" style="color: #00ACC1; text-shadow: 2px 3px 8px rgba(0,0,0,0.4), 0 0 20px rgba(0,172,193,0.3);">Welcome back, {{ current_user.username }}</h1>
-                <p class="text-white text-lg font-semibold" style="text-shadow: 1px 2px 4px rgba(0,0,0,0.3);">Here's what's happening with your network today.</p>
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black mb-3 tracking-tight" style="color: #00ACC1; text-shadow: 2px 3px 8px rgba(0,0,0,0.4), 0 0 20px rgba(0,172,193,0.3);">Welcome back, {{ current_user.username }}</h1>
+                <p class="text-white text-base sm:text-lg font-semibold" style="text-shadow: 1px 2px 4px rgba(0,0,0,0.3);">Here's what's happening with your network today.</p>
             </div>
             
-            <div class="flex flex-wrap gap-3">
+            <div class="flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto">
                 <a href="{{ url_for('admin.create_champion') }}" class="inline-flex items-center gap-2 bg-[#00ACC1] hover:bg-[#008e9e] text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm">
                     <i data-lucide="user-plus" class="w-5 h-5"></i>
                     <span>New Advocate</span>

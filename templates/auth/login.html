@@ -60,7 +60,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen relative flex items-center justify-center overflow-hidden font-sans bg-[#0B1E3B]">
+<div class="min-h-screen relative flex items-center justify-center overflow-hidden font-sans bg-[#0B1E3B] px-4 sm:px-6">
     
     <!-- Immersive Gradient Background -->
     <div class="absolute inset-0 w-full h-full">
@@ -68,16 +68,16 @@
         <div class="absolute inset-0 bg-gradient-to-br from-[#0B1E3B] via-[#0f2a4a] to-[#003d4d]"></div>
         
         <!-- Animated Blobs (Teal and lighter Navy) -->
-        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#00ACC1] opacity-20 blur-[100px] animate-float"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[#4DD0E1] opacity-10 blur-[100px] animate-float-delayed"></div>
-        <div class="absolute top-[40%] left-[40%] w-[30%] h-[30%] rounded-full bg-[#0B1E3B] opacity-50 blur-[80px] animate-float"></div>
+        <div class="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] md:w-[50%] md:h-[50%] rounded-full bg-[#00ACC1] opacity-15 md:opacity-20 blur-[80px] md:blur-[100px] animate-float"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] md:w-[50%] md:h-[50%] rounded-full bg-[#4DD0E1] opacity-10 blur-[80px] md:blur-[100px] animate-float-delayed"></div>
+        <div class="absolute top-[40%] left-[40%] w-[35%] h-[35%] md:w-[30%] md:h-[30%] rounded-full bg-[#0B1E3B] opacity-40 md:opacity-50 blur-[64px] md:blur-[80px] animate-float"></div>
     </div>
 
     <!-- Noise Texture Overlay -->
     <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 fill=%22black%22/%3E%3C/svg%3E');"></div>
 
     <!-- Main Content Container -->
-    <div class="relative z-10 w-full max-w-5xl p-6 mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <div class="relative z-10 w-full max-w-5xl p-4 sm:p-6 mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
         
         <!-- Composition Element: Text/Branding (Left Side) -->
         <div class="hidden lg:block space-y-8 animate-fade-in-up text-white">
@@ -111,7 +111,7 @@
 
         <!-- Composition Element: Glass Login Card (Right Side/Center on Mobile) -->
         <div class="w-full max-w-md mx-auto">
-            <div class="glass-card rounded-2xl p-8 md:p-10 relative overflow-hidden group">
+            <div class="glass-card rounded-2xl p-6 sm:p-8 md:p-10 relative overflow-hidden group">
                 
                 <!-- Subtle internal shine effect -->
                 <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
