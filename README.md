@@ -13,6 +13,19 @@ Unda Youth Network is a professional platform designed to support youth mental h
 - Supervisor/Admin dashboard reliability updates (real metric binding, route consistency)
 - Deployment hardening updates (favicon handling and reduced Render host warning noise)
 
+## Documentation Index
+
+Core references are maintained in the `documentations/` folder:
+
+- [Quick Start](documentations/QUICK_START.md)
+- [Deployment Guide](documentations/DEPLOYMENT.md)
+- [Deployment Status](documentations/DEPLOYMENT_STATUS.md)
+- [Security Overview](documentations/SECURITY.md)
+- [Security Implementation](documentations/SECURITY_IMPLEMENTATION.md)
+- [User Guide](documentations/USER_GUIDE.md)
+- [User Manual](documentations/USER_MANUAL.md)
+- [Changelog](documentations/CHANGELOG.md)
+
 ## Features
 
 ### Multi-Role Dashboard System
