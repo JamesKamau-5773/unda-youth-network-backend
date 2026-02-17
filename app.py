@@ -401,6 +401,7 @@ def create_app(test_config=None):
     @app.errorhandler(400)
     def handle_csrf_error(e):
         error_msg = str(e)
+        app.logger.warning('HTTP 400 raised: path=%s endpoint=%s error=%s', request.path, request.endpoint, error_msg)
         # If this looks like a CSRF-related 400 and the request appears to be
         # from an API client (JSON/XHR), return a concise, user-friendly JSON
         # response instead of an HTML redirect. This prevents the client from
@@ -420,6 +421,7 @@ def create_app(test_config=None):
     @app.errorhandler(403)
     def forbidden(e):
         """Handle 403 Forbidden errors"""
+        app.logger.warning('HTTP 403 forbidden: path=%s endpoint=%s user_authenticated=%s', request.path, request.endpoint, bool(getattr(current_user, 'is_authenticated', False)))
         if request.is_json or request.path.startswith('/api/'):
             return jsonify({
                 'error': 'Forbidden',
@@ -432,6 +434,7 @@ def create_app(test_config=None):
     @app.errorhandler(404)
     def not_found(e):
         """Handle 404 Not Found errors"""
+        app.logger.warning('HTTP 404 not found: path=%s endpoint=%s', request.path, request.endpoint)
         if request.is_json or request.path.startswith('/api/'):
             return jsonify({
                 'error': 'Not Found',
@@ -485,6 +488,7 @@ def create_app(test_config=None):
 
     def ratelimit_handler(e):
         """Handle 429 Too Many Requests (rate limit exceeded)"""
+        app.logger.warning('HTTP 429 rate limited: path=%s endpoint=%s', request.path, request.endpoint)
         if is_api_request():
             return jsonify({
                 'error': 'Too Many Requests',
@@ -498,7 +502,14 @@ def create_app(test_config=None):
     def internal_error(e):
         """Handle 500 Internal Server errors"""
         # Log the error for debugging
-        app.logger.error(f'Internal Server Error: {str(e)}', exc_info=True)
+        app.logger.error(
+            'Internal Server Error: path=%s endpoint=%s user_id=%s detail=%s',
+            request.path,
+            request.endpoint,
+            getattr(current_user, 'user_id', None),
+            str(e),
+            exc_info=True,
+        )
         
         # Rollback any pending database transactions
         try:

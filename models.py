@@ -289,9 +289,27 @@ class Champion(db.Model):
   next_review_date = db.Column(db.Date)  # Scheduled review date
 
   #Relationships to data tables
-  support_records = db.relationship('YouthSupport', backref='champion', lazy='dynamic')
-  training_records = db.relationship('TrainingRecord', backref='champion', lazy='dynamic')
-  refferal_pathways = db.relationship('RefferalPathway', backref='champion', lazy='dynamic')
+  support_records = db.relationship(
+    'YouthSupport',
+    backref=db.backref('champion', passive_deletes=True),
+    lazy='dynamic',
+    cascade='all, delete-orphan',
+    passive_deletes=True,
+  )
+  training_records = db.relationship(
+    'TrainingRecord',
+    backref=db.backref('champion', passive_deletes=True),
+    lazy='dynamic',
+    cascade='all, delete-orphan',
+    passive_deletes=True,
+  )
+  refferal_pathways = db.relationship(
+    'RefferalPathway',
+    backref=db.backref('champion', passive_deletes=True),
+    lazy='dynamic',
+    cascade='all, delete-orphan',
+    passive_deletes=True,
+  )
   
   @property
   def age(self):

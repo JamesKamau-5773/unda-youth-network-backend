@@ -3,6 +3,7 @@ import secrets
 from typing import Optional
 from flask_bcrypt import Bcrypt
 from flask import current_app
+from sqlalchemy import or_
 from models import db, User, Champion
 from services.mailer import send_invite
 
@@ -118,10 +119,15 @@ def delete_user(user_id: int, current_user_id: int) -> None:
         raise ValueError('Cannot delete own account')
 
     try:
-        if getattr(user, 'champion_id', None):
-            champion = db.session.get(Champion, user.champion_id)
-            if champion:
-                db.session.delete(champion)
+            champion_filters = [Champion.user_id == user.user_id]
+            if user.champion_id:
+                champion_filters.append(Champion.champion_id == user.champion_id)
+
+            champion_profiles = Champion.query.filter(or_(*champion_filters)).all()
+
+        for champion in champion_profiles:
+            db.session.delete(champion)
+
         db.session.delete(user)
         db.session.commit()
     except Exception:
