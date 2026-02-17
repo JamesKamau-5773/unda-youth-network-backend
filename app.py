@@ -853,12 +853,8 @@ def create_app(test_config=None):
         from flask import jsonify
         from datetime import datetime, timezone
         import time
-        
-                app.logger.warning('SESSION_COOKIE_DOMAIN is set to "%s" but request host is "%s" - this may prevent browsers from sending session cookies and cause CSRF/401 errors.', cfg, host)
-                app.config['_COOKIE_DOMAIN_MISMATCH_LOGGED'] = True
-            # Ignore expected platform host checks that don't use the primary cookie domain.
-            if host.endswith('.onrender.com'):
-                return
+
+        health_status = {
             'status': 'healthy',
             'timestamp': datetime.now(timezone.utc).isoformat(),
             'service': 'UNDA Youth Network',
