@@ -1,4 +1,3 @@
-````markdown
 # Quick Start Guide - Mental Health Features
 
 ## What Was Added
@@ -127,5 +126,3 @@ git add .
 git commit -m "Add mental health features"
 git push origin main
 ```
-
-````

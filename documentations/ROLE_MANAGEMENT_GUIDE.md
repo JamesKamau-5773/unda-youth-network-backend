@@ -1,4 +1,3 @@
-````markdown
 # Role Management Guide - Preventing Role Inconsistencies
 
 ## Overview
@@ -258,5 +257,3 @@ If you encounter role-related issues:
 
 **Last Updated:** January 2025  
 **Maintainer:** UMV Prevention Development Team
-
-````

@@ -1,4 +1,3 @@
-````markdown
 # Interactive Feedback Features
 
 ## Overview
@@ -234,5 +233,3 @@ The interactive feedback features significantly improve the user experience by p
 - **Guidance** - Tooltips and empty states help users understand the system
 
 All features follow modern UX best practices and are production-ready.
-
-````

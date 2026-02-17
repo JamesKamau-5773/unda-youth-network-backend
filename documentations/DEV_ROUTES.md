@@ -1,4 +1,3 @@
-````markdown
 # Developer Routes - Hidden Access
 
 This document describes the hidden developer routes that provide comprehensive access to the application's build, configuration, and system information.
@@ -169,5 +168,3 @@ If you want to completely disable these routes in production:
        from blueprints.dev import dev
        app.register_blueprint(dev)
    ```
-
-````
