@@ -3,43 +3,36 @@
 {% block title %}Supervisor Dashboard | Unda Youth{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-slate-50 font-sans text-slate-900">
+<div class="min-h-screen bg-unda-light-blue-50 font-sans text-unda-navy-900">
     
     <!-- Hero/Welcome Section -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-cyan-50 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-sm">
+        <div class="bg-unda-light-blue-100 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-sm">
             <!-- Decorative background elements -->
-            <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-cyan-100 opacity-50 blur-3xl"></div>
-            <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-blue-100 opacity-50 blur-3xl"></div>
+            <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-unda-teal-100 opacity-50 blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-unda-light-blue-200 opacity-50 blur-3xl"></div>
             
             <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div class="space-y-4 max-w-2xl">
-                    <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight" style="text-shadow: 2px 3px 8px rgba(0,0,0,0.15), 0 0 20px rgba(0,172,193,0.2);">
-                        Welcome back, <span class="text-cyan-700 font-extrabold" style="text-shadow: 1px 2px 6px rgba(0,128,128,0.3);">{{ current_user.username or 'Supervisor' }}</span>
+                    <h1 class="text-3xl md:text-4xl font-black text-unda-navy-900 tracking-tight">
+                        Welcome back, <span class="text-unda-teal-700 font-extrabold">{{ current_user.username or 'Supervisor' }}</span>
                     </h1>
-                    <p class="text-lg font-semibold text-slate-800" style="text-shadow: 1px 2px 4px rgba(0,0,0,0.1);">
+                    <p class="text-lg font-semibold text-unda-navy-700">
                         Here is your team snapshot for today. Manage your assigned advocates and monitor their progress.
                     </p>
                     
-                    <div class="flex flex-wrap gap-4 pt-2">
-                        <!-- Actions -->
-                        <a href="#" class="inline-flex items-center px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 font-medium rounded-xl border border-slate-200 transition-colors shadow-sm cursor-not-allowed">
-                           <i data-lucide="file-text" class="w-5 h-5 mr-2"></i>
-                           View Team Reports
-                        </a>
-                    </div>
                 </div>
 
                 <!-- Stats Pill -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center gap-8 min-w-[280px]">
+                <div class="bg-unda-light-blue-50 rounded-2xl p-6 shadow-sm border border-unda-light-blue-200 flex items-center gap-8 min-w-[280px]">
                     <div class="text-center">
-                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Team</div>
-                        <div class="text-3xl font-bold text-slate-900">{{ champions|length }}</div>
+                        <div class="text-xs font-bold text-unda-navy-500 uppercase tracking-wider mb-1">Total Team</div>
+                        <div class="text-3xl font-bold text-unda-navy-900">{{ champions|length }}</div>
                     </div>
-                    <div class="h-10 w-px bg-slate-200"></div>
+                    <div class="h-10 w-px bg-unda-light-blue-200"></div>
                     <div class="text-center">
-                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">High Risk</div>
-                        <div class="text-3xl font-bold text-rose-500">
+                        <div class="text-xs font-bold text-unda-navy-500 uppercase tracking-wider mb-1">High Risk</div>
+                        <div class="text-3xl font-bold text-unda-teal-700">
                             {% set high_risk_count = 0 %}
                             {% for c in champions if c.risk_level == 'High' %}
                                 {% set high_risk_count = high_risk_count + 1 %}
@@ -56,69 +49,67 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <!-- Active Cases Card -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+            <div class="bg-unda-light-blue-50 rounded-2xl p-6 shadow-sm border border-unda-light-blue-200 hover:shadow-md transition-shadow">
                 <div class="flex justify-between items-start mb-4">
-                    <div class="text-sm font-semibold text-cyan-700 uppercase tracking-wide">Active Cases</div>
-                    <div class="p-2 bg-cyan-50 rounded-lg text-cyan-700">
+                    <div class="text-sm font-semibold text-unda-teal-700 uppercase tracking-wide">Active Cases</div>
+                    <div class="p-2 bg-unda-teal-50 rounded-lg text-unda-teal-700">
                         <i data-lucide="activity" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-slate-900 mb-1">
-                    {# Mock metric for now #}
-                    {{ (champions|length * 0.8)|round|int }}
+                <div class="text-3xl font-bold text-unda-navy-900 mb-1">
+                    {{ active_cases_count }}
                 </div>
-                <div class="text-sm text-slate-600">Advocates active this week</div>
+                <div class="text-sm text-unda-navy-600">Advocates active this week</div>
             </div>
 
             <!-- Pending Review Card -->
-             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                  <div class="bg-unda-light-blue-50 rounded-2xl p-6 shadow-sm border border-unda-light-blue-200 hover:shadow-md transition-shadow">
                 <div class="flex justify-between items-start mb-4">
-                    <div class="text-sm font-semibold text-indigo-700 uppercase tracking-wide">Pending Review</div>
-                    <div class="p-2 bg-indigo-50 rounded-lg text-indigo-700">
+                      <div class="text-sm font-semibold text-unda-navy-700 uppercase tracking-wide">Pending Review</div>
+                      <div class="p-2 bg-unda-light-blue-100 rounded-lg text-unda-navy-700">
                         <i data-lucide="clipboard-check" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-slate-900 mb-1">
-                     {# Mock metric #}
-                     3
+                 <div class="text-3xl font-bold text-unda-navy-900 mb-1">
+                     {{ pending_review_count }}
                 </div>
-                <div class="text-sm text-slate-600">Reports needing approval</div>
+                 <div class="text-sm text-unda-navy-600">Reports needing approval</div>
             </div>
 
             <!-- Avg Performance Card -->
-             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                  <div class="bg-unda-light-blue-50 rounded-2xl p-6 shadow-sm border border-unda-light-blue-200 hover:shadow-md transition-shadow">
                 <div class="flex justify-between items-start mb-4">
-                    <div class="text-sm font-semibold text-emerald-700 uppercase tracking-wide">Team Health</div>
-                    <div class="p-2 bg-emerald-50 rounded-lg text-emerald-700">
+                      <div class="text-sm font-semibold text-unda-teal-700 uppercase tracking-wide">Team Health</div>
+                      <div class="p-2 bg-unda-teal-50 rounded-lg text-unda-teal-700">
                         <i data-lucide="zap" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-slate-900 mb-1">
-                    94%
+                <div class="text-3xl font-bold text-unda-navy-900 mb-1">
+                    {{ team_health_rate }}%
                 </div>
-                <div class="text-sm text-slate-600">Completion rate</div>
-                <div class="mt-3 w-full bg-slate-100 rounded-full h-1.5">
-                    <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 94%"></div>
+                <div class="text-sm text-unda-navy-600">Completion rate</div>
+                <div class="mt-3 w-full bg-unda-light-blue-200 rounded-full h-1.5">
+                    <div class="bg-unda-teal-500 h-1.5 rounded-full" data-progress-width="{{ team_health_rate }}"></div>
                 </div>
             </div>
         </div>
 
         <!-- Filters & Table Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h2 class="text-xl font-bold text-slate-900">Assigned Advocates</h2>
+        <div class="bg-unda-light-blue-50 rounded-2xl shadow-sm border border-unda-light-blue-200 overflow-hidden">
+            <div class="p-6 border-b border-unda-light-blue-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 class="text-xl font-bold text-unda-navy-900">Assigned Advocates</h2>
                 
                 <!-- Filter Form -->
                 <form method="get" class="flex flex-wrap gap-3">
                     <select name="status" onchange="this.form.submit()" 
-                            class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500">
+                            class="px-4 py-2 bg-unda-light-blue-50 border border-unda-light-blue-200 rounded-lg text-sm focus:outline-none focus:border-unda-teal-500 focus:ring-1 focus:ring-unda-teal-500">
                         <option value="all">All Statuses</option>
                         <option value="Active" {% if request.args.get('status') == 'Active' %}selected{% endif %}>Active</option>
                         <option value="Inactive" {% if request.args.get('status') == 'Inactive' %}selected{% endif %}>Inactive</option>
                     </select>
 
                     <select name="risk" onchange="this.form.submit()" 
-                            class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500">
+                            class="px-4 py-2 bg-unda-light-blue-50 border border-unda-light-blue-200 rounded-lg text-sm focus:outline-none focus:border-unda-teal-500 focus:ring-1 focus:ring-unda-teal-500">
                         <option value="all">All Risk Levels</option>
                         <option value="Low" {% if request.args.get('risk') == 'Low' %}selected{% endif %}>Low Risk</option>
                         <option value="Medium" {% if request.args.get('risk') == 'Medium' %}selected{% endif %}>Medium Risk</option>
@@ -131,7 +122,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50/50 text-slate-700 text-xs uppercase tracking-wider">
+                        <tr class="bg-unda-light-blue-100/60 text-unda-navy-700 text-xs uppercase tracking-wider">
                             <th class="px-6 py-4 font-bold">Name / Contact</th>
                             <th class="px-6 py-4 font-bold">Location</th>
                             <th class="px-6 py-4 font-bold">Institution</th>
@@ -140,56 +131,56 @@
                             <th class="px-6 py-4 font-bold text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-unda-light-blue-200">
                         {% for champion in champions %}
-                        <tr class="hover:bg-slate-50/80 transition-colors group">
+                        <tr class="hover:bg-unda-light-blue-100/80 transition-colors group">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-700 font-bold text-sm">
+                                    <div class="w-10 h-10 rounded-full bg-unda-teal-100 flex items-center justify-center text-unda-teal-700 font-bold text-sm">
                                         {{ champion.full_name.split()[0][0] }}{{ champion.full_name.split()[-1][0] if champion.full_name.split()|length > 1 else '' }}
                                     </div>
                                     <div>
-                                        <div class="font-semibold text-slate-900">{{ champion.full_name }}</div>
-                                        <div class="text-sm text-slate-600">{{ champion.email }}</div>
+                                        <div class="font-semibold text-unda-navy-900">{{ champion.full_name }}</div>
+                                        <div class="text-sm text-unda-navy-600">{{ champion.email }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-slate-700">
+                            <td class="px-6 py-4 text-sm text-unda-navy-700">
                                 {{ champion.county_sub_county }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-slate-700">
+                            <td class="px-6 py-4 text-sm text-unda-navy-700">
                                 {{ champion.education_institution_name }}
                             </td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    {% if champion.champion_status == 'Active' %} bg-emerald-50 text-emerald-700
-                                    {% else %} bg-slate-100 text-slate-600 {% endif %}">
+                                    {% if champion.champion_status == 'Active' %} bg-unda-teal-50 text-unda-teal-700
+                                    {% else %} bg-unda-light-blue-100 text-unda-navy-600 {% endif %}">
                                     {{ champion.champion_status }}
                                 </span>
                             </td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border
-                                    {% if champion.risk_level == 'High' %} bg-rose-50 text-rose-700 border-rose-100
-                                    {% elif champion.risk_level == 'Medium' %} bg-amber-50 text-amber-700 border-amber-100
-                                    {% else %} bg-emerald-50 text-emerald-700 border-emerald-100 {% endif %}">
+                                    {% if champion.risk_level == 'High' %} bg-unda-light-blue-100 text-unda-navy-700 border-unda-light-blue-200
+                                    {% elif champion.risk_level == 'Medium' %} bg-unda-teal-100 text-unda-teal-700 border-unda-teal-200
+                                    {% else %} bg-unda-teal-50 text-unda-teal-700 border-unda-teal-100 {% endif %}">
                                     {{ champion.risk_level }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <a href="{{ url_for('supervisor.review_champion', champion_id=champion.champion_id) }}" 
-                                   class="text-cyan-700 hover:text-cyan-900 transition-colors font-medium text-sm inline-flex items-center gap-1">
+                                   class="text-unda-teal-700 hover:text-unda-teal-900 transition-colors font-medium text-sm inline-flex items-center gap-1">
                                    View Profile <i data-lucide="chevron-right" class="w-4 h-4"></i>
                                 </a>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-slate-700">
+                            <td colspan="6" class="px-6 py-12 text-center text-unda-navy-700">
                                 <div class="flex flex-col items-center justify-center">
-                                    <div class="p-4 bg-slate-50 rounded-full mb-3">
-                                        <i data-lucide="users" class="w-8 h-8 text-slate-400"></i>
+                                    <div class="p-4 bg-unda-light-blue-100 rounded-full mb-3">
+                                        <i data-lucide="users" class="w-8 h-8 text-unda-navy-400"></i>
                                     </div>
-                                    <p class="text-lg font-medium text-slate-900">No advocates found</p>
+                                    <p class="text-lg font-medium text-unda-navy-900">No advocates found</p>
                                     <p class="text-sm">Try adjusting your filters to see more results.</p>
                                 </div>
                             </td>
@@ -200,11 +191,11 @@
             </div>
             
             <!-- Pagination (Mock for now if needed, styled) -->
-            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30 flex items-center justify-between">
-                <span class="text-sm text-slate-700 font-medium">Showing all {{ champions|length }} records</span>
+            <div class="px-6 py-4 border-t border-unda-light-blue-200 bg-unda-light-blue-100/40 flex items-center justify-between">
+                <span class="text-sm text-unda-navy-700 font-medium">Showing all {{ champions|length }} records</span>
                 <div class="flex gap-2">
-                    <button disabled class="px-3 py-1 border border-slate-200 rounded-lg text-slate-400 text-sm cursor-not-allowed">Previous</button>
-                    <button disabled class="px-3 py-1 border border-slate-200 rounded-lg text-slate-400 text-sm cursor-not-allowed">Next</button>
+                    <button disabled class="px-3 py-1 border border-unda-light-blue-200 rounded-lg text-unda-navy-400 text-sm cursor-not-allowed">Previous</button>
+                    <button disabled class="px-3 py-1 border border-unda-light-blue-200 rounded-lg text-unda-navy-400 text-sm cursor-not-allowed">Next</button>
                 </div>
             </div>
         </div>
@@ -214,5 +205,11 @@
 <script>
     // Initialize Lucide icons
     lucide.createIcons();
+
+    // Apply dynamic progress widths from server-computed values
+    document.querySelectorAll('[data-progress-width]').forEach((element) => {
+        const width = Math.max(0, Math.min(100, Number(element.dataset.progressWidth || 0)));
+        element.style.width = `${width}%`;
+    });
 </script>
 {% endblock %}
