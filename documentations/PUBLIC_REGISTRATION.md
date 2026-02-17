@@ -1,4 +1,3 @@
-````markdown
 # Public Registration & Prevention Advocate Application System
 
 This document describes the public member registration and prevention advocate application workflow.
@@ -10,6 +9,509 @@ The system allows:
 2. Registered members to apply to become prevention advocates (requires admin approval)
 3. Admins to review and approve/reject both registrations and applications
 
-... (content preserved) ...
+## Database Models
 
-````
+### MemberRegistration
+Tracks pending member registration requests.
+
+**Fields:**
+- `registration_id`: Primary key
+- `full_name`: Full name of applicant
+- `email`: Email address
+- `phone_number`: Phone number (254XXXXXXXXX format)
+- `username`: Desired username
+- `password_hash`: Hashed password
+- `date_of_birth`: Date of birth (optional)
+- `gender`: Gender (optional)
+- `county_sub_county`: Location (optional)
+- `status`: Pending, Approved, or Rejected
+- `submitted_at`: Submission timestamp
+- `reviewed_at`: Review timestamp
+- `reviewed_by`: Admin user_id who reviewed
+- `rejection_reason`: Reason if rejected
+- `created_user_id`: Created User ID if approved
+
+### ChampionApplication
+Tracks prevention advocate applications from registered members.
+
+**Fields:**
+- `application_id`: Primary key
+- `user_id`: Foreign key to User
+- `full_name`: Full name
+- `email`: Email address
+- `phone_number`: Phone number
+- `gender`: Gender (required)
+- `date_of_birth`: Date of birth (required, age 15-35)
+- `county_sub_county`: Location
+- `emergency_contact_name`: Emergency contact
+- `emergency_contact_relationship`: Relationship
+- `emergency_contact_phone`: Emergency phone
+- `current_education_level`: Education level
+- `education_institution_name`: Institution
+- `motivation`: Why they want to be a prevention advocate
+- `skills_interests`: Skills and interests
+- `status`: Pending, Approved, or Rejected
+- `submitted_at`: Submission timestamp
+- `reviewed_at`: Review timestamp
+- `reviewed_by`: Admin user_id who reviewed
+- `rejection_reason`: Reason if rejected
+- `created_champion_id`: Created Prevention Advocate ID if approved
+
+## API Endpoints
+
+### 1. Public Member Registration
+
+**POST** `/api/auth/register`
+
+Register as a new member (no authentication required).
+
+**Request Body:**
+```json
+{
+  "full_name": "John Doe",
+  "email": "john@example.com",
+  "phone_number": "254712345678",
+  "username": "johndoe",
+  "password": "SecurePass123!",
+  "date_of_birth": "2000-01-15",
+  "gender": "Male",
+  "county_sub_county": "Nairobi, Westlands"
+}
+```
+
+**Required Fields:**
+- `full_name`
+- `email` (valid email format)
+- `phone_number` (254XXXXXXXXX or 07XXXXXXXX)
+- `username` (unique)
+- `password` (must meet strength requirements)
+
+**Response (201):**
+```json
+{
+  "message": "Registration submitted successfully. Your account will be reviewed by an administrator.",
+  "registration_id": 1,
+  "status": "Pending"
+}
+```
+
+**Validation:**
+- Email must be valid format
+- Phone must be Kenya format (254XXXXXXXXX or 07XXXXXXXX)
+- Password must meet strength requirements
+- Username must be unique
+- Email must not already exist in Prevention Advocate records
+
+Notes:
+- The API accepts `date_of_birth`, `gender`, and `county_sub_county` on registration. Dates must be ISO YYYY-MM-DD. Phone numbers are normalized to E.164 when possible.
+
+### 2. Apply to Become Prevention Advocate
+
+**POST** `/api/prevention advocate/apply`
+
+Submit prevention advocate application (requires login).
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "full_name": "John Doe",
+  "email": "john@example.com",
+  "phone_number": "254712345678",
+  "alternative_phone_number": "254787654321",
+  "gender": "Male",
+  "date_of_birth": "2000-01-15",
+  "county_sub_county": "Nairobi, Westlands",
+  "emergency_contact_name": "Jane Doe",
+  "emergency_contact_relationship": "Mother",
+  "emergency_contact_phone": "254722222222",
+  "current_education_level": "University",
+  "education_institution_name": "University of Nairobi",
+  "course_field_of_study": "Computer Science",
+  "year_of_study": "3rd Year",
+  "motivation": "I want to make a difference in my community...",
+  "skills_interests": "Leadership, mentoring, technology"
+}
+```
+
+**Required Fields:**
+- `full_name`
+- `email` (valid format)
+- `phone_number` (Kenya format)
+- `gender`
+- `date_of_birth` (age must be 15-35)
+
+**Response (201):**
+```json
+{
+  "message": "Prevention Advocate application submitted successfully. An administrator will review your application.",
+  "application_id": 1,
+  "status": "Pending"
+}
+```
+
+**Validation:**
+- User must not already have a prevention advocate profile
+- User must not have a pending application
+- Age must be between 15 and 35 years
+- Email and phone must be valid formats
+
+### 3. Get My Applications
+
+**GET** `/api/my-applications`
+
+Get current user's prevention advocate applications (requires login).
+
+**Response (200):**
+```json
+{
+  "applications": [
+    {
+      "application_id": 1,
+      "full_name": "John Doe",
+      "status": "Pending",
+      "submitted_at": "2026-01-02T10:30:00",
+      "reviewed_at": null,
+      "rejection_reason": null
+    }
+  ]
+}
+```
+
+## Admin Endpoints
+
+### 4. Get Member Registrations
+
+**GET** `/api/admin/registrations?status=Pending`
+
+Get member registrations (admin only).
+
+**Query Parameters:**
+- `status`: Filter by status (Pending, Approved, Rejected) - default: Pending
+
+**Response (200):**
+```json
+{
+  "registrations": [
+    {
+      "registration_id": 1,
+      "full_name": "John Doe",
+      "email": "john@example.com",
+      "phone_number": "254712345678",
+      "username": "johndoe",
+      "date_of_birth": "2000-01-15",
+      "gender": "Male",
+      "county_sub_county": "Nairobi, Westlands",
+      "status": "Pending",
+      "submitted_at": "2026-01-02T10:00:00",
+      "reviewed_at": null,
+      "rejection_reason": null
+    }
+  ]
+}
+```
+
+### 5. Approve Member Registration
+
+**POST** `/api/admin/registrations/<registration_id>/approve`
+
+Approve a member registration (admin only).
+
+**Response (200):**
+```json
+{
+  "message": "Registration approved successfully",
+  "user_id": 123,
+  "username": "johndoe"
+}
+```
+
+### 6. Reject Member Registration
+
+**POST** `/api/admin/registrations/<registration_id>/reject`
+
+Reject a member registration (admin only).
+
+**Request Body:**
+```json
+{
+  "reason": "Incomplete information provided"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Registration rejected",
+  "reason": "Incomplete information provided"
+}
+```
+
+### 7. Get Prevention Advocate Applications
+
+**GET** `/api/admin/prevention advocate-applications?status=Pending`
+
+Get prevention advocate applications (admin only).
+
+**Query Parameters:**
+- `status`: Filter by status (Pending, Approved, Rejected) - default: Pending
+
+**Response (200):**
+```json
+{
+  "applications": [
+    {
+      "application_id": 1,
+      "user_id": 123,
+      "full_name": "John Doe",
+      "email": "john@example.com",
+      "phone_number": "254712345678",
+      "gender": "Male",
+      "date_of_birth": "2000-01-15",
+      "county_sub_county": "Nairobi, Westlands",
+      "current_education_level": "University",
+      "education_institution_name": "University of Nairobi",
+      "motivation": "I want to make a difference...",
+      "skills_interests": "Leadership, mentoring",
+      "status": "Pending",
+      "submitted_at": "2026-01-02T11:00:00",
+      "reviewed_at": null,
+      "rejection_reason": null
+    }
+  ]
+}
+```
+
+### 8. Approve Prevention Advocate Application
+
+**POST** `/api/admin/prevention advocate-applications/<application_id>/approve`
+
+Approve a prevention advocate application (admin only).
+
+**Request Body:**
+```json
+{
+  "assigned_champion_code": "UMV-2026-001"
+}
+```
+
+**Required:**
+- `assigned_champion_code`: Unique prevention advocate code
+
+**Response (200):**
+```json
+{
+  "message": "Prevention Advocate application approved successfully",
+  "champion_id": 456,
+  "champion_code": "UMV-2026-001"
+}
+```
+
+**Actions Performed:**
+- Creates Prevention Advocate profile with all application details
+- Links Prevention Advocate to User account
+- Updates application status to Approved
+- Sets prevention advocate status to Active
+- Sets application_status to Recruited
+
+### 9. Reject Prevention Advocate Application
+
+**POST** `/api/admin/prevention advocate-applications/<application_id>/reject`
+
+Reject a prevention advocate application (admin only).
+
+**Request Body:**
+```json
+{
+  "reason": "Does not meet age requirements"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Prevention Advocate application rejected",
+  "reason": "Does not meet age requirements"
+}
+```
+
+## Workflow
+
+### Member Registration Workflow
+
+1. **User Submits Registration**
+   - POST `/api/auth/register`
+   - Status: Pending
+   - User receives confirmation message
+
+2. **Admin Reviews Registration**
+   - GET `/api/admin/registrations?status=Pending`
+   - Admin sees all pending registrations
+
+3. **Admin Approves/Rejects**
+   - **Approve**: POST `/api/admin/registrations/<id>/approve`
+     - Creates User account with role "Prevention Advocate"
+     - User can now log in
+   - **Reject**: POST `/api/admin/registrations/<id>/reject`
+     - Registration marked as rejected
+     - Rejection reason stored
+
+### Prevention Advocate Application Workflow
+
+1. **Member Logs In**
+   - Uses approved credentials
+
+2. **Member Submits Application**
+   - POST `/api/prevention advocate/apply`
+   - Status: Pending
+   - Member receives confirmation
+
+3. **Admin Reviews Applications**
+   - GET `/api/admin/prevention advocate-applications?status=Pending`
+   - Admin sees all pending applications with full details
+
+4. **Admin Approves/Rejects**
+   - **Approve**: POST `/api/admin/prevention advocate-applications/<id>/approve`
+     - Creates Prevention Advocate profile
+     - Links to User account
+     - Assigns prevention advocate code
+     - User becomes a Prevention Advocate
+   - **Reject**: POST `/api/admin/prevention advocate-applications/<id>/reject`
+     - Application marked as rejected
+     - Rejection reason stored
+     - User remains a regular member
+
+## Validation Rules
+
+### Email Validation
+- Must match pattern: `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+
+### Phone Validation
+- Kenya format: `254XXXXXXXXX` (12 digits starting with 254)
+- Alternative: `07XXXXXXXX` or `01XXXXXXXX` (10 digits)
+
+### Password Strength
+- Validated by `password_validator.validate_password_strength()`
+- Must meet application security requirements
+
+### Age Requirements (Prevention Advocate Application)
+- Minimum age: 15 years
+- Maximum age: 35 years
+- Calculated from date_of_birth
+
+## Error Responses
+
+**400 Bad Request:**
+```json
+{
+  "error": "Missing required field: email"
+}
+```
+
+**400 Validation Error:**
+```json
+{
+  "error": "Invalid email format"
+}
+```
+
+**400 Duplicate:**
+```json
+{
+  "error": "Username already exists"
+}
+```
+
+**401 Unauthorized:**
+```json
+{
+  "error": "Authentication required"
+}
+```
+
+**403 Forbidden:**
+```json
+{
+  "error": "Admin access required"
+}
+```
+
+**404 Not Found:**
+```json
+{
+  "error": "Not found"
+}
+```
+
+**500 Internal Server Error:**
+```json
+{
+  "error": "Error message"
+}
+```
+
+## Testing
+
+### Test Member Registration
+```bash
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "full_name": "Test User",
+    "email": "test@example.com",
+    "phone_number": "254712345678",
+    "username": "testuser",
+    "password": "SecurePass123!",
+    "gender": "Male",
+    "date_of_birth": "2000-01-15"
+  }'
+```
+
+### Test Prevention Advocate Application
+```bash
+curl -X POST http://localhost:5000/api/prevention advocate/apply \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "full_name": "Test Prevention Advocate",
+    "email": "prevention advocate@example.com",
+    "phone_number": "254787654321",
+    "gender": "Female",
+    "date_of_birth": "1998-05-20",
+    "motivation": "I want to help my community"
+  }'
+```
+
+## Production Deployment
+
+1. **Apply Migration**
+   ```bash
+   flask db upgrade
+   ```
+
+2. **Update CORS Settings**
+   - Ensure frontend URL is in CORS_ORIGINS
+
+3. **Notify Admins**
+   - Set up email notifications for new registrations (future enhancement)
+   - Create admin dashboard for review workflow
+
+4. **Monitor**
+   - Track registration success rates
+   - Monitor approval times
+   - Review rejection reasons for patterns
+
+## Future Enhancements
+
+- Email notifications to admins on new registrations
+- Email notifications to users on approval/rejection
+- Bulk approval functionality
+- Advanced filtering and search for admin review
+- Document upload for prevention advocate applications
+- SMS notifications using M-Pesa integration
+- Application deadline management
+- Waitlist functionality

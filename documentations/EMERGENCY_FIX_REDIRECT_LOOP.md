@@ -1,4 +1,3 @@
-````markdown
 # EMERGENCY: Fix Redirect Loop on Render
 
 ## Problem
@@ -111,5 +110,3 @@ If you need help, the issue is likely one of:
 - Invalid role in database (run fix script)
 - Cached redirect in browser (clear cache)
 - Session corruption (clear cookies)
-
-````

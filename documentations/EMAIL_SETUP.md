@@ -1,4 +1,3 @@
-````markdown
 # Email Notification Setup Guide
 
 ## Overview
@@ -120,5 +119,3 @@ with app.app_context():
 3. **Use dedicated sender** - Create noreply@yourdomain.com
 4. **Production email service** - Use SendGrid/Mailgun for production
 5. **Monitor email logs** - Track delivery success/failures
-
-````

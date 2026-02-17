@@ -10,7 +10,7 @@
 2. [Getting Started](#getting-started)
 3. [User Roles Explained](#user-roles-explained)
 4. [Login & Account Security](#login--account-security)
-5. [Prevention Advocate Guide](#prevention-advocate-guide)
+5. [Prevention Advocate Guide](#prevention advocate-guide)
 6. [Supervisor Guide](#supervisor-guide)
 7. [Admin Guide](#admin-guide)
 8. [Mental Health Features](#mental-health-features)
@@ -134,7 +134,7 @@ Your password must:
 - Contain at least one number (0-9)
 - Contain at least one special character (!@#$%^&*)
 
-**Example of a strong password:** Unda2026!Safe
+**Example of a strong password:** `Unda2026!Safe`
 
 ### Account Lockout Protection
 
@@ -183,7 +183,7 @@ When you log in, you'll see:
 
 #### 🧠 Mental Health Assessments
 
-**What are they?**
+**What are they?**  
 Standardized questionnaires (PHQ-9, GAD-7) that help assess your mental health and wellbeing.
 
 **How to complete an assessment:**
@@ -211,7 +211,7 @@ Standardized questionnaires (PHQ-9, GAD-7) that help assess your mental health a
 
 #### 💪 Daily Affirmations
 
-**What are they?**
+**What are they?**  
 Positive, encouraging messages delivered daily to boost your mental wellbeing.
 
 **How they work:**
@@ -233,7 +233,7 @@ Positive, encouraging messages delivered daily to boost your mental wellbeing.
 
 #### 📅 Events & Workshops
 
-**What are they?**
+**What are they?**  
 Quarterly pillar events covering mental health topics, skills training, and community building.
 
 **How to participate:**
@@ -266,10 +266,10 @@ Quarterly pillar events covering mental health topics, skills training, and comm
 
 #### 💰 Seed Funding Applications
 
-**What is it?**
+**What is it?**  
 Financial support for youth-led projects that benefit your community.
 
-**Who can apply?**
+**Who can apply?**  
 Students and young people with project ideas related to:
 - Mental health awareness
 - Community development
@@ -330,7 +330,7 @@ Students and young people with project ideas related to:
 
 #### 🎧 Podcasts
 
-**What are they?**
+**What are they?**  
 Audio content featuring:
 - Mental health experts
 - Prevention Advocate success stories
@@ -345,7 +345,7 @@ Audio content featuring:
 
 #### 🎁 Symbolic Items
 
-**What are they?**
+**What are they?**  
 Physical items you earn through participation:
 - Welcome kits
 - Achievement badges
@@ -821,4 +821,672 @@ UNDA provides comprehensive mental health support tools designed to promote well
 - **Takes:** 30 seconds
 - **Used for:** Quick check-ins
 
-... (user manual continues in repository)
+#### How Assessments Work
+
+1. **Baseline Assessment:**
+   - Taken when you first join UNDA
+   - Establishes your starting point
+   - Helps tailor support to your needs
+
+2. **Follow-up Assessments:**
+   - Taken periodically (monthly, quarterly, or as needed)
+   - Tracks changes over time
+   - Identifies if support is working
+
+3. **Result Interpretation:**
+
+   **Depression (PHQ-9):**
+   - 0-4: Minimal symptoms
+   - 5-9: Mild symptoms
+   - 10-14: Moderate symptoms
+   - 15-19: Moderately severe symptoms
+   - 20-27: Severe symptoms
+
+   **Anxiety (GAD-7):**
+   - 0-4: Minimal symptoms
+   - 5-9: Mild symptoms
+   - 10-14: Moderate symptoms
+   - 15-21: Severe symptoms
+
+4. **What Happens After:**
+   - **Low scores:** Keep up your self-care!
+   - **Moderate scores:** Supervisor may reach out
+   - **High scores:** Immediate support provided
+   - **Crisis indicators:** Emergency protocols activated
+
+#### Privacy & Confidentiality
+
+✅ Your assessment results are:
+- Stored securely
+- Only accessible to authorized staff (supervisor, admin)
+- Used only to provide you with support
+- Never shared without your consent
+- Protected by data privacy regulations
+
+### Daily Affirmations
+
+#### What You Receive
+
+Each day, you'll get a positive message like:
+
+- *"You are stronger than you think. Today, you'll face challenges with courage and grace."*
+- *"Your mental health matters. Taking time for self-care isn't selfish—it's essential."*
+- *"Every small step forward is progress. Celebrate your wins, no matter how small."*
+- *"You belong here. Your voice, your story, and your presence make a difference."*
+
+#### How to Engage
+
+**In the App:**
+1. Log in to see today's affirmation
+2. Read and reflect (even for 30 seconds)
+3. Click "Like" if it helps
+4. Access past affirmations anytime
+
+**Via SMS/Email:**
+- Affirmations delivered automatically
+- No action needed
+- Re-read whenever you need encouragement
+
+**Why It Helps:**
+- Boosts mood and self-esteem
+- Provides daily mental health touchpoint
+- Reinforces positive thinking patterns
+- Builds resilience over time
+
+---
+
+## 📅 Events & Activities
+
+UNDA hosts quarterly pillar events covering key mental health topics and life skills.
+
+### Event Types
+
+**Workshops:**
+- Interactive learning sessions
+- Skills training (communication, coping, leadership)
+- Expert-led discussions
+- Group activities
+
+**Training:**
+- Mental health first aid
+- Peer support skills
+- Safeguarding awareness
+- Professional development
+
+**Social Events:**
+- Community building
+- Networking opportunities
+- Recreational activities
+- Celebration gatherings
+
+**Webinars:**
+- Virtual learning
+- Guest speakers
+- Q&A sessions
+- Accessible from anywhere
+
+### How to Participate
+
+#### Step 1: Browse Events
+- Log in to your dashboard
+- Go to "Events" section
+- View upcoming events with:
+  - Date and time
+  - Location or virtual link
+  - Description
+  - Capacity (spots available)
+  - Registration deadline
+
+#### Step 2: Register
+1. Click on an event
+2. Read full description
+3. Check date/time works for you
+4. Click "Register"
+5. Receive confirmation
+
+#### Step 3: Prepare
+- Mark your calendar
+- Note the location or save virtual link
+- Review any pre-event materials
+- Prepare questions or topics you want to discuss
+
+#### Step 4: Attend
+- Arrive on time (or log in early for virtual events)
+- Bring required materials
+- Participate actively
+- Take notes
+- Network with other attendees
+
+#### Step 5: Follow Up
+- Submit feedback rating (1-5 stars)
+- Share what you learned
+- Receive certificate (if applicable)
+- Apply new skills in your life
+
+### Managing Your Registrations
+
+**View Your Events:**
+- See all events you're registered for
+- Check upcoming vs. past events
+- View attendance history
+
+**Cancel Registration:**
+- If you can't attend, cancel early
+- Frees up space for others
+- Go to event page → "Cancel Registration"
+
+**Waitlist:**
+- If event is full, join waitlist
+- You'll be notified if space opens
+- Respond quickly to secure your spot
+
+---
+
+## 💰 Seed Funding Applications
+
+UNDA supports youth-led projects through seed funding grants.
+
+### Eligibility
+
+**Who can apply:**
+- Current UNDA prevention advocates
+- Students in educational institutions
+- Young people with community project ideas
+- Teams (not just individuals)
+
+**Project criteria:**
+- Benefits youth or community
+- Aligns with UNDA mission (mental health, education, empowerment)
+- Has clear goals and timeline
+- Realistic budget
+- Measurable impact
+
+### Application Process
+
+#### Before You Apply
+
+**1. Develop Your Idea:**
+- What problem are you solving?
+- Who will benefit?
+- What makes your approach unique?
+- How will you measure success?
+
+**2. Build Your Team:**
+- Identify team members
+- Assign roles and responsibilities
+- Ensure commitment from everyone
+
+**3. Create Your Budget:**
+- List all expenses
+- Get quotes where possible
+- Be realistic
+- Include contingency (10-15%)
+
+**Budget Categories:**
+- Materials and supplies
+- Venue rental
+- Marketing/promotion
+- Refreshments (if applicable)
+- Transportation
+- Printing/documentation
+- Other direct costs
+
+**4. Prepare Documents:**
+- Project proposal (1-2 pages)
+- Detailed budget spreadsheet
+- Timeline/work plan
+- Team member bios (optional)
+
+#### Submitting Your Application
+
+**Required Information:**
+
+**Applicant Details:**
+- Full name
+- Email and phone
+- Institution name
+- Student ID number
+
+**Project Information:**
+- Project title (short, catchy)
+- Detailed description (what, why, how)
+- Category (Mental Health, Education, Skills, Community Development)
+- Target beneficiaries (who and how many)
+- Expected impact (specific outcomes)
+- Budget requested (total amount)
+- Budget breakdown (itemized list)
+
+**Timeline:**
+- Project start date
+- Project end date
+- Implementation timeline (key milestones)
+
+**Team:**
+- Team member names and roles
+- Team size
+- Relevant experience
+
+**Supporting Documents:**
+- Upload proposal PDF
+- Upload budget spreadsheet
+- Any other relevant documents
+
+**Submit:**
+1. Review all information carefully
+2. Click "Submit Application"
+3. Receive confirmation email
+4. Wait for admin review
+
+### Application Timeline
+
+**What to expect:**
+
+**Week 1:**
+- Application submitted
+- Status: "Pending"
+- Acknowledgment email sent
+
+**Weeks 2-3:**
+- Admin reviews application
+- Status: "Under Review"
+- May request clarifications
+
+**Week 4:**
+- Decision made
+- Status: "Approved" or "Rejected"
+- Email notification sent
+
+**If Approved:**
+- Review approved amount and conditions
+- Accept terms
+- Await disbursement
+- Status: "Funded" when money is sent
+
+**Disbursement Methods:**
+- M-Pesa (fastest - instant to 1 day)
+- Bank transfer (2-3 business days)
+- Check (5-7 business days)
+
+### After Receiving Funding
+
+**Your Responsibilities:**
+
+1. **Use Funds as Approved:**
+   - Stick to approved budget
+   - Keep all receipts
+   - Document all expenses
+
+2. **Implement Project:**
+   - Follow your proposed timeline
+   - Engage your team
+   - Reach your target beneficiaries
+
+3. **Track Impact:**
+   - Collect data on outcomes
+   - Document activities (photos, testimonials)
+   - Measure against stated goals
+
+4. **Submit Reports:**
+   - Mid-project update (if required)
+   - Final project report
+   - Financial accounting (receipts, expenditure report)
+   - Impact assessment
+
+5. **Share Your Story:**
+   - May be featured on UNDA blog
+   - Inspire other prevention advocates
+   - Showcase project success
+
+### Tips for Success
+
+✅ **DO:**
+- Start with a clear, specific problem
+- Show genuine community need
+- Provide realistic timelines
+- Detail how you'll measure success
+- Demonstrate team capability
+- Submit complete applications
+- Follow up professionally
+
+❌ **DON'T:**
+- Ask for unrealistic amounts
+- Provide vague project descriptions
+- Submit incomplete applications
+- Miss reporting deadlines
+- Change project scope without approval
+- Misuse funds
+
+---
+
+## 📰 Blog & Resources
+
+UNDA's blog provides valuable mental health resources and community stories.
+
+### Blog Categories
+
+**Mental Health Awareness:**
+- Understanding mental health conditions
+- Breaking stigma
+- When to seek help
+- Self-care strategies
+
+**Coping Skills:**
+- Stress management techniques
+- Mindfulness exercises
+- Breathing exercises
+- Grounding techniques
+
+**Success Stories:**
+- Prevention Advocate journeys
+- Recovery stories
+- Project successes
+- Community impact
+
+**Tips & Strategies:**
+- Daily wellness habits
+- Study tips for students
+- Relationship advice
+- Career guidance
+
+**Program Updates:**
+- UNDA news
+- Upcoming events
+- Policy changes
+- New features
+
+### How to Use the Blog
+
+**Browse Posts:**
+1. Go to "Blog" section
+2. See latest posts first
+3. Use categories to filter
+4. Search for specific topics
+
+**Read Articles:**
+- Click on any post title
+- Read full content
+- View related articles
+- Share with friends (if sharing enabled)
+
+**Stay Updated:**
+- Check blog weekly
+- Subscribe to updates (if available)
+- Follow recommended reading
+
+---
+
+## 💳 Payments & M-Pesa
+
+UNDA uses M-Pesa for quick, secure mobile payments.
+
+### What Can You Pay For?
+
+- Event fees (if applicable)
+- Merchandise (UNDA-branded items)
+- Membership fees (if your program requires)
+- Other program-related costs
+
+### How to Pay via M-Pesa
+
+**STK Push Payment (Automatic):**
+
+1. **Initiate Payment:**
+   - Select item/service to purchase
+   - Click "Pay with M-Pesa"
+   - Confirm amount
+
+2. **Receive Prompt:**
+   - M-Pesa prompt appears on your phone
+   - Check amount is correct
+   - Enter your M-Pesa PIN
+   - Confirm payment
+
+3. **Confirmation:**
+   - Receive M-Pesa confirmation SMS
+   - Payment confirmed in UNDA system
+   - Transaction recorded
+
+### Payment Statuses
+
+- **Pending:** Payment initiated, awaiting confirmation
+- **Completed:** Payment successful
+- **Failed:** Payment unsuccessful (retry or contact support)
+- **Cancelled:** You cancelled the payment
+
+### Payment Support
+
+**If payment fails:**
+1. Check M-Pesa balance is sufficient
+2. Ensure phone number is correct
+3. Try again
+4. Contact supervisor if problem persists
+
+**For refunds:**
+- Contact admin with transaction ID
+- Explain reason for refund
+- Refunds processed within 5-7 business days
+
+---
+
+## 🎧 Podcasts
+
+UNDA's podcast library offers audio content on mental health, personal development, and youth empowerment.
+
+### Podcast Topics
+
+- Mental health awareness
+- Expert interviews
+- Prevention Advocate stories
+- Coping strategies
+- Motivation and inspiration
+- Life skills
+- Career guidance
+
+### How to Listen
+
+**In the App:**
+1. Go to "Podcasts" section
+2. Browse available episodes
+3. Click on episode to see description
+4. Press "Play" to listen
+5. Use playback controls (pause, forward, back)
+
+**Download for Offline:**
+- Click download icon (if available)
+- Listen without internet connection
+- Save data
+
+### Recommended Episodes
+
+Check "Featured" or "Most Popular" sections for staff-recommended episodes.
+
+---
+
+## ❓ FAQs & Troubleshooting
+
+### Account & Login
+
+**Q: I forgot my password. What do I do?**  
+A: Contact your supervisor or admin to reset your password. Self-service password reset is coming soon.
+
+**Q: My account is locked. How do I unlock it?**  
+A: Wait 30 minutes after your last failed login attempt, then try again. If still locked, contact your supervisor.
+
+**Q: Can I change my email address?**  
+A: Yes, update it in your profile or contact admin for assistance.
+
+**Q: Why was my registration rejected?**  
+A: Contact admin for specific reasons. Common causes: incomplete information, duplicate account, eligibility issues.
+
+### Mental Health Features
+
+**Q: Who can see my assessment results?**  
+A: Only you, your assigned supervisor, and administrators. Results are confidential and never shared publicly.
+
+**Q: How often should I take assessments?**  
+A: At minimum: baseline (when joining), then quarterly. Your supervisor may request more frequent assessments if providing active support.
+
+**Q: What if I score high on an assessment?**  
+A: Your supervisor will be notified and will reach out to provide support. High scores indicate you may benefit from professional help, which we can connect you to.
+
+**Q: I didn't receive today's affirmation. Why?**  
+A: Check your spam folder if via email. For SMS, verify your phone number is correct in your profile. Contact admin if problem persists.
+
+### Events
+
+**Q: Can I bring a friend to an event?**  
+A: Depends on the event. Check event details or ask organizers. Some events are UNDA members only; others welcome guests.
+
+**Q: What if I registered but can't attend?**  
+A: Cancel your registration as soon as possible to free up space for others.
+
+**Q: Will I receive a certificate?**  
+A: Certificates are issued for specific events (training, workshops). Check event details. You must attend fully to receive a certificate.
+
+**Q: How do I join a virtual event?**  
+A: The virtual link (Zoom, Google Meet, etc.) will be sent to your email before the event. Log in 5 minutes early to troubleshoot technical issues.
+
+### Seed Funding
+
+**Q: How much funding can I request?**  
+A: There's no fixed limit, but be realistic. Most successful applications request KES 20,000 - 100,000. Request only what your project truly needs.
+
+**Q: Can I apply multiple times?**  
+A: Yes, but wait for a decision on your first application before submitting another. You can reapply if rejected.
+
+**Q: How long until I receive the money?**  
+A: If approved, disbursement typically happens within 1-2 weeks. M-Pesa is fastest; bank transfers may take longer.
+
+**Q: What if my project costs more than approved?**  
+A: You'll need to either reduce project scope, find additional funding sources, or contribute your own funds.
+
+**Q: Do I need to pay back the funding?**  
+A: No, seed funding is a grant, not a loan. However, you must use it as approved and submit required reports.
+
+### Technical Issues
+
+**Q: The website is slow or not loading. What do I do?**  
+A: 
+1. Check your internet connection
+2. Clear your browser cache
+3. Try a different browser
+4. Try again later (server may be busy)
+5. Contact support if issue persists
+
+**Q: I can't upload a document. Why?**  
+A: 
+- Check file size (must be under 10MB typically)
+- Ensure file format is supported (PDF, JPG, PNG usually)
+- Check your internet connection
+- Try a different file
+
+**Q: The app looks weird on my phone. Is it broken?**  
+A: UNDA is optimized for mobile, but ensure:
+- You're using an updated browser
+- Zoom is set to 100%
+- Try landscape vs. portrait mode
+- Clear cache and reload
+
+### General
+
+**Q: How do I contact support?**  
+A:
+- Prevention Advocates: Contact your supervisor
+- Supervisors: Contact admin
+- Email: [Your support email]
+- Phone: [Your support phone]
+
+**Q: Is my data safe and private?**  
+A: Yes. UNDA uses industry-standard security including encryption, secure passwords, and role-based access. Your personal data is only accessible to authorized personnel and never shared without consent.
+
+**Q: Can I delete my account?**  
+A: Contact admin to request account deletion. Note: This may not be possible if you have pending obligations (funded projects, active cases).
+
+**Q: How can I provide feedback about UNDA?**  
+A: We welcome feedback! Submit via:
+- Event feedback forms
+- Direct message to admin
+- Suggestion box (if available)
+- Email to program coordinators
+
+---
+
+## 🎉 Getting the Most Out of UNDA
+
+### Tips for Prevention Advocates
+
+1. **Complete your profile** - Better support comes from accurate information
+2. **Take assessments honestly** - They're tools to help you, not tests to pass
+3. **Engage with affirmations** - Even 30 seconds of reflection helps
+4. **Attend events** - Great for learning and networking
+5. **Apply for funding** - Don't let great ideas stay ideas
+6. **Stay in touch** - Regular check-ins keep you connected to support
+
+### Tips for Supervisors
+
+1. **Check in regularly** - Consistency builds trust
+2. **Review assessment trends** - Early intervention is most effective
+3. **Document thoroughly** - Good notes protect everyone
+4. **Encourage participation** - Invite prevention advocates to events
+5. **Celebrate wins** - Recognize prevention advocate achievements
+6. **Ask for help** - Use admin and peers for support
+
+### Tips for Admins
+
+1. **Monitor compliance** - Stay ahead of requirements
+2. **Analyze trends** - Data reveals program impact
+3. **Communicate clearly** - Keep supervisors informed
+4. **Process applications promptly** - Delays discourage engagement
+5. **Update content regularly** - Fresh blogs and affirmations maintain interest
+6. **Gather feedback** - Continuous improvement benefits everyone
+
+---
+
+## 📞 Support & Contact
+
+### Need Help?
+
+**Technical Support:**
+- Email: [support@unda.org]
+- Phone: [+254 XXX XXX XXX]
+- Hours: Monday-Friday, 8AM-5PM EAT
+
+**Program Inquiries:**
+- Your supervisor (Prevention Advocates)
+- Program coordinator (Supervisors)
+- Admin team (All users)
+
+**Emergency Mental Health Support:**
+If you're in crisis, contact:
+- National Crisis Hotline: [Number]
+- Suicide Prevention Hotline: [Number]
+- Emergency Services: 999/911
+
+### Resources
+
+**External Mental Health Resources:**
+- [Kenya Mental Health Association]
+- [Befrienders Kenya]
+- [National Youth Council]
+
+---
+
+## 🌟 Welcome to the UNDA Community!
+
+You're now part of a network dedicated to youth mental health and empowerment. Whether you're a prevention advocate seeking support, a supervisor providing care, or an admin managing the program, you play a vital role.
+
+**Remember:**
+- 💙 Your mental health matters
+- 🤝 You're not alone - support is available
+- 🌱 Every small step is progress
+- ✨ Your story and voice make a difference
+
+**Let's grow together!**
+
+---
+
+*For the latest updates and program information, check the blog regularly and stay connected with your supervisor.*
+
+**Version:** 1.0  
+**Last Updated:** January 2026  
+**Questions or feedback?** Contact your program administrator.

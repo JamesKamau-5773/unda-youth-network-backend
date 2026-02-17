@@ -1,10 +1,27 @@
-```markdown
 # Changelog
 
 All notable changes to the UNDA Youth Network project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.1.1] - 2026-02-17
+
+### Added
+- Structured developer logging for global HTTP error handlers (400, 403, 404, 429, 500) with request context.
+- Friendly error-message sanitization layer for admin/supervisor user flows to avoid exposing technical exception details.
+
+### Changed
+- Admin dashboard standardized to Unda-only color palette for alerts, KPI cards, quick access cards, and tables.
+- Admin dashboard typography and spacing refined for better readability and mobile consistency.
+- Hero section actions simplified by removing inline dashboard action buttons per UX update.
+
+### Fixed
+- User deletion integrity bug: resolved `youth_supports.champion_id` not-null violation during linked user/prevention advocate deletion.
+- Startup failures from indentation regressions in `services/user_service.py` and `app.py`.
+- Deployment log noise: explicit favicon handling added and platform host cookie-domain mismatch warnings reduced for expected Render host probes.
 
 ---
 
@@ -154,5 +171,3 @@ For questions or issues:
 - `Removed` - Removed features
 - `Fixed` - Bug fixes
 - `Security` - Security improvements
-
-```

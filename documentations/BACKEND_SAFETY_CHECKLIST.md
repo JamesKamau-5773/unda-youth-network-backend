@@ -1,4 +1,3 @@
-````markdown
 # Backend Safety Checklist - Preventing 502 Errors
 
 ## Completed Fixes (January 2026)
@@ -215,5 +214,3 @@ Add alerts for:
 **Last Updated**: January 8, 2026  
 **Maintainer**: Development Team  
 **Review Frequency**: Before each production deployment
-
-````
