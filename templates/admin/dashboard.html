@@ -4,7 +4,7 @@
 
 {% block content %}
 <!-- Dashboard Container -->
-<div class="space-y-8">
+<div class="space-y-8 antialiased">
 
     <!-- Welcome Hero Section -->
     <div class="bg-[#0B1E3B] rounded-2xl p-5 sm:p-8 text-white shadow-lg relative overflow-hidden">
@@ -14,16 +14,16 @@
 
         <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black mb-3 tracking-tight" style="color: #00ACC1; text-shadow: 2px 3px 8px rgba(0,0,0,0.4), 0 0 20px rgba(0,172,193,0.3);">Welcome back, {{ current_user.username }}</h1>
-                <p class="text-white text-base sm:text-lg font-semibold" style="text-shadow: 1px 2px 4px rgba(0,0,0,0.3);">Here's what's happening with your network today.</p>
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-3 tracking-tight leading-tight text-unda-teal-500">Welcome back, {{ current_user.username }}</h1>
+                <p class="text-unda-light-blue-100 text-base sm:text-lg font-medium">Here's what's happening with your network today.</p>
             </div>
             
             <div class="flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto">
-                <a href="{{ url_for('admin.create_champion') }}" class="inline-flex items-center gap-2 bg-[#00ACC1] hover:bg-[#008e9e] text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm">
+                <a href="{{ url_for('admin.create_champion') }}" class="inline-flex items-center justify-center gap-2 bg-[#00ACC1] hover:bg-[#008e9e] text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm">
                     <i data-lucide="user-plus" class="w-5 h-5"></i>
                     <span>New Advocate</span>
                 </a>
-                <a href="{{ url_for('admin.manage_users') }}" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-5 py-2.5 rounded-lg font-medium transition-colors backdrop-blur-sm">
+                <a href="{{ url_for('admin.manage_users') }}" class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white px-5 py-2.5 rounded-lg font-medium transition-colors backdrop-blur-sm">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span>Manage Users</span>
                 </a>
@@ -37,15 +37,15 @@
         <!-- Pending Registrations -->
         {% if pending_registrations_count > 0 %}
         <a href="{{ url_for('admin.registrations', status='Pending') }}" class="block group">
-            <div class="bg-amber-50 border-l-4 border-amber-500 rounded-xl p-4 shadow-sm hover:shadow-md transition-all group-hover:-translate-y-1">
+            <div class="bg-unda-light-blue-50 border-l-4 border-unda-teal-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all group-hover:-translate-y-1">
                 <div class="flex items-center justify-between mb-2">
-                    <div class="p-2 bg-amber-100 rounded-lg text-amber-600">
+                    <div class="p-2 bg-unda-light-blue-100 rounded-lg text-unda-teal-700">
                         <i data-lucide="user-check" class="w-5 h-5"></i>
                     </div>
-                    <span class="text-amber-600 font-semibold text-sm">Review</span>
+                    <span class="text-unda-teal-700 font-semibold text-sm">Review</span>
                 </div>
-                <div class="text-3xl font-bold text-amber-900 mb-1">{{ pending_registrations_count }}</div>
-                <div class="text-amber-700 text-sm font-medium">Pending Registrations</div>
+                <div class="text-3xl font-bold text-unda-navy-900 mb-1">{{ pending_registrations_count }}</div>
+                <div class="text-unda-navy-700 text-sm font-medium">Pending Registrations</div>
             </div>
         </a>
         {% endif %}
@@ -53,33 +53,33 @@
         <!-- Pending Applications -->
         {% if pending_applications_count > 0 %}
         <a href="{{ url_for('admin.champion_applications', status='Pending') }}" class="block group">
-            <div class="bg-blue-50 border-l-4 border-blue-500 rounded-xl p-4 shadow-sm hover:shadow-md transition-all group-hover:-translate-y-1">
+            <div class="bg-unda-light-blue-50 border-l-4 border-unda-teal-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all group-hover:-translate-y-1">
                 <div class="flex items-center justify-between mb-2">
-                    <div class="p-2 bg-blue-100 rounded-lg text-blue-600">
+                    <div class="p-2 bg-unda-light-blue-100 rounded-lg text-unda-teal-700">
                         <i data-lucide="file-text" class="w-5 h-5"></i>
                     </div>
-                    <span class="text-blue-600 font-semibold text-sm">Review</span>
+                    <span class="text-unda-teal-700 font-semibold text-sm">Review</span>
                 </div>
-                <div class="text-3xl font-bold text-blue-900 mb-1">{{ pending_applications_count }}</div>
-                <div class="text-blue-700 text-sm font-medium">Pending Applications</div>
+                <div class="text-3xl font-bold text-unda-navy-900 mb-1">{{ pending_applications_count }}</div>
+                <div class="text-unda-navy-700 text-sm font-medium">Pending Applications</div>
             </div>
         </a>
         {% endif %}
 
         <!-- High Risk Alerts -->
         {% if high_risk_count > 0 %}
-        <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-4 shadow-sm">
+        <div class="bg-unda-light-blue-50 border-l-4 border-unda-teal-700 rounded-xl p-4 shadow-sm">
             <div class="flex items-center justify-between mb-2">
-                <div class="p-2 bg-red-100 rounded-lg text-red-600">
+                <div class="p-2 bg-unda-light-blue-100 rounded-lg text-unda-teal-700">
                     <i data-lucide="alert-triangle" class="w-5 h-5"></i>
                 </div>
-                <span class="text-red-600 font-bold text-xs uppercase tracking-wider">Critical</span>
+                <span class="text-unda-teal-700 font-bold text-sm uppercase tracking-wider">Critical</span>
             </div>
-            <div class="text-3xl font-bold text-red-900 mb-1">{{ high_risk_count }}</div>
-            <div class="text-red-700 text-sm font-medium">High Risk Cases</div>
+            <div class="text-3xl font-bold text-unda-navy-900 mb-1">{{ high_risk_count }}</div>
+            <div class="text-unda-navy-700 text-sm font-medium">High Risk Cases</div>
             {% if high_risk_champions %}
-            <div class="mt-3 pt-3 border-t border-red-100">
-                <ul class="text-xs text-red-800 space-y-1">
+            <div class="mt-3 pt-3 border-t border-unda-light-blue-100">
+                <ul class="text-sm text-unda-navy-800 space-y-1">
                     {% for champion in high_risk_champions[:2] %}
                     <li class="flex items-center gap-1">
                         <i data-lucide="arrow-right" class="w-3 h-3"></i>
@@ -87,7 +87,7 @@
                     </li>
                     {% endfor %}
                     {% if high_risk_champions|length > 2 %}
-                    <li class="text-red-600 font-medium pl-4">+{{ high_risk_champions|length - 2 }} more</li>
+                    <li class="text-unda-teal-700 font-medium pl-4">+{{ high_risk_champions|length - 2 }} more</li>
                     {% endif %}
                 </ul>
             </div>
@@ -97,15 +97,15 @@
 
         <!-- Overdue Tasks -->
         {% if overdue_count > 0 %}
-        <div class="bg-orange-50 border-l-4 border-orange-500 rounded-xl p-4 shadow-sm">
+        <div class="bg-unda-light-blue-50 border-l-4 border-unda-teal-600 rounded-xl p-4 shadow-sm">
             <div class="flex items-center justify-between mb-2">
-                <div class="p-2 bg-orange-100 rounded-lg text-orange-600">
+                <div class="p-2 bg-unda-light-blue-100 rounded-lg text-unda-teal-700">
                     <i data-lucide="clock" class="w-5 h-5"></i>
                 </div>
-                <span class="text-orange-600 font-semibold text-sm">Overdue</span>
+                <span class="text-unda-teal-700 font-semibold text-sm">Overdue</span>
             </div>
-            <div class="text-3xl font-bold text-orange-900 mb-1">{{ overdue_count }}</div>
-            <div class="text-orange-700 text-sm font-medium">Past Due Reviews</div>
+            <div class="text-3xl font-bold text-unda-navy-900 mb-1">{{ overdue_count }}</div>
+            <div class="text-unda-navy-700 text-sm font-medium">Past Due Reviews</div>
         </div>
         {% endif %}
     </div>
@@ -114,50 +114,50 @@
     <!-- Main Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Active -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-unda-light-blue-100 transition-all hover:shadow-md">
             <div class="flex justify-between items-start">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Active Advocates</h3>
-                    <div class="text-4xl font-extrabold text-slate-900">{{ active_champions }}</div>
+                    <h3 class="text-sm font-bold text-unda-navy-600 uppercase tracking-widest mb-1">Active Advocates</h3>
+                    <div class="text-4xl font-extrabold text-unda-navy-900">{{ active_champions }}</div>
                 </div>
-                <div class="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+                <div class="p-3 bg-unda-light-blue-50 rounded-xl text-unda-teal-700">
                     <i data-lucide="activity" class="w-6 h-6"></i>
                 </div>
             </div>
             <div class="mt-4 flex items-center text-sm font-medium">
-                <span class="text-emerald-700 flex items-center gap-1.5 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <span class="text-unda-teal-700 flex items-center gap-1.5 bg-unda-light-blue-50 px-2 py-0.5 rounded-full">
                     <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
                     Active
                 </span>
-                <span class="text-slate-400 mx-2">•</span>
-                <span class="text-slate-600">Currently Supporting</span>
+                <span class="text-unda-navy-400 mx-2">•</span>
+                <span class="text-unda-navy-600">Currently Supporting</span>
             </div>
         </div>
 
         <!-- Inactive -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-unda-light-blue-100 transition-all hover:shadow-md">
             <div class="flex justify-between items-start">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Inactive</h3>
-                    <div class="text-4xl font-extrabold text-slate-900">{{ inactive_champions }}</div>
+                    <h3 class="text-sm font-bold text-unda-navy-600 uppercase tracking-widest mb-1">Inactive</h3>
+                    <div class="text-4xl font-extrabold text-unda-navy-900">{{ inactive_champions }}</div>
                 </div>
-                <div class="p-3 bg-rose-50 rounded-xl text-rose-500">
+                <div class="p-3 bg-unda-light-blue-50 rounded-xl text-unda-teal-700">
                     <i data-lucide="user-x" class="w-6 h-6"></i>
                 </div>
             </div>
             <div class="mt-4 flex items-center text-sm font-medium">
-                <span class="text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">Needs Attention</span>
+                <span class="text-unda-teal-700 bg-unda-light-blue-50 px-2 py-0.5 rounded-full">Needs Attention</span>
             </div>
         </div>
 
         <!-- Youth Reached -->
-        <div class="bg-gradient-to-br from-[#0B1E3B] to-[#1a3b66] rounded-xl p-6 shadow-md text-white border border-[#1a3b66]">
+        <div class="bg-gradient-to-br from-[#0B1E3B] to-[#00838F] rounded-xl p-6 shadow-md text-white border border-[#00838F]">
             <div class="flex justify-between items-start">
                 <div>
                     <h3 class="text-sm font-bold text-white uppercase tracking-widest mb-1 drop-shadow-sm">Total Youth Reached</h3>
                     <div class="text-4xl font-extrabold text-white drop-shadow-sm">{{ total_youth_reached }}</div>
                 </div>
-                <div class="p-3 bg-white/10 rounded-xl text-cyan-300">
+                <div class="p-3 bg-white/10 rounded-xl text-unda-light-blue-100">
                     <i data-lucide="users" class="w-6 h-6"></i>
                 </div>
             </div>
@@ -167,21 +167,21 @@
         </div>
 
         <!-- Satisfaction -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-unda-light-blue-100 transition-all hover:shadow-md">
             <div class="flex justify-between items-start">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Youth Satisfaction</h3>
-                    <div class="text-4xl font-extrabold text-slate-900 flex items-baseline gap-1">
+                    <h3 class="text-sm font-bold text-unda-navy-600 uppercase tracking-widest mb-1">Youth Satisfaction</h3>
+                    <div class="text-4xl font-extrabold text-unda-navy-900 flex items-baseline gap-1">
                         {{ quarterly_satisfaction }}
-                        <span class="text-lg text-slate-400 font-semibold">/10</span>
+                        <span class="text-lg text-unda-navy-400 font-semibold">/10</span>
                     </div>
                 </div>
-                <div class="p-3 bg-amber-50 rounded-xl text-amber-500">
+                <div class="p-3 bg-unda-light-blue-50 rounded-xl text-unda-teal-700">
                     <i data-lucide="star" class="w-6 h-6"></i>
                 </div>
             </div>
             <div class="mt-4 flex items-center text-sm font-medium">
-                <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Quarterly Score</span>
+                <span class="text-unda-teal-700 bg-unda-light-blue-50 px-2 py-0.5 rounded-full">Quarterly Score</span>
             </div>
         </div>
     </div>
@@ -192,107 +192,107 @@
         <!-- Quick Access -->
         <div class="lg:col-span-2 space-y-6">
             <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold text-[#0B1E3B]">Quick Access & Workstreams</h2>
+                <h2 class="text-xl font-bold text-unda-navy-900">Quick Access & Workstreams</h2>
                 <!-- <button class="text-[#00ACC1] hover:text-[#008e9e] text-sm font-medium">Customize</button> -->
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Management Shortcuts -->
-                <a href="{{ url_for('admin.podcasts') }}" class="group bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:border-[#00ACC1] hover:shadow-md transition-all">
+                <a href="{{ url_for('admin.podcasts') }}" class="group bg-white p-5 rounded-xl shadow-sm border border-unda-light-blue-100 hover:border-[#00ACC1] hover:shadow-md transition-all">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-[#00ACC1] group-hover:text-white transition-colors">
+                        <div class="w-12 h-12 rounded-full bg-unda-light-blue-50 flex items-center justify-center text-unda-teal-700 group-hover:bg-[#00ACC1] group-hover:text-white transition-colors">
                             <i data-lucide="mic" class="w-6 h-6"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 group-hover:text-[#00ACC1] transition-colors">Podcasts</h3>
-                            <p class="text-sm text-slate-600 font-medium">Manage episodes</p>
+                            <h3 class="font-bold text-unda-navy-900 group-hover:text-[#00ACC1] transition-colors">Podcasts</h3>
+                            <p class="text-sm text-unda-navy-600 font-medium">Manage episodes</p>
                         </div>
                     </div>
                 </a>
 
-                <a href="{{ url_for('admin.affirmations') }}" class="group bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:border-[#00ACC1] hover:shadow-md transition-all">
+                <a href="{{ url_for('admin.affirmations') }}" class="group bg-white p-5 rounded-xl shadow-sm border border-unda-light-blue-100 hover:border-[#00ACC1] hover:shadow-md transition-all">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center text-pink-600 group-hover:bg-[#00ACC1] group-hover:text-white transition-colors">
+                        <div class="w-12 h-12 rounded-full bg-unda-light-blue-50 flex items-center justify-center text-unda-teal-700 group-hover:bg-[#00ACC1] group-hover:text-white transition-colors">
                             <i data-lucide="heart" class="w-6 h-6"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 group-hover:text-[#00ACC1] transition-colors">Affirmations</h3>
-                            <p class="text-sm text-slate-600 font-medium">Daily content</p>
+                            <h3 class="font-bold text-unda-navy-900 group-hover:text-[#00ACC1] transition-colors">Affirmations</h3>
+                            <p class="text-sm text-unda-navy-600 font-medium">Daily content</p>
                         </div>
                     </div>
                 </a>
 
-                <a href="{{ url_for('admin.workstreams') }}" class="group bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:border-[#00ACC1] hover:shadow-md transition-all">
+                <a href="{{ url_for('admin.workstreams') }}" class="group bg-white p-5 rounded-xl shadow-sm border border-unda-light-blue-100 hover:border-[#00ACC1] hover:shadow-md transition-all">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-[#00ACC1] group-hover:text-white transition-colors">
+                        <div class="w-12 h-12 rounded-full bg-unda-light-blue-50 flex items-center justify-center text-unda-teal-700 group-hover:bg-[#00ACC1] group-hover:text-white transition-colors">
                             <i data-lucide="layout-grid" class="w-6 h-6"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 group-hover:text-[#00ACC1] transition-colors">Workstreams</h3>
-                            <p class="text-sm text-slate-600 font-medium">Manage areas</p>
+                            <h3 class="font-bold text-unda-navy-900 group-hover:text-[#00ACC1] transition-colors">Workstreams</h3>
+                            <p class="text-sm text-unda-navy-600 font-medium">Manage areas</p>
                         </div>
                     </div>
                 </a>
 
-                <a href="{{ url_for('admin.symbolic_items') }}" class="group bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:border-[#00ACC1] hover:shadow-md transition-all">
+                <a href="{{ url_for('admin.symbolic_items') }}" class="group bg-white p-5 rounded-xl shadow-sm border border-unda-light-blue-100 hover:border-[#00ACC1] hover:shadow-md transition-all">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-[#00ACC1] group-hover:text-white transition-colors">
+                        <div class="w-12 h-12 rounded-full bg-unda-light-blue-50 flex items-center justify-center text-unda-teal-700 group-hover:bg-[#00ACC1] group-hover:text-white transition-colors">
                             <i data-lucide="award" class="w-6 h-6"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 group-hover:text-[#00ACC1] transition-colors">Symbolic Items</h3>
-                            <p class="text-sm text-slate-600 font-medium">Inventory</p>
+                            <h3 class="font-bold text-unda-navy-900 group-hover:text-[#00ACC1] transition-colors">Symbolic Items</h3>
+                            <p class="text-sm text-unda-navy-600 font-medium">Inventory</p>
                         </div>
                     </div>
                 </a>
             </div>
 
             <!-- Recent Advocates Table -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 class="font-bold text-[#0B1E3B]">Recent Prevention Advocates</h3>
+            <div class="bg-white rounded-xl shadow-sm border border-unda-light-blue-100 overflow-hidden">
+                <div class="p-5 border-b border-unda-light-blue-100 flex justify-between items-center bg-unda-light-blue-50/50">
+                    <h3 class="font-bold text-unda-navy-900">Recent Prevention Advocates</h3>
                     <a href="{{ url_for('admin.champion_applications') }}" class="text-sm text-[#00ACC1] hover:underline">View All</a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
+                            <tr class="text-sm font-semibold text-unda-navy-600 uppercase bg-unda-light-blue-50 border-b border-unda-light-blue-100">
                                 <th class="px-5 py-3">Advocate</th>
                                 <th class="px-5 py-3 text-right">Youth Reached</th>
                                 <th class="px-5 py-3 text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-unda-light-blue-100">
                             {% if youth_per_champion|length == 0 %}
                             <tr>
-                                <td colspan="3" class="px-5 py-8 text-center text-gray-500">
+                                <td colspan="3" class="px-5 py-8 text-center text-unda-navy-600">
                                     <div class="flex flex-col items-center gap-2">
-                                        <i data-lucide="users" class="w-8 h-8 text-gray-300"></i>
+                                        <i data-lucide="users" class="w-8 h-8 text-unda-light-blue-200"></i>
                                         <p>No data available yet.</p>
                                     </div>
                                 </td>
                             </tr>
                             {% else %}
                             {% for champion in youth_per_champion[:5] %}
-                            <tr class="hover:bg-gray-50/50 transition-colors">
+                            <tr class="hover:bg-unda-light-blue-50/50 transition-colors">
                                 <td class="px-5 py-3">
                                     <div class="flex items-center gap-3">
                                         <div class="w-8 h-8 rounded-full bg-[#0B1E3B] text-white flex items-center justify-center text-xs font-bold">
                                             {{ champion.full_name[:1] }}
                                         </div>
                                         <div>
-                                            <div class="font-medium text-gray-900">{{ champion.full_name }}</div>
-                                            <div class="text-xs text-gray-500">{{ champion.assigned_champion_code }}</div>
+                                            <div class="font-medium text-unda-navy-900">{{ champion.full_name }}</div>
+                                            <div class="text-sm text-unda-navy-600">{{ champion.assigned_champion_code }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-5 py-3 text-right">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-unda-light-blue-100 text-unda-teal-700">
                                         {{ champion.total_youth }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-3 text-center">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" title="Active"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full bg-unda-teal-600 inline-block" title="Active"></span>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -306,34 +306,34 @@
         <!-- Sidebar / Compliance -->
         <div class="space-y-6">
             <!-- Training Compliance Block -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 class="font-bold text-[#0B1E3B] mb-4">Training Compliance</h3>
+            <div class="bg-white rounded-xl shadow-sm border border-unda-light-blue-100 p-6">
+                <h3 class="font-bold text-unda-navy-900 mb-4">Training Compliance</h3>
                 <div class="flex items-center justify-center mb-6 relative">
                     <!-- Circular Progress Placeholder -->
-                    <div class="w-32 h-32 rounded-full border-8 border-gray-100 flex items-center justify-center relative">
+                    <div class="w-32 h-32 rounded-full border-8 border-unda-light-blue-100 flex items-center justify-center relative">
                          <!-- Simple CSS Arc could go here, but avoiding complex CSS for now. -->
                          <div class="absolute inset-0 rounded-full border-8 border-[#00ACC1] border-t-transparent" style="transform: rotate({{ (training_compliance_rate / 100 * 360) - 45 }}deg);"></div>
                          <div class="text-center">
                             <div class="text-2xl font-bold text-[#0B1E3B]">{{ training_compliance_rate }}%</div>
-                            <div class="text-xs text-gray-500">Certified</div>
+                            <div class="text-sm text-unda-navy-600">Certified</div>
                          </div>
                     </div>
                 </div>
                 <div class="space-y-3">
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">Core Training</span>
-                        <span class="font-medium text-[#0B1E3B]">{{ champions_with_core_training }}/{{ total_champions }}</span>
+                        <span class="text-unda-navy-600">Core Training</span>
+                        <span class="font-medium text-unda-navy-900">{{ champions_with_core_training }}/{{ total_champions }}</span>
                     </div>
-                    <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-2 w-full bg-unda-light-blue-100 rounded-full overflow-hidden">
                         <div class="h-full bg-[#00ACC1] rounded-full" style="width: {{ training_compliance_rate }}%"></div>
                     </div>
                 </div>
                 
-                <div class="mt-6 pt-6 border-t border-gray-100">
-                    <h4 class="font-semibold text-[#0B1E3B] text-sm mb-3">Pending Consent</h4>
+                <div class="mt-6 pt-6 border-t border-unda-light-blue-100">
+                    <h4 class="font-semibold text-unda-navy-900 text-sm mb-3">Pending Consent</h4>
                     <div class="space-y-2">
                         {% if champions_missing_consent > 0 %}
-                        <div class="flex items-center justify-between p-2 bg-amber-50 rounded-lg text-amber-700 text-sm">
+                        <div class="flex items-center justify-between p-2 bg-unda-light-blue-50 rounded-lg text-unda-teal-700 text-sm">
                             <span class="flex items-center gap-2">
                                 <i data-lucide="file-warning" class="w-4 h-4"></i>
                                 Personal Consent
@@ -341,14 +341,14 @@
                              <span class="font-bold">{{ champions_missing_consent }}</span>
                         </div>
                         {% else %}
-                        <div class="flex items-center gap-2 text-emerald-600 text-sm">
+                        <div class="flex items-center gap-2 text-unda-teal-700 text-sm">
                             <i data-lucide="check-circle" class="w-4 h-4"></i>
                             All Personal Consents Signed
                         </div>
                         {% endif %}
 
                         {% if champions_missing_institution > 0 %}
-                        <div class="flex items-center justify-between p-2 bg-amber-50 rounded-lg text-amber-700 text-sm">
+                        <div class="flex items-center justify-between p-2 bg-unda-light-blue-50 rounded-lg text-unda-teal-700 text-sm">
                             <span class="flex items-center gap-2">
                                 <i data-lucide="building" class="w-4 h-4"></i>
                                 Inst. Consent
@@ -356,7 +356,7 @@
                              <span class="font-bold">{{ champions_missing_institution }}</span>
                         </div>
                         {% else %}
-                        <div class="flex items-center gap-2 text-emerald-600 text-sm">
+                        <div class="flex items-center gap-2 text-unda-teal-700 text-sm">
                             <i data-lucide="check-circle" class="w-4 h-4"></i>
                             All Inst. Consents Signed
                         </div>
@@ -366,27 +366,27 @@
             </div>
 
             <!-- Upcoming Training -->
-             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 class="font-bold text-[#0B1E3B] mb-4">Training Due Soon</h3>
+             <div class="bg-white rounded-xl shadow-sm border border-unda-light-blue-100 p-6">
+                <h3 class="font-bold text-unda-navy-900 mb-4">Training Due Soon</h3>
                 {% if upcoming_refreshers %}
                 <ul class="space-y-4">
                     {% for champion, training in upcoming_refreshers[:3] %}
-                    <li class="flex items-start gap-3 pb-3 border-b border-gray-50 last:border-0 last:pb-0">
-                        <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex-shrink-0 flex items-center justify-center">
+                    <li class="flex items-start gap-3 pb-3 border-b border-unda-light-blue-50 last:border-0 last:pb-0">
+                        <div class="w-8 h-8 rounded-full bg-unda-light-blue-100 text-unda-teal-700 flex-shrink-0 flex items-center justify-center">
                             <span class="text-xs font-bold">{{ champion.full_name[:1] }}</span>
                         </div>
                         <div class="min-w-0 flex-1">
-                            <p class="text-sm font-medium text-gray-900 truncate">{{ champion.full_name }}</p>
-                            <p class="text-xs text-gray-500">{{ training.training_module }}</p>
+                            <p class="text-sm font-medium text-unda-navy-900 truncate">{{ champion.full_name }}</p>
+                            <p class="text-sm text-unda-navy-600">{{ training.training_module }}</p>
                         </div>
-                        <span class="text-xs font-semibold text-orange-600 whitespace-nowrap">
+                        <span class="text-sm font-semibold text-unda-teal-700 whitespace-nowrap">
                             {{ training.next_refresher_due_date.strftime('%b %d') }}
                         </span>
                     </li>
                     {% endfor %}
                 </ul>
                 {% else %}
-                <div class="text-center py-6 text-gray-500 text-sm">
+                <div class="text-center py-6 text-unda-navy-600 text-sm">
                     <p>No upcoming training due.</p>
                 </div>
                 {% endif %}
