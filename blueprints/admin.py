@@ -219,9 +219,10 @@ def create_user():
         try:
             result = user_service.create_user(username, email, role)
             invite_sent = result.get('invite_sent', False)
+            temp_password = result.get('temp_password')
             return render_template('admin/create_user_success.html',
                                  username=username,
-                                 temp_password=None,
+                                 temp_password=temp_password,
                                  role=role,
                                  email=email,
                                  email_sent=invite_sent,

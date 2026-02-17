@@ -628,10 +628,11 @@
     
     <div class="dashboard-layout">
         <aside class="sidebar bg-unda-navy-900 border-r border-unda-navy-800 text-white w-64 fixed h-full overflow-y-auto z-50 transition-transform duration-300 md:translate-x-0 -translate-x-full" id="sidebar">
-            <div class="sidebar-logo border-b border-unda-navy-800 px-6 py-8 mb-6">
-                <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-unda-teal-400 to-unda-light-blue-200">
-                    Unda Youth Network
-                </span>
+            <div class="sidebar-logo border-b border-unda-navy-800 px-6 py-6 mb-6">
+                <div class="bg-white rounded-xl p-2 shadow-sm inline-flex">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Unda Youth Network" class="h-16 w-auto object-contain">
+                </div>
+                <div class="mt-3 text-sm font-semibold text-unda-light-blue-100 tracking-wide">Unda Youth Network</div>
             </div>
             <nav class="px-4">
                 <ul class="sidebar-nav space-y-1">

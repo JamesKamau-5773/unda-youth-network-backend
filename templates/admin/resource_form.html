@@ -12,7 +12,7 @@
                 {{ 'Update resource details' if resource else 'Add a new resource for members' }}
             </p>
         </div>
-        <a href="{{ url_for('admin.resources') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm font-medium">
+        <a href="{{ url_for('admin.list_resources') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 bg-white transition-colors shadow-sm font-medium">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
             Back to List
         </a>
