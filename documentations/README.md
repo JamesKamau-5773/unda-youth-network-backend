@@ -264,11 +264,12 @@ unda/
 ├── seed.py                     # Database seeding script with comprehensive sample data
 ├── requirements.txt            # Python dependencies
 ├── run.sh                      # Application startup script
-├── CHANGELOG.md                # Version history and changes
-├── USER_MANUAL.md              # Comprehensive user guide
-├── README.md                   # This file - project overview
-├── IMPLEMENTATION_SUMMARY.md   # Phase 7 implementation details (33 new fields)
-├── EMAIL_SETUP.md              # Email configuration guide
+├── README.md                   # Project overview (root)
+├── documentations/             # Canonical documentation folder
+│   ├── CHANGELOG.md            # Version history and changes
+│   ├── USER_MANUAL.md          # Comprehensive user guide
+│   ├── IMPLEMENTATION_SUMMARY.md # Phase 7 implementation details (33 new fields)
+│   └── EMAIL_SETUP.md          # Email configuration guide
 ├── blueprints/                 # Flask blueprints
 │   ├── __init__.py
 │   ├── auth.py                 # Authentication routes
