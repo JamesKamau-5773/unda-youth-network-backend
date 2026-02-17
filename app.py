@@ -609,6 +609,9 @@ def create_app(test_config=None):
             if app.config.get('_COOKIE_DOMAIN_MISMATCH_LOGGED'):
                 return
             host = request.host.split(':')[0] if request.host else ''
+            # Ignore expected platform host checks that don't use the primary cookie domain.
+            if host.endswith('.onrender.com'):
+                return
             # Normalise leading dot
             norm = cfg[1:] if cfg.startswith('.') else cfg
             if host and not (host == norm or host.endswith('.' + norm)):
@@ -836,6 +839,10 @@ def create_app(test_config=None):
                 return redirect(url_for('auth.login'))
         else:
             return redirect(url_for('auth.login'))
+
+    @main_bp.route('/favicon.ico')
+    def favicon():
+        return redirect(url_for('static', filename='img/logo.png'))
     
     @main_bp.route('/health')
     def health_check():
@@ -847,7 +854,11 @@ def create_app(test_config=None):
         from datetime import datetime, timezone
         import time
         
-        health_status = {
+                app.logger.warning('SESSION_COOKIE_DOMAIN is set to "%s" but request host is "%s" - this may prevent browsers from sending session cookies and cause CSRF/401 errors.', cfg, host)
+                app.config['_COOKIE_DOMAIN_MISMATCH_LOGGED'] = True
+            # Ignore expected platform host checks that don't use the primary cookie domain.
+            if host.endswith('.onrender.com'):
+                return
             'status': 'healthy',
             'timestamp': datetime.now(timezone.utc).isoformat(),
             'service': 'UNDA Youth Network',
