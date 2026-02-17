@@ -551,7 +551,7 @@ The user management page shows:
 3. Confirm the deletion in the popup
 4. User account is permanently removed
 
-**⚠️ CAUTION:**
+** CAUTION:**
 - **You cannot delete your own account** (prevents accidental lockout)
 - **This action cannot be undone**
 - Consider unlocking or changing role instead if user might return

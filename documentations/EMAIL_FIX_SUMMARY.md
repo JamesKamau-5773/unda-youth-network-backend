@@ -96,7 +96,7 @@ Now this flag reflects reality instead of optimistic assumption.
 1. **blueprints/admin.py** (lines 564-580)
    - Removed async threading
    - Added synchronous email sending
-   - Added detailed logging (✅ ⚠️ ❌ symbols for easy log scanning)
+   - Added detailed logging (   symbols for easy log scanning)
 
 2. **test_email.py** (new file)
    - Tests email configuration
@@ -126,20 +126,20 @@ If using Gmail (current setup):
 ## Common Issues
 
 ### Email Not Arriving
-- ✅ Check spam/junk folder
-- ✅ Verify recipient email is correct
-- ✅ Check server logs: `tail -f logs/app.log | grep Email`
-- ✅ Run `python3 test_email.py` to test SMTP
+-  Check spam/junk folder
+-  Verify recipient email is correct
+-  Check server logs: `tail -f logs/app.log | grep Email`
+-  Run `python3 test_email.py` to test SMTP
 
 ### Gmail "Less Secure Apps" Error
-- ✅ Use App Password instead of regular password
-- ✅ Enable 2FA on Gmail account first
-- ✅ Generate app-specific password
+-  Use App Password instead of regular password
+-  Enable 2FA on Gmail account first
+-  Generate app-specific password
 
 ### SMTP Authentication Failed
-- ✅ Verify MAIL_USERNAME matches MAIL_DEFAULT_SENDER
-- ✅ Check MAIL_PASSWORD is app password, not account password
-- ✅ Ensure no extra spaces in .env file
+-  Verify MAIL_USERNAME matches MAIL_DEFAULT_SENDER
+-  Check MAIL_PASSWORD is app password, not account password
+-  Ensure no extra spaces in .env file
 
 ## Monitoring
 

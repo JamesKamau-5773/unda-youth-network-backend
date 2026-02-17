@@ -131,7 +131,7 @@ GET `/api/seed-funding/my-applications` returns all applications for the logged-
 ## Admin Workflow
 
 ### 1. Review Applications
-- Navigate to **Admin Dashboard → Workstreams → Seed Funding** (💰)
+- Navigate to **Admin Dashboard → Workstreams → Seed Funding** ()
 - View statistics: Total applications, pending, approved, total amount
 - Filter by status: All, Pending, Under Review, Approved, Funded, Rejected
 

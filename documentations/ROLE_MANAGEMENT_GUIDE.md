@@ -19,31 +19,31 @@ User.ROLE_PREVENTION_ADVOCATE = 'Prevention Advocate'
 
 ## Rules for Role Management
 
-### ✅ DO: Use Constants
+###  DO: Use Constants
 
 ```python
-# ✅ CORRECT - Use constants
+#  CORRECT - Use constants
 new_user = User(username=username)
 new_user.set_role(User.ROLE_PREVENTION_ADVOCATE)
 
-# ✅ CORRECT - Query with constants
+#  CORRECT - Query with constants
 supervisors = User.query.filter_by(role=User.ROLE_SUPERVISOR).all()
 
-# ✅ CORRECT - Role checks
+#  CORRECT - Role checks
 if current_user.is_role(User.ROLE_ADMIN):
     # Admin actions
 ```
 
-### ❌ DON'T: Hard-code Strings
+###  DON'T: Hard-code Strings
 
 ```python
-# ❌ WRONG - Hard-coded string (prone to typos)
+#  WRONG - Hard-coded string (prone to typos)
 new_user = User(username=username, role='Prevention Advocate')
 
-# ❌ WRONG - Direct assignment bypasses validation
+#  WRONG - Direct assignment bypasses validation
 new_user.role = 'Champion'  # Old role name
 
-# ❌ WRONG - Case-sensitive comparison
+#  WRONG - Case-sensitive comparison
 if user.role == 'admin':  # Won't match 'Admin'
 ```
 
@@ -198,37 +198,37 @@ Before deploying role-related changes:
 
 ### Mistake 1: Direct Role Assignment
 ```python
-# ❌ WRONG
+#  WRONG
 user.role = 'Prevention Advocate'
 
-# ✅ CORRECT
+#  CORRECT
 user.set_role(User.ROLE_PREVENTION_ADVOCATE)
 ```
 
 ### Mistake 2: Case-Sensitive Comparison
 ```python
-# ❌ WRONG
+#  WRONG
 if user.role.lower() == 'admin':
 
-# ✅ CORRECT
+#  CORRECT
 if user.is_role(User.ROLE_ADMIN):
 ```
 
 ### Mistake 3: Hard-Coded Template Values
 ```python
-# ❌ WRONG
+#  WRONG
 return render_template('page.html', role='Admin')
 
-# ✅ CORRECT
+#  CORRECT
 return render_template('page.html', role=User.ROLE_ADMIN)
 ```
 
 ### Mistake 4: Forgetting Legacy Names
 ```python
-# ❌ WRONG - Won't find old 'Champion' records
+#  WRONG - Won't find old 'Champion' records
 advocates = User.query.filter_by(role='Prevention Advocate').all()
 
-# ✅ CORRECT - Finds both
+#  CORRECT - Finds both
 advocates = User.query.filter(
     db.or_(User.role == User.ROLE_PREVENTION_ADVOCATE, User.role == 'Champion')
 ).all()

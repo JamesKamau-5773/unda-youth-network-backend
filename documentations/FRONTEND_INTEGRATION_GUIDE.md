@@ -458,7 +458,7 @@ curl -X POST http://localhost:5000/api/assessments/submit \
 
 ---
 
-## Ready to Connect! 🚀
+## Ready to Connect! 
 
 Your backend is **fully operational** and ready for frontend integration. All endpoints are privacy-compliant and tested.
 
