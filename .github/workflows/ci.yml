@@ -7,6 +7,20 @@ on:
     branches: [ main, master ]
 
 jobs:
+  docs-no-emoji:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Validate docs have no emoji
+        run: |
+          make docs-check-no-emoji
+
   test:
     runs-on: ubuntu-latest
     strategy:
