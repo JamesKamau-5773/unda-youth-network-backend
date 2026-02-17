@@ -3,6 +3,7 @@
 {% block title %}Manage Advocate Assignments - Admin Dashboard{% endblock %}
 
 {% block content %}
+<div class="manage-assignments-page">
 <div class="dashboard-header">
     <h1 class="dashboard-title">Manage Advocate-Supervisor Assignments</h1>
     <p class="dashboard-subtitle">Assign prevention advocates to supervisors for mentorship and monitoring</p>
@@ -21,7 +22,7 @@
 <!-- Summary Stats -->
 <div class="stat-grid" style="margin-bottom: 2rem;">
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #00ACC1 0%, #00838F 100%);">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
@@ -36,7 +37,7 @@
     </div>
     
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #0B1E3B 0%, #00838F 100%);">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
                 <circle cx="8.5" cy="7" r="4"></circle>
@@ -50,7 +51,7 @@
     </div>
     
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #00838F 0%, #D6EAFC 100%);">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
@@ -65,8 +66,8 @@
 <!-- Unassigned Champions -->
 {% if unassigned_champions %}
 <div class="data-card" style="margin-bottom: 2rem;">
-    <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #fef3c7;">
-        <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #92400e; display: flex; align-items: center; gap: 0.5rem;">
+    <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #D6EAFC;">
+        <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #0B1E3B; display: flex; align-items: center; gap: 0.5rem;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
                 <line x1="12" y1="9" x2="12" y2="13"></line>
@@ -74,7 +75,7 @@
             </svg>
             Unassigned Prevention Advocates ({{ unassigned_champions|length }})
         </h3>
-        <p style="font-size: 0.875rem; color: #78350f; margin: 0.25rem 0 0 0;">These advocates need supervisor assignment for proper mentorship</p>
+        <p style="font-size: 0.875rem; color: #334e68; margin: 0.25rem 0 0 0;">These advocates need supervisor assignment for proper mentorship</p>
     </div>
     
     <div style="padding: 1.5rem;">
@@ -96,7 +97,7 @@
                         <td data-label="Full Name" class="font-medium">{{ champion.full_name }}</td>
                         <td data-label="Username">{{ champion.username }}</td>
                         <td data-label="Status">
-                            <span class="badge {% if champion.champion_status == 'Active' %}badge--success{% else %}badge--secondary{% endif %}">
+                            <span class="badge {% if champion.champion_status == 'Active' %}badge--unda-active{% else %}badge--unda-inactive{% endif %}">
                                 {{ champion.champion_status }}
                             </span>
                         </td>
@@ -123,8 +124,8 @@
 
 <!-- Assigned Champions by Supervisor -->
 <div class="data-card">
-    <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
-        <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #334155;">
+    <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); background: #ECF5FF;">
+        <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0; color: #0B1E3B;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
                 <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
@@ -133,14 +134,14 @@
             </svg>
             Assigned Advocates by Supervisor
         </h3>
-        <p style="font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0;">View and reassign advocates under each supervisor</p>
+        <p style="font-size: 0.875rem; color: #627d98; margin: 0.25rem 0 0 0;">View and reassign advocates under each supervisor</p>
     </div>
     
     <div style="padding: 1.5rem;">
         {% if supervisors %}
             {% for supervisor in supervisors %}
-            <div style="margin-bottom: 2rem; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background: #fafbfc;">
-                <h4 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0 0 1rem 0; display: flex; align-items: center; justify-content: space-between;">
+            <div style="margin-bottom: 2rem; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background: #ECF5FF;">
+                <h4 style="font-size: 1rem; font-weight: 600; color: #0B1E3B; margin: 0 0 1rem 0; display: flex; align-items: center; justify-content: space-between;">
                     <span>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
                             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
@@ -148,7 +149,7 @@
                         </svg>
                         {{ supervisor.username }}
                     </span>
-                    <span class="badge badge--info">
+                    <span class="badge badge--unda-info">
                         {{ assigned_champions.get(supervisor.user_id, [])|length }} Advocates
                     </span>
                 </h4>
@@ -172,7 +173,7 @@
                                 <td data-label="Full Name" class="font-medium">{{ champion.full_name }}</td>
                                 <td data-label="Username">{{ champion.username }}</td>
                                 <td data-label="Status">
-                                    <span class="badge {% if champion.champion_status == 'Active' %}badge--success{% else %}badge--secondary{% endif %}">
+                                    <span class="badge {% if champion.champion_status == 'Active' %}badge--unda-active{% else %}badge--unda-inactive{% endif %}">
                                         {{ champion.champion_status }}
                                     </span>
                                 </td>
@@ -187,7 +188,7 @@
                                             </option>
                                             {% endfor %}
                                         </select>
-                                        <button type="submit" class="btn btn--secondary btn--nowrap">Update</button>
+                                        <button type="submit" class="btn btn--unda-outline btn--nowrap">Update</button>
                                     </form>
                                 </td>
                             </tr>
@@ -196,14 +197,56 @@
                     </table>
                 </div>
                 {% else %}
-                <p style="color: #64748b; font-style: italic; margin: 0;">No advocates assigned to this supervisor yet</p>
+                <p style="color: #627d98; font-style: italic; margin: 0;">No advocates assigned to this supervisor yet</p>
                 {% endif %}
             </div>
             {% endfor %}
         {% else %}
-        <p style="color: #64748b; font-style: italic;">No supervisors available. Please create supervisor accounts first.</p>
+        <p style="color: #627d98; font-style: italic;">No supervisors available. Please create supervisor accounts first.</p>
         {% endif %}
     </div>
 </div>
+
+</div>
+
+<style>
+.manage-assignments-page .btn--secondary {
+    background-color: #00ACC1;
+    border-color: #00ACC1;
+    color: #ECF5FF;
+}
+
+.manage-assignments-page .btn--secondary:hover {
+    background-color: #00838F;
+    border-color: #00838F;
+}
+
+.manage-assignments-page .btn--unda-outline {
+    background-color: transparent;
+    border: 1px solid #00838F;
+    color: #00838F;
+}
+
+.manage-assignments-page .btn--unda-outline:hover {
+    background-color: #E0F7FA;
+    border-color: #00838F;
+    color: #006064;
+}
+
+.manage-assignments-page .badge--unda-active {
+    background-color: #E0F7FA;
+    color: #00838F;
+}
+
+.manage-assignments-page .badge--unda-inactive {
+    background-color: #ECF5FF;
+    color: #486581;
+}
+
+.manage-assignments-page .badge--unda-info {
+    background-color: #D6EAFC;
+    color: #0B1E3B;
+}
+</style>
 
 {% endblock %}

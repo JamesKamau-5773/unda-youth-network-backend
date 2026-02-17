@@ -16,13 +16,13 @@
     <!-- Pending Card -->
     <div class="bg-white p-6 rounded-[2rem] border border-[#D6EAFC] shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
       <div class="flex items-center justify-between mb-4">
-        <p class="text-xs font-bold text-[#F59E0B] uppercase tracking-wider">Pending Approval</p>
-        <div class="p-2 bg-amber-50 rounded-lg text-[#F59E0B]">
+        <p class="text-xs font-bold text-[#00838F] uppercase tracking-wider">Pending Approval</p>
+        <div class="p-2 bg-[#E0F7FA] rounded-lg text-[#00838F]">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </div>
       </div>
       <p class="text-3xl font-black text-[#0B1E3B] mb-6">{{ pending_count }}</p>
-      <a href="{{ url_for('admin.event_submissions_list', status='Pending Approval') }}" class="mt-auto w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-[#0B1E3B] bg-[#FFF3C4] hover:bg-[#FDE68A] transition-colors">
+      <a href="{{ url_for('admin.event_submissions_list', status='Pending Approval') }}" class="mt-auto w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-[#0B1E3B] bg-[#D6EAFC] hover:bg-[#BDE3FF] transition-colors">
         Review
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
       </a>
@@ -31,8 +31,8 @@
     <!-- Approved Card -->
     <div class="bg-white p-6 rounded-[2rem] border border-[#D6EAFC] shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-4">
-            <p class="text-xs font-bold text-[#10B981] uppercase tracking-wider">Approved</p>
-            <div class="p-2 bg-emerald-50 rounded-lg text-[#10B981]">
+            <p class="text-xs font-bold text-[#00838F] uppercase tracking-wider">Approved</p>
+            <div class="p-2 bg-[#E0F7FA] rounded-lg text-[#00838F]">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
         </div>
@@ -46,13 +46,13 @@
     <!-- Rejected Card -->
     <div class="bg-white p-6 rounded-[2rem] border border-[#D6EAFC] shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-4">
-            <p class="text-xs font-bold text-[#EF4444] uppercase tracking-wider">Rejected</p>
-            <div class="p-2 bg-red-50 rounded-lg text-[#EF4444]">
+            <p class="text-xs font-bold text-[#486581] uppercase tracking-wider">Rejected</p>
+            <div class="p-2 bg-[#ECF5FF] rounded-lg text-[#486581]">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </div>
         </div>
         <p class="text-3xl font-black text-[#0B1E3B] mb-6">{{ rejected_count }}</p>
-        <a href="{{ url_for('admin.event_submissions_list', status='Rejected') }}" class="mt-auto w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-[#7F1D1D] bg-[#FEE2E2] hover:bg-[#FECACA] transition-colors">
+        <a href="{{ url_for('admin.event_submissions_list', status='Rejected') }}" class="mt-auto w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-[#0B1E3B] bg-[#D6EAFC] hover:bg-[#BDE3FF] transition-colors">
             View
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </a>
@@ -108,7 +108,7 @@
                         <div class="font-bold text-[#0B1E3B] text-base">{{ submission.title }}</div>
                     </td>
                     <td class="px-8 py-5">
-                       <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-100">
+                       <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-[#ECF5FF] text-[#486581] border border-[#D6EAFC]">
                           {{ submission.event_type }}
                         </span>
                     </td>
@@ -121,7 +121,7 @@
                                     U
                                 {% endif %}
                             </div>
-                            <span class="text-sm font-medium text-[#1F2937]">
+                            <span class="text-sm font-medium text-[#334e68]">
                                 {% if submission._submitter %}
                                   {{ submission._submitter.full_name }}
                                 {% elif submission.submitted_by %}
@@ -146,12 +146,12 @@
                         </div>
                     </td>
                      <td class="px-8 py-5">
-                        <span class="text-sm text-[#4B5563] font-medium">
+                        <span class="text-sm text-[#627d98] font-medium">
                             {{ submission.created_at.strftime('%d %b %Y') }}
                         </span>
                     </td>
                     <td class="px-8 py-5 text-right">
-                        <a href="{{ url_for('admin.event_submission_detail', event_id=submission.event_id) }}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#0B1E3B] bg-[#FFF3C4] hover:bg-[#FDE68A] transition-all hover:shadow-sm transform hover:-translate-y-0.5">
+                        <a href="{{ url_for('admin.event_submission_detail', event_id=submission.event_id) }}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#0B1E3B] bg-[#D6EAFC] hover:bg-[#BDE3FF] transition-all hover:shadow-sm transform hover:-translate-y-0.5">
                             Review
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </a>

@@ -73,22 +73,22 @@
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-[#0B1E3B] text-base">{{ submission.title }}</span>
                         {% if submission.submission_status == 'Pending Approval' %}
-                            <span class="inline-flex h-2 w-2 rounded-full bg-amber-400 ring-2 ring-white"></span>
+                            <span class="inline-flex h-2 w-2 rounded-full bg-[#00ACC1] ring-2 ring-white"></span>
                         {% endif %}
                     </div>
                 </td>
                 <td class="px-8 py-5">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-100">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-[#ECF5FF] text-[#486581] border border-[#D6EAFC]">
                         {{ submission.event_type }}
                     </span>
                 </td>
                 <td class="px-8 py-5">
                     {% if submission.submission_status == 'Pending Approval' %}
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-100">Pending Review</span>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-[#E0F7FA] text-[#00838F] border border-[#B2EBF2]">Pending Review</span>
                     {% elif submission.submission_status == 'Approved' %}
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-100">Approved</span>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-[#E0F7FA] text-[#00838F] border border-[#B2EBF2]">Approved</span>
                     {% elif submission.submission_status == 'Rejected' %}
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-red-50 text-red-700 border border-red-100">Rejected</span>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-[#ECF5FF] text-[#486581] border border-[#D6EAFC]">Rejected</span>
                     {% endif %}
                 </td>
                 <td class="px-8 py-5">
@@ -100,7 +100,7 @@
                                 U
                             {% endif %}
                         </div>
-                        <span class="text-sm font-medium text-[#1F2937]">
+                        <span class="text-sm font-medium text-[#334e68]">
                             {% if submission._submitter %}
                                 {{ submission._submitter.full_name }}
                             {% elif submission.submitted_by %}
@@ -125,12 +125,12 @@
                     </div>
                 </td>
                 <td class="px-8 py-5">
-                    <span class="text-sm text-[#4B5563] font-medium">
+                    <span class="text-sm text-[#627d98] font-medium">
                         {{ submission.created_at.strftime('%d %b %Y') }}
                     </span>
                 </td>
                 <td class="px-8 py-5 text-right">
-                    <a href="{{ url_for('admin.event_submission_detail', event_id=submission.event_id) }}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#0B1E3B] bg-[#FFF3C4] hover:bg-[#FDE68A] transition-all hover:shadow-sm transform hover:-translate-y-0.5">
+                    <a href="{{ url_for('admin.event_submission_detail', event_id=submission.event_id) }}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#0B1E3B] bg-[#D6EAFC] hover:bg-[#BDE3FF] transition-all hover:shadow-sm transform hover:-translate-y-0.5">
                         {% if submission.submission_status == 'Pending Approval' %}
                         Review
                         {% else %}
