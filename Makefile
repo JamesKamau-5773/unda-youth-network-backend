@@ -1,4 +1,4 @@
-.PHONY: help monitoring-up monitoring-down monitoring-ps monitoring-logs monitoring-restart open-prometheus open-grafana
+.PHONY: help monitoring-up monitoring-down monitoring-ps monitoring-logs monitoring-restart open-prometheus open-grafana docs-check-no-emoji
 .PHONY: test-postgres test-postgres-down
 
 # Monitoring ports (host -> container)
@@ -7,7 +7,10 @@
 
 help:
 	@echo "Usage: make <target>"
-	@echo "Targets: monitoring-up monitoring-down monitoring-ps monitoring-logs monitoring-restart open-prometheus open-grafana"
+	@echo "Targets: monitoring-up monitoring-down monitoring-ps monitoring-logs monitoring-restart open-prometheus open-grafana docs-check-no-emoji"
+
+docs-check-no-emoji:
+	@python3 scripts/check_docs_no_emoji.py
 
 monitoring-up:
 	sudo docker compose -f docker-compose.monitoring.yml up -d
