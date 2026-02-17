@@ -1,5 +1,16 @@
 # Quick Start Guide - Mental Health Features
 
+## Documentation Navigation
+
+- [Project Overview](README.md)
+- [Deployment Guide](DEPLOYMENT.md)
+- [Deployment Status](DEPLOYMENT_STATUS.md)
+- [Security Overview](SECURITY.md)
+- [Security Implementation](SECURITY_IMPLEMENTATION.md)
+- [Mental Health Features](MENTAL_HEALTH_FEATURES.md)
+- [User Guide](USER_GUIDE.md)
+- [Changelog](CHANGELOG.md)
+
 ## What Was Added
 
 **6 new database models** + **1 extended model** + **35 API endpoints**
