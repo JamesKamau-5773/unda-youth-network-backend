@@ -22,12 +22,13 @@ class User(db.Model, UserMixin):
   __tablename__ = 'users'
   
   # Valid roles constant - UMV Prevention Program roles
-  VALID_ROLES = ['Admin', 'Supervisor', 'Prevention Advocate']
+  VALID_ROLES = ['Admin', 'Supervisor', 'Prevention Advocate', 'Clinician']
   
   # Role constants to prevent typos and inconsistencies
   ROLE_ADMIN = 'Admin'
   ROLE_SUPERVISOR = 'Supervisor'
   ROLE_PREVENTION_ADVOCATE = 'Prevention Advocate'
+  ROLE_CLINICIAN = 'Clinician'
   
   user_id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.String(100), unique=True, nullable=False)
@@ -1580,6 +1581,206 @@ class EventInterest(db.Model):
       'user_id': self.user_id,
       'userId': self.user_id,
     }
+
+
+# ============================================================================
+# CLINICIAN INTEGRATION MODELS
+# ============================================================================
+
+class ClinicianProfile(db.Model):
+  """Professional clinician profile for the UMV Prevention Program.
+  
+  Clinicians are verified healthcare professionals who provide specialized care
+  to youth referred by Prevention Advocates. This model tracks credentials,
+  verification status, emergency contacts, and specializations.
+  """
+  __tablename__ = 'clinician_profiles'
+  
+  clinician_id = db.Column(db.Integer, primary_key=True)
+  
+  # FOREIGN KEYS & RELATIONSHIPS
+  user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='CASCADE'), nullable=False, unique=True)
+  verified_by_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'), nullable=True)
+  
+  # PROFESSIONAL IDENTITY & LICENSE
+  license_number = db.Column(db.String(100), nullable=False, unique=True)
+  regulatory_body = db.Column(db.String(200), nullable=False)  # e.g., "Kenya Medical Practitioners Board"
+  license_expiry_date = db.Column(db.Date, nullable=False)
+  professional_title = db.Column(db.String(100), nullable=False)  # e.g., "Clinical Psychologist", "Counselor"
+  
+  # INSURANCE & LIABILITY
+  professional_indemnity_insurance_provider = db.Column(db.String(200), nullable=False)
+  insurance_policy_number = db.Column(db.String(100), nullable=True)
+  insurance_expiry_date = db.Column(db.Date, nullable=True)
+  
+  # EMERGENCY ESCALATION (CRITICAL FOR CRISIS RESPONSE)
+  emergency_contact_name = db.Column(db.String(150), nullable=False)
+  emergency_contact_phone = db.Column(db.String(20), nullable=False)
+  emergency_contact_relationship = db.Column(db.String(50), nullable=True)  # "Supervisor", "Colleague", etc.
+  
+  # SERVICE METADATA
+  years_of_practice = db.Column(db.Integer, nullable=True)
+  service_mode = db.Column(db.String(50), nullable=False)  # 'In-person', 'Telehealth', 'Hybrid'
+  
+  # COMPLIANCE & VERIFICATION WORKFLOW
+  verification_status = db.Column(db.String(50), nullable=False, default='pending_verification')
+  # Status values: pending_verification → under_admin_review → verified → rejected → license_expired
+  verified_date = db.Column(db.DateTime, nullable=True)
+  verification_notes = db.Column(db.Text, nullable=True)  # Why rejected? Admin comments.
+  
+  # DECLARATION & LEGAL AUDIT TRAIL
+  declaration_accepted = db.Column(db.Boolean, nullable=False, default=False)
+  declaration_timestamp = db.Column(db.DateTime, nullable=True)  # When clinician accepted declaration
+  declaration_ip_address = db.Column(db.String(50), nullable=True)  # IP address for audit trail
+  
+  # SUPERVISION & PRIOR EXPERIENCE
+  supervision_history = db.Column(db.Text, nullable=True)  # Details of prior supervision
+  supervision_provider_name = db.Column(db.String(150), nullable=True)
+  
+  # ACCOUNT MANAGEMENT
+  account_suspended = db.Column(db.Boolean, nullable=False, default=False)
+  suspension_reason = db.Column(db.Text, nullable=True)
+  
+  # AUDIT TIMESTAMPS
+  created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+  updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+  
+  # RELATIONSHIPS
+  user = db.relationship('User', foreign_keys=[user_id], backref='clinician_profile', uselist=False)
+  verified_by_user = db.relationship('User', foreign_keys=[verified_by_user_id])
+  specializations = db.relationship('ClinicianSpecialization', backref='clinician', lazy=True, cascade='all, delete-orphan')
+  languages = db.relationship('ClinicianLanguage', backref='clinician', lazy=True, cascade='all, delete-orphan')
+  referrals = db.relationship('YouthClinicianReferral', backref='clinician', lazy=True, cascade='all, delete-orphan')
+  sessions = db.relationship('ClinicalSession', backref='clinician', lazy=True, cascade='all, delete-orphan')
+  audit_logs = db.relationship('ClinicianAuditLog', backref='clinician', lazy=True, cascade='all, delete-orphan')
+  
+  def is_license_expired(self):
+    """Check if professional license has expired."""
+    return self.license_expiry_date < date.today()
+  
+  def is_verified(self):
+    """Check if clinician has been verified by admin."""
+    return self.verification_status == 'verified'
+  
+  def is_active(self):
+    """Check if clinician account is active and can receive referrals."""
+    return (self.is_verified() and 
+            not self.account_suspended and 
+            not self.is_license_expired())
+  
+  def to_dict(self):
+    """Return clinician profile as dictionary."""
+    return {
+      'clinician_id': self.clinician_id,
+      'user_id': self.user_id,
+      'license_number': self.license_number,
+      'regulatory_body': self.regulatory_body,
+      'license_expiry_date': self.license_expiry_date.isoformat() if self.license_expiry_date else None,
+      'professional_title': self.professional_title,
+      'emergency_contact_name': self.emergency_contact_name,
+      'emergency_contact_phone': self.emergency_contact_phone,
+      'service_mode': self.service_mode,
+      'verification_status': self.verification_status,
+      'verified_date': self.verified_date.isoformat() if self.verified_date else None,
+      'account_suspended': self.account_suspended,
+      'is_active': self.is_active(),
+      'specializations': [s.specialization for s in self.specializations],
+      'languages': [{'language': l.language, 'proficiency_level': l.proficiency_level} for l in self.languages],
+    }
+
+
+class ClinicianSpecialization(db.Model):
+  """Many-to-many relationship: Clinician → Specializations.
+  
+  Examples: Adolescent Counseling, Trauma Therapy, Crisis Intervention, CBT, etc.
+  """
+  __tablename__ = 'clinician_specializations'
+  
+  id = db.Column(db.Integer, primary_key=True)
+  clinician_id = db.Column(db.Integer, db.ForeignKey('clinician_profiles.clinician_id', ondelete='CASCADE'), nullable=False)
+  specialization = db.Column(db.String(100), nullable=False)
+  
+  __table_args__ = (db.UniqueConstraint('clinician_id', 'specialization', name='_clinician_specialization_uc'),)
+
+
+class ClinicianLanguage(db.Model):
+  """Many-to-many relationship: Clinician → Languages.
+  
+  Tracks languages spoken by clinician and proficiency level.
+  Examples: English (Fluent), Swahili (Intermediate), Kikuyu (Basic)
+  """
+  __tablename__ = 'clinician_languages'
+  
+  id = db.Column(db.Integer, primary_key=True)
+  clinician_id = db.Column(db.Integer, db.ForeignKey('clinician_profiles.clinician_id', ondelete='CASCADE'), nullable=False)
+  language = db.Column(db.String(50), nullable=False)
+  proficiency_level = db.Column(db.String(20), nullable=True)  # Fluent, Intermediate, Basic
+  
+  __table_args__ = (db.UniqueConstraint('clinician_id', 'language', name='_clinician_language_uc'),)
+
+
+class ClinicianAuditLog(db.Model):
+  """Immutable audit trail for all clinician actions.
+  
+  Tracks: registration, verification, rejection, suspension, license renewal, etc.
+  Used for compliance and legal liability tracking.
+  """
+  __tablename__ = 'clinician_audit_log'
+  
+  audit_id = db.Column(db.Integer, primary_key=True)
+  clinician_id = db.Column(db.Integer, db.ForeignKey('clinician_profiles.clinician_id', ondelete='CASCADE'), nullable=False)
+  action = db.Column(db.String(100), nullable=False)  # 'application_submitted', 'verified', 'rejected', 'suspended', 'license_expired'
+  performed_by_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'), nullable=True)
+  notes = db.Column(db.Text, nullable=True)  # Additional context about action
+  created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+  
+  # RELATIONSHIPS
+  performed_by_user = db.relationship('User', foreign_keys=[performed_by_user_id])
+
+
+class YouthClinicianReferral(db.Model):
+  """Tracks referrals from Prevention Advocates to Clinicians.
+  
+  This is the primary mechanism for routing youth to appropriate clinicians
+  based on specialization, language, and service mode.
+  """
+  __tablename__ = 'youth_clinician_referrals'
+  
+  referral_id = db.Column(db.Integer, primary_key=True)
+  clinician_id = db.Column(db.Integer, db.ForeignKey('clinician_profiles.clinician_id', ondelete='CASCADE'), nullable=False)
+  referring_prevention_advocate_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'), nullable=True)
+  youth_id = db.Column(db.Integer, nullable=True)  # Can be anonymized/encrypted later (Phase 2)
+  
+  referral_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+  status = db.Column(db.String(50), nullable=True)  # 'pending', 'accepted', 'completed', 'cancelled'
+  referral_reason = db.Column(db.Text, nullable=True)  # Why does this youth need clinical support?
+  notes = db.Column(db.Text, nullable=True)  # Additional notes from Prevention Advocate
+  completed_date = db.Column(db.DateTime, nullable=True)  # When clinician finished working with youth
+  
+  # RELATIONSHIPS
+  referring_prevention_advocate = db.relationship('User', foreign_keys=[referring_prevention_advocate_id])
+
+
+class ClinicalSession(db.Model):
+  """Clinical session notes — CONFIDENTIAL & ENCRYPTED.
+  
+  Stored separately from ERP audit logs. Session notes are encrypted at rest.
+  Only assigned clinician + authorized supervisors can decrypt.
+  Access to encrypted data is logged for audit compliance.
+  """
+  __tablename__ = 'clinical_sessions'
+  
+  session_id = db.Column(db.Integer, primary_key=True)
+  clinician_id = db.Column(db.Integer, db.ForeignKey('clinician_profiles.clinician_id', ondelete='CASCADE'), nullable=False)
+  youth_id = db.Column(db.Integer, nullable=True)  # Consider anonymization (Phase 2)
+  
+  session_date = db.Column(db.DateTime, nullable=True)
+  session_notes_encrypted = db.Column(db.LargeBinary, nullable=True)  # Encrypted with pgcrypto (Phase 3+)
+  
+  risk_level = db.Column(db.String(50), nullable=True)  # 'low', 'medium', 'high', 'crisis'
+  follow_up_required = db.Column(db.Boolean, nullable=False, default=False)
+  
+  created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 
 

@@ -7,6 +7,7 @@ codebase (used by blueprints and tests).
 
 from . import user_service
 from . import champion_service
+from . import clinician_service
 from . import mailer
 from . import registration_service
 from . import champion_application_service
@@ -23,10 +24,14 @@ from . import file_utils
 from . import admin_metrics
 from . import event_service
 from . import assignment_service
+from . import assessment_service
+from . import support_review_service
+from . import event_submission_service
 
 __all__ = [
     'user_service',
     'champion_service',
+    'clinician_service',
     'mailer',
     'registration_service',
     'champion_application_service',
@@ -43,4 +48,7 @@ __all__ = [
     'admin_metrics',
     'event_service',
     'assignment_service',
+    'assessment_service',
+    'support_review_service',
+    'event_submission_service',
 ]
