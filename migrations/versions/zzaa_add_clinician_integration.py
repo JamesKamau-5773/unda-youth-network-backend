@@ -1,7 +1,7 @@
 """add clinician integration tables and role
 
 Revision ID: zzaa_add_clinician_integration
-Revises: zz_add_user_frequent_pages
+Revises: f6c0cddf2071
 Create Date: 2026-03-16 00:00:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'zzaa_add_clinician_integration'
-down_revision = 'zz_add_user_frequent_pages'
+down_revision = 'f6c0cddf2071'
 branch_labels = None
 depends_on = None
 
