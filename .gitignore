@@ -72,3 +72,23 @@ Thumbs.db
 
 # Redis dumps
 dump.rdb
+
+# Secrets and credentials (DANGER ZONE - NEVER COMMIT)
+.env*
+!.env.example
+secrets/
+*.sec
+*.secret
+private_key*
+public_key*
+passwords.txt
+credentials.txt
+api_keys.txt
+token*.txt
+.aws/credentials
+.aws/config
+.ssh/
+*.pem
+*.key
+.vault-token
+auths.json
