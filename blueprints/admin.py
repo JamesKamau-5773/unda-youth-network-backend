@@ -2224,33 +2224,51 @@ def create_podcast():
         try:
             from services.file_utils import save_file
             
-            duration_minutes = request.form.get('duration')
+            # Validate duration
             duration_seconds = None
-            if duration_minutes:
+            duration_input = request.form.get('duration', '').strip()
+            if duration_input:
                 try:
-                    duration_seconds = int(round(float(duration_minutes) * 60))
+                    duration_seconds = int(round(float(duration_input)))
+                    # Validate duration is positive and reasonable (max 24 hours = 86400 seconds)
+                    if duration_seconds < 0:
+                        flash('Duration cannot be negative.', 'error')
+                        return render_template('admin/podcast_form.html', podcast=None, action='Create')
+                    if duration_seconds > 86400:
+                        flash('Duration cannot exceed 24 hours (86400 seconds).', 'error')
+                        return render_template('admin/podcast_form.html', podcast=None, action='Create')
                 except ValueError:
-                    flash('Duration must be a number of minutes.', 'error')
+                    flash('Duration must be a valid number (in seconds).', 'error')
                     return render_template('admin/podcast_form.html', podcast=None, action='Create')
             
+            # Validate required fields
+            title = request.form.get('title', '').strip()
+            audio_url = request.form.get('audio_url', '').strip()
+            if not title:
+                flash('Podcast title is required.', 'error')
+                return render_template('admin/podcast_form.html', podcast=None, action='Create')
+            if not audio_url:
+                flash('Audio URL is required.', 'error')
+                return render_template('admin/podcast_form.html', podcast=None, action='Create')
+            
             # Handle thumbnail upload or URL
-            thumbnail_url = request.form.get('thumbnail_url') or ''
+            thumbnail_url = request.form.get('thumbnail_url', '').strip()
             if 'thumbnail_file' in request.files:
                 file = request.files['thumbnail_file']
                 if file and file.filename:
                     thumbnail_url = save_file(file, subdir='podcasts')
             
             data = {
-                'title': request.form.get('title'),
-                'description': request.form.get('description'),
-                'guest': request.form.get('guest'),
-                'audio_url': request.form.get('audio_url'),
+                'title': title,
+                'description': request.form.get('description', '').strip(),
+                'guest': request.form.get('guest', '').strip(),
+                'audio_url': audio_url,
                 'thumbnail_url': thumbnail_url,
                 'duration': duration_seconds,
-                'episode_number': request.form.get('episode_number'),
-                'season_number': request.form.get('season_number'),
-                'category': request.form.get('category'),
-                'tags': request.form.get('tags', ''),
+                'episode_number': request.form.get('episode_number', '').strip() or None,
+                'season_number': request.form.get('season_number', '').strip() or None,
+                'category': request.form.get('category', '').strip(),
+                'tags': request.form.get('tags', '').strip(),
                 'published': request.form.get('published') == 'on'
             }
             podcast_service.create_podcast(data, creator_id=current_user.user_id)
@@ -2258,8 +2276,8 @@ def create_podcast():
             return redirect(url_for('admin.podcasts'))
         except Exception as e:
             db.session.rollback()
-            current_app.logger.exception('Error creating podcast')
-            flash(f'Error creating podcast: {str(e)}', 'error')
+            current_app.logger.exception('Error creating podcast: %s', str(e))
+            flash('Failed to create podcast. Please try again or contact support if the problem persists.', 'error')
     
     return render_template('admin/podcast_form.html', podcast=None, action='Create')
 
@@ -2278,33 +2296,51 @@ def edit_podcast(podcast_id):
         try:
             from services.file_utils import save_file
             
-            duration_minutes = request.form.get('duration')
+            # Validate duration
             duration_seconds = None
-            if duration_minutes:
+            duration_input = request.form.get('duration', '').strip()
+            if duration_input:
                 try:
-                    duration_seconds = int(round(float(duration_minutes) * 60))
+                    duration_seconds = int(round(float(duration_input)))
+                    # Validate duration is positive and reasonable (max 24 hours = 86400 seconds)
+                    if duration_seconds < 0:
+                        flash('Duration cannot be negative.', 'error')
+                        return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
+                    if duration_seconds > 86400:
+                        flash('Duration cannot exceed 24 hours (86400 seconds).', 'error')
+                        return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
                 except ValueError:
-                    flash('Duration must be a number of minutes.', 'error')
+                    flash('Duration must be a valid number (in seconds).', 'error')
                     return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
             
+            # Validate required fields
+            title = request.form.get('title', '').strip()
+            audio_url = request.form.get('audio_url', '').strip()
+            if not title:
+                flash('Podcast title is required.', 'error')
+                return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
+            if not audio_url:
+                flash('Audio URL is required.', 'error')
+                return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
+            
             # Handle thumbnail upload or URL (prioritize uploaded file)
-            thumbnail_url = request.form.get('thumbnail_url') or podcast.thumbnail_url or ''
+            thumbnail_url = request.form.get('thumbnail_url', '').strip() or podcast.thumbnail_url or ''
             if 'thumbnail_file' in request.files:
                 file = request.files['thumbnail_file']
                 if file and file.filename:
                     thumbnail_url = save_file(file, subdir='podcasts')
             
             data = {
-                'title': request.form.get('title'),
-                'description': request.form.get('description'),
-                'guest': request.form.get('guest'),
-                'audio_url': request.form.get('audio_url'),
+                'title': title,
+                'description': request.form.get('description', '').strip(),
+                'guest': request.form.get('guest', '').strip(),
+                'audio_url': audio_url,
                 'thumbnail_url': thumbnail_url,
                 'duration': duration_seconds,
-                'episode_number': request.form.get('episode_number'),
-                'season_number': request.form.get('season_number'),
-                'category': request.form.get('category'),
-                'tags': request.form.get('tags', ''),
+                'episode_number': request.form.get('episode_number', '').strip() or None,
+                'season_number': request.form.get('season_number', '').strip() or None,
+                'category': request.form.get('category', '').strip(),
+                'tags': request.form.get('tags', '').strip(),
                 'published': request.form.get('published') == 'on'
             }
             podcast_service.update_podcast(podcast_id, data)
@@ -2312,8 +2348,8 @@ def edit_podcast(podcast_id):
             return redirect(url_for('admin.podcasts'))
         except Exception as e:
             db.session.rollback()
-            current_app.logger.exception('Error updating podcast')
-            flash(f'Error updating podcast: {str(e)}', 'error')
+            current_app.logger.exception('Error updating podcast: %s', str(e))
+            flash('Failed to update podcast. Please try again or contact support if the problem persists.', 'error')
 
     return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
 

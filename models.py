@@ -1288,7 +1288,7 @@ class Podcast(db.Model):
   guest = db.Column(db.String(255))  # Guest name
   audio_url = db.Column(db.String(500), nullable=False)
   thumbnail_url = db.Column(db.String(500))
-  duration = db.Column(db.Integer)  # Duration in seconds
+  duration = db.Column(db.BigInteger)  # Duration in seconds
   episode_number = db.Column(db.Integer)
   season_number = db.Column(db.Integer)
   category = db.Column(db.String(100))
