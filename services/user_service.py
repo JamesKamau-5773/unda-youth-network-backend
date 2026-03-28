@@ -62,11 +62,8 @@ def reset_password(user_id: int) -> dict:
     temp_password = secrets.token_urlsafe(8)
     user.password_hash = bcrypt.generate_password_hash(temp_password).decode('utf-8')
     user.failed_login_attempts = 0
-    # support both names used in codebases
-    if hasattr(user, 'locked_until'):
-        user.locked_until = None
-    if hasattr(user, 'lockout_until'):
-        user.lockout_until = None
+    # Clear account lockout
+    user.locked_until = None
 
     try:
         # Clear any existing invite tokens; admin prefers providing temp password.
@@ -87,10 +84,7 @@ def unlock_user(user_id: int) -> None:
     if not user:
         raise ValueError('User not found')
     user.failed_login_attempts = 0
-    if hasattr(user, 'lockout_until'):
-        user.lockout_until = None
-    if hasattr(user, 'locked_until'):
-        user.locked_until = None
+    user.locked_until = None
     db.session.commit()
 
 

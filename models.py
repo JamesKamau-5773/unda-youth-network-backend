@@ -56,6 +56,8 @@ class User(db.Model, UserMixin):
   failed_login_attempts = db.Column(db.Integer, default=0)
   account_locked = db.Column(db.Boolean, default=False)
   locked_until = db.Column(db.DateTime)
+  # Last login timestamp for audit trail
+  last_login = db.Column(db.DateTime, nullable=True)
   # Invite token for admin-created accounts (one-time set-password link)
   invite_token = db.Column(db.String(255), unique=True, nullable=True)
   invite_token_expires = db.Column(db.DateTime, nullable=True)

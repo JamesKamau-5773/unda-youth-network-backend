@@ -107,7 +107,7 @@
                             <td class="px-6 py-4">
                                 <div class="space-y-1">
                                     <div class="flex items-center gap-2">
-                                        {% if user.lockout_until and user.lockout_until > now %}
+                                        {% if user.locked_until and user.locked_until > now %}
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                                                 <i data-lucide="lock" class="w-3 h-3 mr-1"></i> Locked
                                             </span>
@@ -132,7 +132,7 @@
                                 <div class="flex items-center justify-end gap-2">
                                     
                                     <!-- Unlock -->
-                                    {% if user.lockout_until and user.lockout_until > now %}
+                                    {% if user.locked_until and user.locked_until > now %}
                                     <form method="POST" action="{{ url_for('admin.unlock_user_account', user_id=user.user_id) }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <button type="submit" class="p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition-colors" title="Unlock Account">

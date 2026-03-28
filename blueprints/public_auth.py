@@ -432,6 +432,8 @@ def api_login():
         from models import RefreshToken
 
         user.reset_failed_logins()
+        user.last_login = datetime.now(timezone.utc)
+        db.session.commit()
         login_user(user, remember=True)
 
         # Build JWT access token
@@ -539,7 +541,10 @@ def api_login_public():
 
         # Successful login
         from flask_login import login_user
+        from datetime import datetime, timezone
         user.reset_failed_logins()
+        user.last_login = datetime.now(timezone.utc)
+        db.session.commit()
         login_user(user, remember=True)
 
         return jsonify({

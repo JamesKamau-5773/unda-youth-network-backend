@@ -152,8 +152,10 @@ def login():
                     flash('Prevention Advocates should login through the member portal at undayouth.org', 'info')
                     return redirect(f'{frontend_url}/login')
 
-                # Successful login - reset failed attempts
+                # Successful login - reset failed attempts and record login time
                 user.reset_failed_logins()
+                user.last_login = datetime.now(timezone.utc)
+                db.session.commit()
                 login_user(user, remember=True)
                 track_login_attempt(success=True)  # Track successful login
 
