@@ -2222,6 +2222,8 @@ def create_podcast():
     """Create a new podcast"""
     if request.method == 'POST':
         try:
+            from services.file_utils import save_file
+            
             duration_minutes = request.form.get('duration')
             duration_seconds = None
             if duration_minutes:
@@ -2230,12 +2232,20 @@ def create_podcast():
                 except ValueError:
                     flash('Duration must be a number of minutes.', 'error')
                     return render_template('admin/podcast_form.html', podcast=None, action='Create')
+            
+            # Handle thumbnail upload or URL
+            thumbnail_url = request.form.get('thumbnail_url') or ''
+            if 'thumbnail_file' in request.files:
+                file = request.files['thumbnail_file']
+                if file and file.filename:
+                    thumbnail_url = save_file(file, subdir='podcasts')
+            
             data = {
                 'title': request.form.get('title'),
                 'description': request.form.get('description'),
                 'guest': request.form.get('guest'),
                 'audio_url': request.form.get('audio_url'),
-                'thumbnail_url': request.form.get('thumbnail_url'),
+                'thumbnail_url': thumbnail_url,
                 'duration': duration_seconds,
                 'episode_number': request.form.get('episode_number'),
                 'season_number': request.form.get('season_number'),
@@ -2266,6 +2276,8 @@ def edit_podcast(podcast_id):
 
     if request.method == 'POST':
         try:
+            from services.file_utils import save_file
+            
             duration_minutes = request.form.get('duration')
             duration_seconds = None
             if duration_minutes:
@@ -2274,12 +2286,20 @@ def edit_podcast(podcast_id):
                 except ValueError:
                     flash('Duration must be a number of minutes.', 'error')
                     return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
+            
+            # Handle thumbnail upload or URL (prioritize uploaded file)
+            thumbnail_url = request.form.get('thumbnail_url') or podcast.thumbnail_url or ''
+            if 'thumbnail_file' in request.files:
+                file = request.files['thumbnail_file']
+                if file and file.filename:
+                    thumbnail_url = save_file(file, subdir='podcasts')
+            
             data = {
                 'title': request.form.get('title'),
                 'description': request.form.get('description'),
                 'guest': request.form.get('guest'),
                 'audio_url': request.form.get('audio_url'),
-                'thumbnail_url': request.form.get('thumbnail_url'),
+                'thumbnail_url': thumbnail_url,
                 'duration': duration_seconds,
                 'episode_number': request.form.get('episode_number'),
                 'season_number': request.form.get('season_number'),

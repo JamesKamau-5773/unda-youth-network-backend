@@ -18,7 +18,7 @@
         </a>
     </div>
 
-    <form method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <form method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         
         <!-- Main Form -->
@@ -74,15 +74,49 @@
                 </div>
 
                 <div>
-                    <label for="thumbnail_url" class="block text-sm font-medium text-gray-700 mb-1">Thumbnail URL</label>
-                     <div class="flex gap-2">
-                        <div class="p-2 border border-r-0 border-gray-300 rounded-l-lg bg-gray-50 text-gray-500">
-                            <i data-lucide="image" class="w-5 h-5"></i>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Thumbnail</label>
+                    
+                    <!-- Tabs -->
+                    <div class="flex gap-4 border-b border-gray-200 mb-4">
+                        <button type="button" class="podcast-tab-button active pb-2 text-sm font-semibold border-b-2 border-[#00ACC1] text-[#00ACC1] transition-colors" data-tab="thumbnail-url">
+                            URL
+                        </button>
+                        <button type="button" class="podcast-tab-button pb-2 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors" data-tab="thumbnail-upload">
+                            Upload
+                        </button>
+                    </div>
+
+                    <!-- URL Tab -->
+                    <div id="thumbnail-url-tab" class="podcast-tab-content">
+                        <div class="flex gap-2">
+                            <div class="p-2 border border-r-0 border-gray-300 rounded-l-lg bg-gray-50 text-gray-500">
+                                <i data-lucide="image" class="w-5 h-5"></i>
+                            </div>
+                            <input type="url" name="thumbnail_url" id="thumbnail_url"
+                                   value="{{ podcast.thumbnail_url if podcast else '' }}"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
+                                   placeholder="https://...">
                         </div>
-                        <input type="url" name="thumbnail_url" id="thumbnail_url"
-                               value="{{ podcast.thumbnail_url if podcast else '' }}"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none transition-all"
-                               placeholder="https://...">
+                    </div>
+
+                    <!-- Upload Tab -->
+                    <div id="thumbnail-upload-tab" class="podcast-tab-content hidden">
+                        <div class="border-2 border-dashed border-gray-300 hover:border-[#00ACC1] bg-gray-50 hover:bg-cyan-50/30 rounded-lg px-6 py-8 transition-all cursor-pointer text-center" id="thumbnail-drop-zone">
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-400 group-hover:text-[#00ACC1]">
+                                    <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">PNG, JPG, GIF (Max 5MB, square 1080x1080 recommended)</p>
+                                </div>
+                            </div>
+                            <input type="file" id="thumbnail_file" name="thumbnail_file" accept="image/*" class="hidden">
+                        </div>
+                        <div id="thumbnail-preview" class="hidden mt-3">
+                            <img id="thumbnail-preview-img" src="" alt="Preview" class="w-full h-32 object-cover rounded-lg border border-gray-300">
+                            <button type="button" id="thumbnail-remove-btn" class="mt-2 text-sm text-red-600 hover:text-red-700 font-medium">Remove</button>
+                        </div>
                     </div>
                 </div>
              </div>
@@ -173,5 +207,102 @@
 
 <script>
     lucide.createIcons();
+
+    // Podcast thumbnail tab switching
+    document.querySelectorAll('.podcast-tab-button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tabName = btn.getAttribute('data-tab');
+            
+            // Update button states
+            document.querySelectorAll('.podcast-tab-button').forEach(b => {
+                b.classList.remove('text-[#00ACC1]', 'border-[#00ACC1]');
+                b.classList.add('text-gray-500', 'border-transparent');
+            });
+            btn.classList.add('text-[#00ACC1]', 'border-[#00ACC1]');
+            btn.classList.remove('text-gray-500', 'border-transparent');
+            
+            // Update tab visibility
+            document.querySelectorAll('.podcast-tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+        });
+    });
+
+    // File upload handling
+    const dropZone = document.getElementById('thumbnail-drop-zone');
+    const fileInput = document.getElementById('thumbnail_file');
+    const preview = document.getElementById('thumbnail-preview');
+    const previewImg = document.getElementById('thumbnail-preview-img');
+    const removeBtn = document.getElementById('thumbnail-remove-btn');
+    
+    if (dropZone && fileInput) {
+        // Click to upload
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('bg-[#00ACC1]/5', 'border-[#00ACC1]');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('bg-[#00ACC1]/5', 'border-[#00ACC1]');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('bg-[#00ACC1]/5', 'border-[#00ACC1]');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+        
+        // File selection
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (file) {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    fileInput.value = '';
+                    preview.classList.add('hidden');
+                    return;
+                }
+                
+                // Validate file size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    fileInput.value = '';
+                    preview.classList.add('hidden');
+                    return;
+                }
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Remove file
+        if (removeBtn) {
+            removeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                fileInput.value = '';
+                preview.classList.add('hidden');
+                previewImg.src = '';
+            });
+        }
+    }
 </script>
 {% endblock %}
