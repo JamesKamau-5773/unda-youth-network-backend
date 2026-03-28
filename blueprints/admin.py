@@ -2224,21 +2224,22 @@ def create_podcast():
         try:
             from services.file_utils import save_file
             
-            # Validate duration
+            # Validate duration (input is in minutes, convert to seconds)
             duration_seconds = None
             duration_input = request.form.get('duration', '').strip()
             if duration_input:
                 try:
-                    duration_seconds = int(round(float(duration_input)))
-                    # Validate duration is positive and reasonable (max 24 hours = 86400 seconds)
-                    if duration_seconds < 0:
+                    duration_minutes = float(duration_input)
+                    duration_seconds = int(round(duration_minutes * 60))
+                    # Validate duration is positive and reasonable (max 24 hours = 1440 minutes)
+                    if duration_minutes < 0:
                         flash('Duration cannot be negative.', 'error')
                         return render_template('admin/podcast_form.html', podcast=None, action='Create')
-                    if duration_seconds > 86400:
-                        flash('Duration cannot exceed 24 hours (86400 seconds).', 'error')
+                    if duration_minutes > 1440:
+                        flash('Duration cannot exceed 24 hours (1440 minutes).', 'error')
                         return render_template('admin/podcast_form.html', podcast=None, action='Create')
                 except ValueError:
-                    flash('Duration must be a valid number (in seconds).', 'error')
+                    flash('Duration must be a valid number (in minutes).', 'error')
                     return render_template('admin/podcast_form.html', podcast=None, action='Create')
             
             # Validate required fields
@@ -2296,21 +2297,22 @@ def edit_podcast(podcast_id):
         try:
             from services.file_utils import save_file
             
-            # Validate duration
+            # Validate duration (input is in minutes, convert to seconds)
             duration_seconds = None
             duration_input = request.form.get('duration', '').strip()
             if duration_input:
                 try:
-                    duration_seconds = int(round(float(duration_input)))
-                    # Validate duration is positive and reasonable (max 24 hours = 86400 seconds)
-                    if duration_seconds < 0:
+                    duration_minutes = float(duration_input)
+                    duration_seconds = int(round(duration_minutes * 60))
+                    # Validate duration is positive and reasonable (max 24 hours = 1440 minutes)
+                    if duration_minutes < 0:
                         flash('Duration cannot be negative.', 'error')
                         return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
-                    if duration_seconds > 86400:
-                        flash('Duration cannot exceed 24 hours (86400 seconds).', 'error')
+                    if duration_minutes > 1440:
+                        flash('Duration cannot exceed 24 hours (1440 minutes).', 'error')
                         return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
                 except ValueError:
-                    flash('Duration must be a valid number (in seconds).', 'error')
+                    flash('Duration must be a valid number (in minutes).', 'error')
                     return render_template('admin/podcast_form.html', podcast=podcast, action='Edit')
             
             # Validate required fields
