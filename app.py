@@ -132,10 +132,10 @@ def create_app(test_config=None):
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour
-
     # Uploads configuration
-    # Default upload folder is `static/uploads` but can be overridden by env
-    app.config['UPLOAD_FOLDER'] = os.environ.get('UPLOAD_FOLDER') or os.path.join(app.root_path, 'static', 'uploads')
+    # Default upload folder is `instance/uploads` (persistent storage preferred)
+    # Can be overridden by env var for custom locations
+    app.config['UPLOAD_FOLDER'] = os.environ.get('UPLOAD_FOLDER') or os.path.join(app.instance_path, 'uploads')
     # Ensure uploads dir exists
     try:
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
