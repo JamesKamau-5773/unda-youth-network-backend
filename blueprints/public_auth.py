@@ -1229,6 +1229,9 @@ def api_serve_categorized_media(category, filename):
         import os
         from flask import send_from_directory
         
+        # Log the request for debugging
+        current_app.logger.info('Media request: category=%s, filename=%s', category, filename)
+        
         # Validate category to prevent directory traversal
         ALLOWED_CATEGORIES = {
             'media_galleries': 'media_galleries',
@@ -1237,10 +1240,12 @@ def api_serve_categorized_media(category, filename):
         }
         
         if category not in ALLOWED_CATEGORIES:
+            current_app.logger.warning('Invalid category requested: %s', category)
             return jsonify({'error': 'Invalid category'}), 403
         
         # Prevent directory traversal in filename
         if '..' in filename or filename.startswith('/') or filename.startswith('\\'):
+            current_app.logger.warning('Directory traversal attempt: filename=%s', filename)
             return jsonify({'error': 'Invalid file path'}), 400
         
         # Get the actual subdirectory name
@@ -1251,33 +1256,55 @@ def api_serve_categorized_media(category, filename):
         file_path = os.path.normpath(os.path.join(uploads_root, subdir, filename))
         uploads_root_normalized = os.path.normpath(uploads_root)
         
+        current_app.logger.debug('Uploads root: %s', uploads_root_normalized)
+        current_app.logger.debug('Resolved file path: %s', file_path)
+        
         # Verify the path is within uploads_root (security check)
         if not file_path.startswith(uploads_root_normalized):
+            current_app.logger.error('Path traversal security violation: %s is outside %s', file_path, uploads_root_normalized)
             return jsonify({'error': 'Access denied'}), 403
         
+        # Check if file exists
+        file_exists = os.path.exists(file_path)
+        current_app.logger.debug('File exists at exact path? %s (%s)', file_exists, file_path)
+        
         # Check if file exists; if not, try common extensions
-        if not os.path.exists(file_path):
+        if not file_exists:
             # Try adding common extensions if filename lacks one
             if '.' not in os.path.basename(filename):
+                current_app.logger.debug('No file extension found, trying common extensions...')
                 common_extensions = ['.jpeg', '.jpg', '.png', '.gif', '.webp', '.mp3', '.wav', '.ogg', '.mp4', '.mov', '.mkv']
                 for ext in common_extensions:
                     alt_path = file_path + ext
                     if os.path.exists(alt_path):
+                        current_app.logger.info('Found file with added extension: %s%s', file_path, ext)
                         file_path = alt_path
+                        file_exists = True
                         break
             
             # If still not found, log and return 404
-            if not os.path.exists(file_path):
-                current_app.logger.warning('Media file not found: category=%s filename=%s (resolved to: %s)', 
+            if not file_exists:
+                current_app.logger.warning('Media file not found: category=%s, filename=%s, resolved_path=%s', 
                                           category, filename, file_path)
-                return jsonify({'error': 'File not found'}), 404
+                # Also list what files exist in the directory for debugging
+                try:
+                    dir_path = os.path.dirname(file_path)
+                    if os.path.exists(dir_path):
+                        existing_files = os.listdir(dir_path)[:5]
+                        current_app.logger.debug('Files in %s: %s (showing first 5)', dir_path, existing_files)
+                except Exception as e:
+                    current_app.logger.debug('Could not list directory: %s', str(e))
+                return jsonify({'error': 'File not found', 'path': file_path}), 404
         
         # Serve the file
         directory = os.path.dirname(file_path)
-        return send_from_directory(directory, os.path.basename(file_path))
+        filename_only = os.path.basename(file_path)
+        current_app.logger.info('Serving media file: %s', filename_only)
+        return send_from_directory(directory, filename_only)
+        
     except Exception as e:
-        current_app.logger.exception('Error serving media: category=%s filename=%s', category, filename)
-        return jsonify({'error': 'Failed to serve media'}), 500
+        current_app.logger.exception('Error serving media: category=%s, filename=%s, error=%s', category, filename, str(e))
+        return jsonify({'error': 'Failed to serve media', 'details': str(e)}), 500
 
 
 @public_auth_bp.route('/api/media/<path:filepath>', methods=['GET'])
@@ -1287,8 +1314,11 @@ def api_serve_public_media(filepath):
         import os
         from flask import send_from_directory
         
+        current_app.logger.info('Generic media request: %s', filepath)
+        
         # Prevent directory traversal attacks
         if '..' in filepath or filepath.startswith('/'):
+            current_app.logger.warning('Directory traversal attempt: %s', filepath)
             return jsonify({'error': 'Invalid file path'}), 400
         
         # Only allow serving files from the uploads directory
@@ -1301,37 +1331,106 @@ def api_serve_public_media(filepath):
         full_path = os.path.normpath(os.path.join(uploads_root, cleaned_path))
         uploads_root_normalized = os.path.normpath(uploads_root)
         
+        current_app.logger.debug('Cleaned path: %s, resolved: %s', cleaned_path, full_path)
+        
         if not full_path.startswith(uploads_root_normalized):
+            current_app.logger.error('Path traversal security violation: %s is outside %s', full_path, uploads_root_normalized)
             return jsonify({'error': 'Access denied'}), 403
         
+        # Check if file exists
+        file_exists = os.path.exists(full_path)
+        current_app.logger.debug('File exists at exact path? %s (%s)', file_exists, full_path)
+        
         # Check if file exists; if not, try common extensions
-        if not os.path.exists(full_path):
+        if not file_exists:
             # Try adding common extensions if filename lacks one
             if '.' not in os.path.basename(cleaned_path):
+                current_app.logger.debug('No file extension found, trying common extensions...')
                 common_extensions = ['.jpeg', '.jpg', '.png', '.gif', '.webp', '.mp3', '.wav', '.ogg', '.mp4', '.mov', '.mkv']
                 for ext in common_extensions:
                     alt_path = full_path + ext
                     if os.path.exists(alt_path):
+                        current_app.logger.info('Found file with added extension: %s%s', full_path, ext)
                         full_path = alt_path
+                        file_exists = True
                         break
             
             # If still not found, log and return 404
-            if not os.path.exists(full_path):
-                current_app.logger.warning('Media file not found: %s (resolved to: %s)', filepath, full_path)
-                return jsonify({'error': 'File not found'}), 404
+            if not file_exists:
+                current_app.logger.warning('Media file not found: %s, resolved_path=%s', filepath, full_path)
+                try:
+                    dir_path = os.path.dirname(full_path)
+                    if os.path.exists(dir_path):
+                        existing_files = os.listdir(dir_path)[:5]
+                        current_app.logger.debug('Files in %s: %s (showing first 5)', dir_path, existing_files)
+                except Exception as e:
+                    current_app.logger.debug('Could not list directory: %s', str(e))
+                return jsonify({'error': 'File not found', 'path': full_path}), 404
         
         # Serve the file
         directory = os.path.dirname(full_path)
-        return send_from_directory(directory, os.path.basename(full_path))
+        filename_only = os.path.basename(full_path)
+        current_app.logger.info('Serving media file: %s', filename_only)
+        return send_from_directory(directory, filename_only)
+        
     except Exception as e:
-        current_app.logger.exception('Error serving media: %s', filepath)
-        return jsonify({'error': 'Failed to serve media'}), 500
-        directory = os.path.dirname(full_path)
-        filename = os.path.basename(full_path)
-        return send_from_directory(directory, filename)
+        current_app.logger.exception('Error serving media: %s, error=%s', filepath, str(e))
+        return jsonify({'error': 'Failed to serve media', 'details': str(e)}), 500
+
+
+@public_auth_bp.route('/api/media-debug', methods=['GET'])
+def api_media_debug():
+    """Debug endpoint to diagnose media serving issues (admin only for security)."""
+    try:
+        import os
+        
+        # Only allow admin access or local requests
+        is_local = request.remote_addr in ['127.0.0.1', 'localhost']
+        is_admin = current_user.is_authenticated and current_user.is_admin if hasattr(current_user, 'is_admin') else False
+        
+        if not (is_local or is_admin):
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        uploads_root = current_app.config.get('UPLOAD_FOLDER') or os.path.join(current_app.instance_path, 'uploads')
+        
+        debug_info = {
+            'uploads_root': uploads_root,
+            'uploads_root_exists': os.path.exists(uploads_root),
+            'app_instance_path': current_app.instance_path,
+            'app_root_path': current_app.root_path,
+            'directories': {}
+        }
+        
+        # Check each category directory
+        for category, subdir in [('media_galleries', 'media_galleries'), ('podcasts', 'podcasts'), ('casts', 'podcasts')]:
+            dir_path = os.path.join(uploads_root, subdir)
+            if os.path.exists(dir_path):
+                files = os.listdir(dir_path)
+                debug_info['directories'][category] = {
+                    'path': dir_path,
+                    'exists': True,
+                    'file_count': len(files),
+                    'files': files[:10]  # First 10 files
+                }
+            else:
+                debug_info['directories'][category] = {
+                    'path': dir_path,
+                    'exists': False,
+                    'file_count': 0,
+                    'files': []
+                }
+        
+        # Test the specific file from frontend error
+        test_file = 'instance/uploads/podcasts/20260328105646405583_jpeg'
+        debug_info['test_file_path'] = test_file
+        debug_info['test_file_exists'] = os.path.exists(test_file)
+        
+        current_app.logger.info('Media debug endpoint called: %s', debug_info)
+        return jsonify(debug_info), 200
+        
     except Exception as e:
-        current_app.logger.exception('Error serving media file: %s', filepath)
-        return jsonify({'error': 'Failed to serve media'}), 500
+        current_app.logger.exception('Error in media debug endpoint')
+        return jsonify({'error': str(e)}), 500
 
 
 @public_auth_bp.route('/api/toolkit', methods=['GET'])
