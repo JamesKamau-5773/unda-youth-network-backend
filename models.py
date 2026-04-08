@@ -924,11 +924,12 @@ class MediaGallery(db.Model):
       # If it's already an absolute URL (http/https), return as-is
       if str(url_or_path).startswith('http'):
         return url_or_path
-      # Convert local filesystem path to public media API endpoint
+      # Convert local filesystem path to public media API endpoint with category
       path_str = str(url_or_path)
-      # Remove common prefixes: instance/, static/, uploads/ - in order
-      normalized = path_str.lstrip('instance/').lstrip('static/').lstrip('uploads/').lstrip('/')
-      return f"/api/media/{normalized}"
+      # Extract just the filename (without path prefixes)
+      filename = path_str.split('/')[-1]
+      # Use 'media_galleries' category for gallery images (frontend expectation)
+      return f"/api/media/media_galleries/{filename}"
     
     return {
       'gallery_id': self.gallery_id,
@@ -1323,11 +1324,12 @@ class Podcast(db.Model):
       # If it's already an absolute URL (http/https), return as-is
       if str(url_or_path).startswith('http'):
         return url_or_path
-      # Convert local filesystem path to public media API endpoint
+      # Convert local filesystem path to public media API endpoint with category
       path_str = str(url_or_path)
-      # Remove common prefixes: instance/, static/, uploads/ - in order
-      normalized = path_str.lstrip('instance/').lstrip('static/').lstrip('uploads/').lstrip('/')
-      return f"/api/media/{normalized}"
+      # Extract just the filename (without path prefixes)
+      filename = path_str.split('/')[-1]
+      # Use 'casts' category for podcast files (frontend expectation)
+      return f"/api/media/casts/{filename}"
     
     return {
       # Snake case for Python/backend compatibility
