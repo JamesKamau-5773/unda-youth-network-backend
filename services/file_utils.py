@@ -14,6 +14,45 @@ def _allowed(filename: str) -> bool:
     return ext in ALLOWED_EXTENSIONS
 
 
+def _get_file_extension(fileobj) -> str:
+    """Extract file extension from FileStorage object.
+    
+    Tries: original filename -> MIME type -> None
+    Returns extension WITH the leading dot (e.g., '.jpeg'), or empty string if not found.
+    """
+    # Try from original filename
+    if hasattr(fileobj, 'filename') and fileobj.filename:
+        if '.' in fileobj.filename:
+            ext = fileobj.filename.rsplit('.', 1)[-1].lower()
+            return f'.{ext}' if ext else ''
+    
+    # Try from MIME type
+    if hasattr(fileobj, 'mimetype') and fileobj.mimetype:
+        mime_type = fileobj.mimetype.lower()
+        # Map common MIME types to extensions
+        mime_to_ext = {
+            'image/jpeg': '.jpeg',
+            'image/jpg': '.jpg',
+            'image/png': '.png',
+            'image/gif': '.gif',
+            'image/webp': '.webp',
+            'audio/mpeg': '.mp3',
+            'audio/wav': '.wav',
+            'audio/ogg': '.ogg',
+            'audio/mp4': '.m4a',
+            'video/mp4': '.mp4',
+            'video/quicktime': '.mov',
+            'video/x-matroska': '.mkv',
+            'video/webm': '.webm',
+            'application/pdf': '.pdf',
+            'application/msword': '.docx',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+        }
+        return mime_to_ext.get(mime_type, '')
+    
+    return ''
+
+
 def save_file(fileobj, subdir='uploads') -> str:
     """Validate and save a FileStorage object. Returns relative path."""
     if not hasattr(fileobj, 'filename') or not hasattr(fileobj, 'save'):
@@ -22,6 +61,14 @@ def save_file(fileobj, subdir='uploads') -> str:
     filename = secure_filename(fileobj.filename)
     if not _allowed(filename):
         raise ValueError('File type not allowed')
+    
+    # Ensure filename has proper extension; if secure_filename stripped it or it's missing, recover it
+    if '.' not in filename:
+        extension = _get_file_extension(fileobj)
+        if extension:
+            filename = filename + extension
+        else:
+            raise ValueError('Cannot determine file type/extension')
 
     # If S3 is enabled, upload to S3 and return an HTTPS URL
     if current_app.config.get('USE_S3'):

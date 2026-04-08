@@ -1222,6 +1222,64 @@ def api_list_media_galleries():
         return jsonify({'error': str(e)}), 500
 
 
+@public_auth_bp.route('/api/media/<category>/<filename>', methods=['GET'])
+def api_serve_categorized_media(category, filename):
+    """Serve media files by category (media_galleries, casts/podcasts)."""
+    try:
+        import os
+        from flask import send_from_directory
+        
+        # Validate category to prevent directory traversal
+        ALLOWED_CATEGORIES = {
+            'media_galleries': 'media_galleries',
+            'casts': 'podcasts',  # Frontend calls it 'casts', but we store as 'podcasts'
+            'podcasts': 'podcasts',  # Also accept 'podcasts' directly
+        }
+        
+        if category not in ALLOWED_CATEGORIES:
+            return jsonify({'error': 'Invalid category'}), 403
+        
+        # Prevent directory traversal in filename
+        if '..' in filename or filename.startswith('/') or filename.startswith('\\'):
+            return jsonify({'error': 'Invalid file path'}), 400
+        
+        # Get the actual subdirectory name
+        subdir = ALLOWED_CATEGORIES[category]
+        
+        # Resolve the full path
+        uploads_root = current_app.config.get('UPLOAD_FOLDER') or os.path.join(current_app.instance_path, 'uploads')
+        file_path = os.path.normpath(os.path.join(uploads_root, subdir, filename))
+        uploads_root_normalized = os.path.normpath(uploads_root)
+        
+        # Verify the path is within uploads_root (security check)
+        if not file_path.startswith(uploads_root_normalized):
+            return jsonify({'error': 'Access denied'}), 403
+        
+        # Check if file exists; if not, try common extensions
+        if not os.path.exists(file_path):
+            # Try adding common extensions if filename lacks one
+            if '.' not in os.path.basename(filename):
+                common_extensions = ['.jpeg', '.jpg', '.png', '.gif', '.webp', '.mp3', '.wav', '.ogg', '.mp4', '.mov', '.mkv']
+                for ext in common_extensions:
+                    alt_path = file_path + ext
+                    if os.path.exists(alt_path):
+                        file_path = alt_path
+                        break
+            
+            # If still not found, log and return 404
+            if not os.path.exists(file_path):
+                current_app.logger.warning('Media file not found: category=%s filename=%s (resolved to: %s)', 
+                                          category, filename, file_path)
+                return jsonify({'error': 'File not found'}), 404
+        
+        # Serve the file
+        directory = os.path.dirname(file_path)
+        return send_from_directory(directory, os.path.basename(file_path))
+    except Exception as e:
+        current_app.logger.exception('Error serving media: category=%s filename=%s', category, filename)
+        return jsonify({'error': 'Failed to serve media'}), 500
+
+
 @public_auth_bp.route('/api/media/<path:filepath>', methods=['GET'])
 def api_serve_public_media(filepath):
     """Serve gallery media files publicly (no authentication required)."""
@@ -1246,11 +1304,28 @@ def api_serve_public_media(filepath):
         if not full_path.startswith(uploads_root_normalized):
             return jsonify({'error': 'Access denied'}), 403
         
+        # Check if file exists; if not, try common extensions
         if not os.path.exists(full_path):
-            current_app.logger.warning('Media file not found: %s (resolved to: %s)', filepath, full_path)
-            return jsonify({'error': 'File not found'}), 404
+            # Try adding common extensions if filename lacks one
+            if '.' not in os.path.basename(cleaned_path):
+                common_extensions = ['.jpeg', '.jpg', '.png', '.gif', '.webp', '.mp3', '.wav', '.ogg', '.mp4', '.mov', '.mkv']
+                for ext in common_extensions:
+                    alt_path = full_path + ext
+                    if os.path.exists(alt_path):
+                        full_path = alt_path
+                        break
+            
+            # If still not found, log and return 404
+            if not os.path.exists(full_path):
+                current_app.logger.warning('Media file not found: %s (resolved to: %s)', filepath, full_path)
+                return jsonify({'error': 'File not found'}), 404
         
         # Serve the file
+        directory = os.path.dirname(full_path)
+        return send_from_directory(directory, os.path.basename(full_path))
+    except Exception as e:
+        current_app.logger.exception('Error serving media: %s', filepath)
+        return jsonify({'error': 'Failed to serve media'}), 500
         directory = os.path.dirname(full_path)
         filename = os.path.basename(full_path)
         return send_from_directory(directory, filename)
