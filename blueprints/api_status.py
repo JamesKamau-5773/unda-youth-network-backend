@@ -8,6 +8,7 @@ import os
 from flask_login import login_required, current_user
 from models import db, User, Champion, MentalHealthAssessment
 from datetime import datetime, timezone
+from sqlalchemy import text
 
 api_status_bp = Blueprint('api_status', __name__, url_prefix='/api')
 
@@ -20,7 +21,7 @@ def health_check():
     """
     try:
         # Check database connection
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
         db_status = 'healthy'
     except Exception as e:
         current_app.logger.exception('Health check database probe failed')
