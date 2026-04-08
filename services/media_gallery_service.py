@@ -30,11 +30,17 @@ def create_media_gallery(data: dict, creator_id: int) -> MediaGallery:
     if media_items and isinstance(media_items, (list, tuple)):
         parsed = []
         for m in media_items:
-            if hasattr(m, 'filename') and hasattr(m, 'save'):
+            # Skip file validation for URL-based items (dicts with 'url' field)
+            if isinstance(m, dict) and ('url' in m or 'src' in m or 'file_url' in m):
+                # URL-based item, pass through as-is
+                parsed.append(m)
+            elif hasattr(m, 'filename') and hasattr(m, 'save'):
+                # FileStorage object, save to disk
                 path = save_file(m, subdir='media_galleries')
                 # do not block: enqueue thumbnail generation and store empty thumbnail for now
                 parsed.append({'type': 'file', 'path': path, 'thumbnail': '', 'filename': m.filename})
             else:
+                # Other dict items, pass through as-is
                 parsed.append(m)
         media_items = parsed
     else:
@@ -83,10 +89,16 @@ def update_media_gallery(gallery_id: int, data: dict) -> MediaGallery:
         if media_items and isinstance(media_items, (list, tuple)):
             parsed = []
             for m in media_items:
-                if hasattr(m, 'filename') and hasattr(m, 'save'):
+                # Skip file validation for URL-based items (dicts with 'url' field)
+                if isinstance(m, dict) and ('url' in m or 'src' in m or 'file_url' in m):
+                    # URL-based item, pass through as-is
+                    parsed.append(m)
+                elif hasattr(m, 'filename') and hasattr(m, 'save'):
+                    # FileStorage object, save to disk
                     path = save_file(m, subdir='media_galleries')
                     parsed.append({'type': 'file', 'path': path, 'thumbnail': '', 'filename': m.filename})
                 else:
+                    # Other dict items, pass through as-is
                     parsed.append(m)
             gallery.media_items = parsed
         else:
