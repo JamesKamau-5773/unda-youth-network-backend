@@ -926,8 +926,8 @@ class MediaGallery(db.Model):
         return url_or_path
       # Convert local filesystem path to public media API endpoint
       path_str = str(url_or_path)
-      # Remove common prefixes and normalize
-      normalized = path_str.lstrip('instance/').lstrip('static/').lstrip('/')
+      # Remove common prefixes: instance/, static/, uploads/ - in order
+      normalized = path_str.lstrip('instance/').lstrip('static/').lstrip('uploads/').lstrip('/')
       return f"/api/media/{normalized}"
     
     return {
@@ -1325,8 +1325,8 @@ class Podcast(db.Model):
         return url_or_path
       # Convert local filesystem path to public media API endpoint
       path_str = str(url_or_path)
-      # Remove common prefixes and normalize
-      normalized = path_str.lstrip('instance/').lstrip('static/').lstrip('/')
+      # Remove common prefixes: instance/, static/, uploads/ - in order
+      normalized = path_str.lstrip('instance/').lstrip('static/').lstrip('uploads/').lstrip('/')
       return f"/api/media/{normalized}"
     
     return {

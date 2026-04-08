@@ -30,14 +30,15 @@ def normalize_media_src(item):
     if not src:
         path = item.get('path')
         if path:
-            if path.startswith('http'):
+            if str(path).startswith('http'):
                 # Already an absolute URL
                 src = path
             else:
                 # Convert local filesystem path to public media API endpoint
-                # Remove 'static/' prefix if present, and use /api/media/ endpoint
-                normalized_path = path.lstrip('static/').lstrip('/')
-                src = f"/api/media/{normalized_path}"
+                # Remove prefixes: instance/, static/, uploads/ - in order
+                path_str = str(path)
+                normalized = path_str.lstrip('instance/').lstrip('static/').lstrip('uploads/').lstrip('/')
+                src = f"/api/media/{normalized}"
     return src
 
 

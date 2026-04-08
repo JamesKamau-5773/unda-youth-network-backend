@@ -1236,14 +1236,18 @@ def api_serve_public_media(filepath):
         # Only allow serving files from the uploads directory
         uploads_root = current_app.config.get('UPLOAD_FOLDER') or os.path.join(current_app.instance_path, 'uploads')
         
+        # Remove any leading "uploads/" from the filepath to avoid double-prefixing
+        cleaned_path = filepath.lstrip('uploads/').lstrip('/')
+        
         # Resolve the full path and check it's within uploads_root
-        full_path = os.path.normpath(os.path.join(uploads_root, filepath))
+        full_path = os.path.normpath(os.path.join(uploads_root, cleaned_path))
         uploads_root_normalized = os.path.normpath(uploads_root)
         
         if not full_path.startswith(uploads_root_normalized):
             return jsonify({'error': 'Access denied'}), 403
         
         if not os.path.exists(full_path):
+            current_app.logger.warning('Media file not found: %s (resolved to: %s)', filepath, full_path)
             return jsonify({'error': 'File not found'}), 404
         
         # Serve the file
