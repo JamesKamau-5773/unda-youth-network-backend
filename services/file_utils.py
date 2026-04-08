@@ -6,6 +6,24 @@ from PIL import Image
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'docx', 'pptx', 'mp4', 'mov', 'webm', 'mkv', 'ogg', 'avi'}
 
+# Grouped by category for display
+ALLOWED_EXTENSIONS_BY_TYPE = {
+    'Images': ['png', 'jpg', 'jpeg', 'gif'],
+    'Videos': ['mp4', 'mov', 'webm', 'mkv', 'avi', 'ogg'],
+    'Documents': ['pdf', 'docx', 'pptx']
+}
+
+def get_allowed_extensions_display():
+    """Return human-readable list of allowed file extensions."""
+    return ', '.join(sorted(ALLOWED_EXTENSIONS))
+
+def get_allowed_extensions_formatted():
+    """Return formatted list of allowed extensions by category."""
+    formatted = []
+    for category, exts in ALLOWED_EXTENSIONS_BY_TYPE.items():
+        formatted.append(f"{category}: {', '.join(exts)}")
+    return ' | '.join(formatted)
+
 
 def _allowed(filename: str) -> bool:
     if not filename:
@@ -60,7 +78,8 @@ def save_file(fileobj, subdir='uploads') -> str:
 
     filename = secure_filename(fileobj.filename)
     if not _allowed(filename):
-        raise ValueError('File type not allowed')
+        allowed = get_allowed_extensions_display()
+        raise ValueError(f'File type not allowed. Accepted formats: {allowed}')
     
     # Ensure filename has proper extension; if secure_filename stripped it or it's missing, recover it
     if '.' not in filename:
@@ -68,7 +87,8 @@ def save_file(fileobj, subdir='uploads') -> str:
         if extension:
             filename = filename + extension
         else:
-            raise ValueError('Cannot determine file type/extension')
+            allowed = get_allowed_extensions_display()
+            raise ValueError(f'Cannot determine file type. Accepted formats: {allowed}')
 
     # If S3 is enabled, upload to S3 and return an HTTPS URL
     if current_app.config.get('USE_S3'):

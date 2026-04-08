@@ -120,10 +120,11 @@
                             </div>
                             <div>
                                 <p class="text-[#0B1E3B] font-bold text-sm">Click to upload or drag and drop</p>
-                                <p class="text-xs text-gray-500 mt-1">SVG, PNG, JPG or GIF (max. 10MB)</p>
+                                <p class="text-xs text-gray-500 mt-1">Images: PNG, JPG, GIF | Videos: MP4, WebM, MOV, MKV, AVI, OGG | Docs: PDF, DOCX, PPTX (max 10MB)</p>
                             </div>
+                            <div id="file-error" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 max-w-sm"></div>
                         </div>
-                        <input id="file-input" type="file" name="media_files" accept="image/*,video/*" multiple class="hidden">
+                        <input id="file-input" type="file" name="media_files" accept="image/*,video/*,.pdf,.docx,.pptx" multiple class="hidden">
                     </div>
 
                     <!-- URL Area -->
@@ -311,29 +312,74 @@
             render();
         });
 
+        // Define allowed file extensions
+        const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'pdf', 'docx', 'pptx', 'mp4', 'mov', 'webm', 'mkv', 'ogg', 'avi'];
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+        function validateFile(file) {
+            // Check file size
+            if (file.size > MAX_FILE_SIZE) {
+                return `File "${file.name}" exceeds 10MB limit`;
+            }
+
+            // Check file extension
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!ALLOWED_EXTENSIONS.includes(ext)) {
+                return `File "${file.name}" has invalid format (.${ext}). Accepted: ${ALLOWED_EXTENSIONS.join(', ')}`;
+            }
+
+            return null; // valid file
+        }
+
+        function showFileError(message) {
+            const errorDiv = document.getElementById('file-error');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function hideFileError() {
+            const errorDiv = document.getElementById('file-error');
+            errorDiv.classList.add('hidden');
+        }
+
         // Handle File Selection
         els.dropZone.addEventListener('click', () => els.fileInput.click());
         els.fileInput.addEventListener('change', () => {
-            // update previews for selected files
-             // Simple approach: clear prev previews for files, append new ones
-             // For a full robust manager we'd need a DataTransfer object manipulation but that's complex.
-             // We'll just append simple placeholders for new files to the grid.
+            hideFileError();
+            const invalidFiles = [];
+            const validFiles = [];
+
+            // Validate all files first
+            Array.from(els.fileInput.files).forEach(file => {
+                const error = validateFile(file);
+                if (error) {
+                    invalidFiles.push(error);
+                } else {
+                    validFiles.push(file);
+                }
+            });
+
+            // Show errors if any
+            if (invalidFiles.length > 0) {
+                showFileError(invalidFiles.join(' • '));
+            }
+
+            // Update previews for valid files
+            render(); // render existing first
              
-             render(); // render existing first
-             
-             Array.from(els.fileInput.files).forEach(file => {
-                 const reader = new FileReader();
-                 reader.onload = (e) => {
-                     const div = document.createElement('div');
-                     div.className = 'relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-green-200 shadow-sm ring-2 ring-green-500/20';
-                     div.innerHTML = `
+            validFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-green-200 shadow-sm ring-2 ring-green-500/20';
+                    div.innerHTML = `
                         <img src="${e.target.result}" class="w-full h-full object-cover">
                         <div class="absolute top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded shadow-sm">NEW</div>
-                     `;
-                     els.preview.appendChild(div);
-                 };
-                 reader.readAsDataURL(file);
-             });
+                    `;
+                    els.preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
         });
 
         // Global remove function
