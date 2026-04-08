@@ -19,10 +19,10 @@ def infer_type_from_path(path_or_url, fallback='photo'):
 def normalize_media_src(item):
     """Resolve the web-accessible URL for a media-item dict.
 
-    Admin uploads store items as ``{'type': 'file', 'path': 'static/uploads/...'}``.
+    Admin uploads store items as ``{'type': 'file', 'path': 'uploads/...'}``.
     Other sources may use ``url``, ``src``, or ``file_url`` keys.  This helper
-    checks all of them and converts local ``static/…`` paths to ``/static/…``
-    URLs suitable for the public frontend.
+    checks all of them and converts local filesystem paths to public API URLs
+    at ``/api/media/...`` to ensure public access without authentication.
     """
     if not isinstance(item, dict):
         return None
@@ -31,11 +31,13 @@ def normalize_media_src(item):
         path = item.get('path')
         if path:
             if path.startswith('http'):
+                # Already an absolute URL
                 src = path
-            elif path.startswith('static/'):
-                src = f"/{path}"
             else:
-                src = f"/static/{path.lstrip('/')}"
+                # Convert local filesystem path to public media API endpoint
+                # Remove 'static/' prefix if present, and use /api/media/ endpoint
+                normalized_path = path.lstrip('static/').lstrip('/')
+                src = f"/api/media/{normalized_path}"
     return src
 
 

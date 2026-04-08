@@ -917,19 +917,32 @@ class MediaGallery(db.Model):
   updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
   def to_dict(self):
+    # Helper to convert local file paths to public media API URLs
+    def normalize_url(url_or_path):
+      if not url_or_path:
+        return None
+      # If it's already an absolute URL (http/https), return as-is
+      if str(url_or_path).startswith('http'):
+        return url_or_path
+      # Convert local filesystem path to public media API endpoint
+      path_str = str(url_or_path)
+      # Remove common prefixes and normalize
+      normalized = path_str.lstrip('instance/').lstrip('static/').lstrip('/')
+      return f"/api/media/{normalized}"
+    
     return {
       'gallery_id': self.gallery_id,
       'title': self.title,
       'description': self.description,
       'media_items': self.media_items or [],
-      'featured_media': self.featured_media,
+      'featured_media': normalize_url(self.featured_media),
       'published': self.published,
       'published_at': self.published_at.isoformat() if self.published_at else None,
       'created_by': self.created_by,
       'created_at': self.created_at.isoformat() if self.created_at else None,
       'updated_at': self.updated_at.isoformat() if self.updated_at else None,
       'id': self.gallery_id,
-      'featuredMedia': self.featured_media,
+      'featuredMedia': normalize_url(self.featured_media),
       'publishedAt': self.published_at.isoformat() if self.published_at else None,
       'createdAt': self.created_at.isoformat() if self.created_at else None,
       'updatedAt': self.updated_at.isoformat() if self.updated_at else None
@@ -1303,14 +1316,27 @@ class Podcast(db.Model):
   creator = db.relationship('User', backref='podcasts')
   
   def to_dict(self):
+    # Helper to convert local file paths to public media API URLs
+    def normalize_media_url(url_or_path):
+      if not url_or_path:
+        return None
+      # If it's already an absolute URL (http/https), return as-is
+      if str(url_or_path).startswith('http'):
+        return url_or_path
+      # Convert local filesystem path to public media API endpoint
+      path_str = str(url_or_path)
+      # Remove common prefixes and normalize
+      normalized = path_str.lstrip('instance/').lstrip('static/').lstrip('/')
+      return f"/api/media/{normalized}"
+    
     return {
       # Snake case for Python/backend compatibility
       'podcast_id': self.podcast_id,
       'title': self.title,
       'description': self.description,
       'guest': self.guest,
-      'audio_url': self.audio_url,
-      'thumbnail_url': self.thumbnail_url,
+      'audio_url': normalize_media_url(self.audio_url),
+      'thumbnail_url': normalize_media_url(self.thumbnail_url),
       'duration': self.duration,
       'episode_number': self.episode_number,
       'season_number': self.season_number,
@@ -1323,8 +1349,8 @@ class Podcast(db.Model):
       'created_by': self.created_by,
       # CamelCase aliases for JavaScript/React frontend compatibility
       'id': self.podcast_id,
-      'audioUrl': self.audio_url,
-      'thumbnailUrl': self.thumbnail_url,
+      'audioUrl': normalize_media_url(self.audio_url),
+      'thumbnailUrl': normalize_media_url(self.thumbnail_url),
       'episodeNumber': self.episode_number,
       'seasonNumber': self.season_number,
       'publishedAt': self.published_at.isoformat() if self.published_at else None,

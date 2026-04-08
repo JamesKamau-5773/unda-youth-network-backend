@@ -1222,6 +1222,39 @@ def api_list_media_galleries():
         return jsonify({'error': str(e)}), 500
 
 
+@public_auth_bp.route('/api/media/<path:filepath>', methods=['GET'])
+def api_serve_public_media(filepath):
+    """Serve gallery media files publicly (no authentication required)."""
+    try:
+        import os
+        from flask import send_from_directory
+        
+        # Prevent directory traversal attacks
+        if '..' in filepath or filepath.startswith('/'):
+            return jsonify({'error': 'Invalid file path'}), 400
+        
+        # Only allow serving files from the uploads directory
+        uploads_root = current_app.config.get('UPLOAD_FOLDER') or os.path.join(current_app.instance_path, 'uploads')
+        
+        # Resolve the full path and check it's within uploads_root
+        full_path = os.path.normpath(os.path.join(uploads_root, filepath))
+        uploads_root_normalized = os.path.normpath(uploads_root)
+        
+        if not full_path.startswith(uploads_root_normalized):
+            return jsonify({'error': 'Access denied'}), 403
+        
+        if not os.path.exists(full_path):
+            return jsonify({'error': 'File not found'}), 404
+        
+        # Serve the file
+        directory = os.path.dirname(full_path)
+        filename = os.path.basename(full_path)
+        return send_from_directory(directory, filename)
+    except Exception as e:
+        current_app.logger.exception('Error serving media file: %s', filepath)
+        return jsonify({'error': 'Failed to serve media'}), 500
+
+
 @public_auth_bp.route('/api/toolkit', methods=['GET'])
 def api_list_toolkit():
     try:
