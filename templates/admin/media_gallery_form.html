@@ -73,7 +73,11 @@
                     </li>
                     <li class="flex items-start gap-2">
                         <span class="text-blue-500">•</span>
-                        You can paste image URLs directly.
+                        You can paste image/video URLs or YouTube links directly.
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-blue-500">•</span>
+                        YouTube videos will be embedded as playable players.
                     </li>
                     <li class="flex items-start gap-2">
                         <span class="text-blue-500">•</span>
@@ -125,13 +129,13 @@
                     <!-- URL Area -->
                     <div id="url-tab" class="tab-content hidden mb-6">
                         <div class="flex flex-col sm:flex-row gap-3">
-                            <input type="url" id="url-input" placeholder="https://example.com/video.mp4" 
+                            <input type="url" id="url-input" placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ or https://example.com/video.mp4" 
                                    class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#00ACC1] focus:border-transparent outline-none text-sm">
                             <button type="button" id="add-url-btn" class="px-6 py-2.5 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors whitespace-nowrap">
                                 Add Media
                             </button>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">Paste a direct link to an image or video file (not YouTube/embed links). Must end with .jpg, .png, .mp4, .webm, etc.</p>
+                        <p class="text-xs text-gray-500 mt-2">Paste a direct file link or YouTube URL. Supported: MP4, WebM, MOV, MKV, OGG, AVI, PNG, JPG, GIF, or YouTube links.</p>
                     </div>
 
                     <!-- Preview Grid -->
@@ -195,11 +199,12 @@
                 div.className = 'relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm';
                 
                 let contentHTML = '';
-                if(item.type === 'video' || (item.url && item.url.match(/\.(mp4|webm|mov)$/i))) {
+                if(item.type === 'youtube' && item.youtube_id) {
+                     contentHTML = '<div class="w-full h-full flex items-center justify-center" style="background: linear-gradient(135deg, #FF0000 0%, #FF0000 50%, #282828 100%);"><i data-lucide="play" class="w-8 h-8 text-white"></i></div>';
+                } else if(item.type === 'video' || (item.url && item.url.match(/\.(mp4|webm|mov)$/i))) {
                      contentHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400"><i data-lucide="video" class="w-8 h-8"></i></div>';
-                     // try to show thumbnail if possible, but basic icon is safer
                 } else {
-                     contentHTML = `<img src="${item.url}" class="w-full h-full object-cover">`;
+                     contentHTML = `<img src="${item.url}" class="w-full h-full object-cover" onerror="this.style.display=none">`;
                 }
 
                 div.innerHTML = `
@@ -249,21 +254,50 @@
             });
         });
 
+        // Extract YouTube video ID from various YouTube URL formats
+        function extractYouTubeId(url) {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/,
+                /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+                /youtu\.be\/([a-zA-Z0-9_-]{11})/
+            ];
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match && match[1]) return match[1];
+            }
+            return null;
+        }
+
         // Handle URL Add
         els.addUrlBtn.addEventListener('click', () => {
             const url = els.urlInput.value.trim();
             if(!url) return;
             
-            // Warn if URL is from unsupported services
-            if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com') || url.includes('facebook.com')) {
-                alert('⚠️  YouTube, Vimeo, and social media links are not supported.\n\nPlease use a direct video file URL (e.g., https://example.com/video.mp4)\n\nSupported formats: MP4, WebM, MOV, MKV, OGG, AVI, PNG, JPG, GIF');
+            // Check for YouTube URLs - now supported!
+            const youtubeId = extractYouTubeId(url);
+            if (youtubeId) {
+                existingItems.push({
+                    url: `https://www.youtube.com/embed/${youtubeId}`,
+                    youtube_id: youtubeId,
+                    type: 'youtube',
+                    title: 'YouTube Video'
+                });
+                els.mediaItems.value = JSON.stringify(existingItems);
+                els.urlInput.value = '';
+                render();
+                return;
+            }
+
+            // Warn if URL still contains social media that we couldn't parse
+            if (url.includes('vimeo.com') || url.includes('facebook.com')) {
+                alert('Social media links (Vimeo, Facebook) are not supported.\n\nPlease use a direct video file URL (e.g., https://example.com/video.mp4)\n\nSupported formats: MP4, WebM, MOV, MKV, OGG, AVI, PNG, JPG, GIF');
                 return;
             }
 
             // Warn if URL doesn't end with a file extension
             const hasExtension = /\.(mp4|webm|mov|mkv|ogg|avi|jpg|jpeg|png|gif|webp)$/i.test(url);
             if (!hasExtension) {
-                const proceed = confirm('⚠️  URL does not end with a recognized file extension.\n\nThis may not work. Continue anyway?\n\nSupported: .mp4, .webm, .mov, .mkv, .ogg, .avi, .jpg, .png, .gif, .webp');
+                const proceed = confirm('URL does not end with a recognized file extension.\n\nThis may not work. Continue anyway?\n\nSupported: .mp4, .webm, .mov, .mkv, .ogg, .avi, .jpg, .png, .gif, .webp');
                 if (!proceed) return;
             }
             
