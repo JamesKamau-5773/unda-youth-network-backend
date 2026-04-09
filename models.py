@@ -908,6 +908,7 @@ class MediaGallery(db.Model):
   gallery_id = db.Column(db.Integer, primary_key=True)
   title = db.Column(db.String(255), nullable=False)
   description = db.Column(db.Text)
+  category = db.Column(db.String(100), nullable=True)
   media_items = db.Column(db.JSON)  # list of {url, type, caption, metadata}
   featured_media = db.Column(db.String(500))
   
@@ -940,6 +941,7 @@ class MediaGallery(db.Model):
       'gallery_id': self.gallery_id,
       'title': self.title,
       'description': self.description,
+      'category': self.category,
       'media_items': self.media_items or [],
       'featured_media': normalize_url(self.featured_media),
       'event_id': self.event_id,
@@ -955,6 +957,7 @@ class MediaGallery(db.Model):
       'created_at': self.created_at.isoformat() if self.created_at else None,
       'updated_at': self.updated_at.isoformat() if self.updated_at else None,
       'id': self.gallery_id,
+      'categoryName': self.category,
       'eventId': self.event_id,
       'featuredMedia': normalize_url(self.featured_media),
       'publishedAt': self.published_at.isoformat() if self.published_at else None,

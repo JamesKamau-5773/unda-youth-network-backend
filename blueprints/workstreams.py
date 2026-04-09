@@ -355,6 +355,7 @@ def get_gallery():
     """List gallery items. Uses MediaGallery model."""
     try:
         item_type = request.args.get('type')  # photo, video
+        category = request.args.get('category')
         featured = request.args.get('featured')
         
         query = MediaGallery.query.filter_by(published=True)
@@ -380,8 +381,12 @@ def get_gallery():
                         'thumbnail': item.get('thumbnail') or src,
                         'videoUrl': item.get('video_url') or item.get('videoUrl') or (src if inferred_type == 'video' else None),
                         'alt': item.get('alt', g.title),
-                        'category': g.description or 'general'
+                        'category': g.category or 'general'
                     }
+
+                    # Filter by gallery category if specified
+                    if category and (g.category or 'general').lower() != category.lower():
+                        continue
                     
                     # Filter by type if specified
                     if item_type and item_data['type'] != item_type:
@@ -396,6 +401,46 @@ def get_gallery():
         }), 200
     except Exception as e:
         current_app.logger.exception(f'Error fetching gallery: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@workstreams_bp.route('/api/workstreams/gallery/categories', methods=['GET'])
+def get_gallery_categories():
+    """Get published galleries grouped by user-defined category."""
+    try:
+        galleries = MediaGallery.query.filter_by(published=True).order_by(MediaGallery.created_at.desc()).all()
+
+        grouped = {}
+        for gallery in galleries:
+            category_name = (gallery.category or 'General').strip() or 'General'
+            if category_name not in grouped:
+                grouped[category_name] = {
+                    'category': category_name,
+                    'count': 0,
+                    'galleries': []
+                }
+
+            grouped[category_name]['count'] += 1
+            grouped[category_name]['galleries'].append({
+                'gallery_id': gallery.gallery_id,
+                'title': gallery.title,
+                'description': gallery.description,
+                'category': gallery.category,
+                'featured_media': gallery.featured_media,
+                'created_at': gallery.created_at.isoformat() if gallery.created_at else None,
+                'item_count': len(gallery.media_items) if gallery.media_items else 0
+            })
+
+        categories = sorted(grouped.values(), key=lambda item: item['category'].lower())
+
+        return jsonify({
+            'success': True,
+            'categories': categories,
+            'total_categories': len(categories),
+            'total_galleries': len(galleries)
+        }), 200
+    except Exception as e:
+        current_app.logger.exception(f'Error fetching gallery categories: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 

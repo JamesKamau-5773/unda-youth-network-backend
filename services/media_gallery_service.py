@@ -23,6 +23,7 @@ def _parse_media_items(val):
 def create_media_gallery(data: dict, creator_id: int) -> MediaGallery:
     title = (data.get('title') or '').strip()
     description = data.get('description')
+    category = (data.get('category') or '').strip() or None
     media_items = data.get('media_items')
     event_id = data.get('event_id')
     
@@ -64,6 +65,7 @@ def create_media_gallery(data: dict, creator_id: int) -> MediaGallery:
     gallery = MediaGallery(
         title=title,
         description=description,
+        category=category,
         media_items=media_items,
         event_id=event_id,
         published=published,
@@ -81,6 +83,8 @@ def update_media_gallery(gallery_id: int, data: dict) -> MediaGallery:
         raise ValueError('Media gallery not found')
     gallery.title = data.get('title', gallery.title)
     gallery.description = data.get('description', gallery.description)
+    if 'category' in data:
+        gallery.category = (data.get('category') or '').strip() or None
     
     # Update event association
     if 'event_id' in data:
