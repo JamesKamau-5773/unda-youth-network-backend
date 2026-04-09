@@ -426,6 +426,122 @@ def get_gallery_item(gallery_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@workstreams_bp.route('/api/workstreams/events/<int:event_id>/galleries', methods=['GET'])
+def get_event_galleries(event_id):
+    """Get all media galleries for a specific event (album view)."""
+    try:
+        event = Event.query.get(event_id)
+        if not event:
+            return jsonify({'success': False, 'error': 'Event not found'}), 404
+        
+        # Fetch galleries linked to this event (only published ones)
+        galleries = MediaGallery.query.filter_by(
+            event_id=event_id,
+            published=True
+        ).order_by(MediaGallery.created_at.desc()).all()
+        
+        if not galleries:
+            return jsonify({
+                'success': True,
+                'event': {
+                    'event_id': event.event_id,
+                    'title': event.title,
+                    'event_date': event.event_date.isoformat() if event.event_date else None,
+                    'location': event.location,
+                    'description': event.description,
+                    'image_url': event.image_url,
+                    'event_type': event.event_type
+                },
+                'galleries': [],
+                'total_galleries': 0
+            }), 200
+        
+        # Format gallery data
+        gallery_list = []
+        for gallery in galleries:
+            gallery_dict = {
+                'gallery_id': gallery.gallery_id,
+                'title': gallery.title,
+                'description': gallery.description,
+                'featured_media': gallery.featured_media,
+                'media_items': normalize_gallery_items(gallery.media_items),
+                'item_count': len(gallery.media_items) if gallery.media_items else 0,
+                'created_at': gallery.created_at.isoformat() if gallery.created_at else None
+            }
+            gallery_list.append(gallery_dict)
+        
+        return jsonify({
+            'success': True,
+            'event': {
+                'event_id': event.event_id,
+                'title': event.title,
+                'event_date': event.event_date.isoformat() if event.event_date else None,
+                'location': event.location,
+                'description': event.description,
+                'image_url': event.image_url,
+                'event_type': event.event_type
+            },
+            'galleries': gallery_list,
+            'total_galleries': len(gallery_list)
+        }), 200
+    except Exception as e:
+        current_app.logger.exception(f'Error fetching galleries for event {event_id}: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@workstreams_bp.route('/api/workstreams/events/with-galleries', methods=['GET'])
+def get_events_with_galleries():
+    """Get all events that have media galleries (for browsing by event)."""
+    try:
+        # Get all events that have published galleries
+        events = db.session.query(Event).join(
+            MediaGallery, Event.event_id == MediaGallery.event_id
+        ).filter(
+            MediaGallery.published == True
+        ).distinct().order_by(Event.event_date.desc()).all()
+        
+        events_list = []
+        for event in events:
+            gallery_count = MediaGallery.query.filter_by(
+                event_id=event.event_id,
+                published=True
+            ).count()
+            
+            # Get featured gallery image
+            featured_gallery = MediaGallery.query.filter_by(
+                event_id=event.event_id,
+                published=True
+            ).first()
+            
+            featured_image = None
+            if featured_gallery and featured_gallery.featured_media:
+                featured_image = featured_gallery.featured_media
+            elif featured_gallery and featured_gallery.media_items:
+                first_item = featured_gallery.media_items[0]
+                featured_image = first_item.get('url') or first_item.get('filename')
+            
+            event_dict = {
+                'event_id': event.event_id,
+                'title': event.title,
+                'description': event.description,
+                'event_date': event.event_date.isoformat() if event.event_date else None,
+                'location': event.location,
+                'event_type': event.event_type,
+                'image_url': event.image_url or featured_image,
+                'gallery_count': gallery_count
+            }
+            events_list.append(event_dict)
+        
+        return jsonify({
+            'success': True,
+            'events': events_list,
+            'total': len(events_list)
+        }), 200
+    except Exception as e:
+        current_app.logger.exception(f'Error fetching events with galleries: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 # ============================================================================
 # PUBLIC ENDPOINTS - Toolkits (uses existing InstitutionalToolkitItem model)
 # ============================================================================

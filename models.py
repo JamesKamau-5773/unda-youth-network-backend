@@ -910,6 +910,11 @@ class MediaGallery(db.Model):
   description = db.Column(db.Text)
   media_items = db.Column(db.JSON)  # list of {url, type, caption, metadata}
   featured_media = db.Column(db.String(500))
+  
+  # Event association - link gallery to an event
+  event_id = db.Column(db.Integer, db.ForeignKey('events.event_id', ondelete='SET NULL'), nullable=True)
+  event = db.relationship('Event', lazy=True, backref=db.backref('media_galleries', lazy=True, cascade='all, delete-orphan'))
+  
   published = db.Column(db.Boolean, default=False)
   published_at = db.Column(db.DateTime)
   created_by = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'))
@@ -937,12 +942,20 @@ class MediaGallery(db.Model):
       'description': self.description,
       'media_items': self.media_items or [],
       'featured_media': normalize_url(self.featured_media),
+      'event_id': self.event_id,
+      'event': {
+        'event_id': self.event.event_id,
+        'title': self.event.title,
+        'event_date': self.event.event_date.isoformat() if self.event and self.event.event_date else None,
+        'location': self.event.location if self.event else None
+      } if self.event else None,
       'published': self.published,
       'published_at': self.published_at.isoformat() if self.published_at else None,
       'created_by': self.created_by,
       'created_at': self.created_at.isoformat() if self.created_at else None,
       'updated_at': self.updated_at.isoformat() if self.updated_at else None,
       'id': self.gallery_id,
+      'eventId': self.event_id,
       'featuredMedia': normalize_url(self.featured_media),
       'publishedAt': self.published_at.isoformat() if self.published_at else None,
       'createdAt': self.created_at.isoformat() if self.created_at else None,

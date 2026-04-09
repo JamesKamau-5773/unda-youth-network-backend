@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timezone
-from models import db, MediaGallery
+from models import db, MediaGallery, Event
 from services.file_utils import save_file
 from flask import current_app
 from tasks.media_tasks import generate_and_store_thumbnail
@@ -24,6 +24,13 @@ def create_media_gallery(data: dict, creator_id: int) -> MediaGallery:
     title = (data.get('title') or '').strip()
     description = data.get('description')
     media_items = data.get('media_items')
+    event_id = data.get('event_id')
+    
+    # Validate event_id if provided
+    if event_id:
+        event = db.session.get(Event, event_id)
+        if not event:
+            raise ValueError(f'Event with ID {event_id} not found')
 
     # If file objects provided, save them and produce media metadata list.
     # Thumbnail generation is queued to a background task to avoid blocking requests.
@@ -58,6 +65,7 @@ def create_media_gallery(data: dict, creator_id: int) -> MediaGallery:
         title=title,
         description=description,
         media_items=media_items,
+        event_id=event_id,
         published=published,
         published_at=datetime.now(timezone.utc) if published else None,
         created_by=creator_id
@@ -73,6 +81,16 @@ def update_media_gallery(gallery_id: int, data: dict) -> MediaGallery:
         raise ValueError('Media gallery not found')
     gallery.title = data.get('title', gallery.title)
     gallery.description = data.get('description', gallery.description)
+    
+    # Update event association
+    if 'event_id' in data:
+        event_id = data['event_id']
+        if event_id:
+            event = db.session.get(Event, event_id)
+            if not event:
+                raise ValueError(f'Event with ID {event_id} not found')
+        gallery.event_id = event_id
+    
     if 'published' in data:
         was_published = gallery.published
         published = data['published']

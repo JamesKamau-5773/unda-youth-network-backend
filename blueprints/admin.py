@@ -581,10 +581,16 @@ def create_media_gallery():
             kept = [it for it in existing if _keep_existing_item(it)]
             # pass a combined list: existing entries first, then file objects
             combined_media = list(kept) + list(uploaded)
+            
+            # Parse event_id if provided
+            event_id = request.form.get('event_id')
+            event_id = int(event_id) if event_id and event_id.isdigit() else None
+            
             data = {
                 'title': request.form.get('title', '').strip(),
                 'description': request.form.get('description'),
                 'media_items': combined_media,
+                'event_id': event_id,
                 'published': request.form.get('published', 'off')
             }
             gallery = media_gallery_service.create_media_gallery(data, creator_id=current_user.user_id)
@@ -593,15 +599,18 @@ def create_media_gallery():
         except ValueError as e:
             flash(str(e), 'danger')
             max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
-            return render_template('admin/media_gallery_form.html', max_file_size=max_file_size)
+            events = Event.query.order_by(Event.event_date.desc()).all()
+            return render_template('admin/media_gallery_form.html', max_file_size=max_file_size, events=events)
         except Exception as e:
             db.session.rollback()
             current_app.logger.exception('Error creating gallery')
             flash(f'Error creating gallery: {str(e)}', 'danger')
-            return render_template('admin/media_gallery_form.html')
+            events = Event.query.order_by(Event.event_date.desc()).all()
+            return render_template('admin/media_gallery_form.html', events=events)
 
     max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
-    return render_template('admin/media_gallery_form.html', max_file_size=max_file_size)
+    events = Event.query.order_by(Event.event_date.desc()).all()
+    return render_template('admin/media_gallery_form.html', max_file_size=max_file_size, events=events)
 
 
 @admin_bp.route('/media-galleries/<int:gallery_id>/edit', methods=['GET', 'POST'])
@@ -631,10 +640,16 @@ def edit_media_gallery(gallery_id):
                 return False
             kept = [it for it in existing if _keep_existing_item(it)]
             combined_media = list(kept) + list(uploaded)
+            
+            # Parse event_id if provided
+            event_id = request.form.get('event_id')
+            event_id = int(event_id) if event_id and event_id.isdigit() else None
+            
             data = {
                 'title': request.form.get('title', gallery.title),
                 'description': request.form.get('description', gallery.description),
                 'media_items': combined_media,
+                'event_id': event_id,
                 'published': request.form.get('published', 'off')
             }
             media_gallery_service.update_media_gallery(gallery_id, data)
@@ -647,7 +662,8 @@ def edit_media_gallery(gallery_id):
             current_app.logger.exception('Error updating gallery')
             flash(f'Error updating gallery: {str(e)}', 'danger')
     max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
-    return render_template('admin/media_gallery_form.html', gallery=gallery, max_file_size=max_file_size)
+    events = Event.query.order_by(Event.event_date.desc()).all()
+    return render_template('admin/media_gallery_form.html', gallery=gallery, max_file_size=max_file_size, events=events)
 
 
 @admin_bp.route('/media-galleries/<int:gallery_id>/delete', methods=['POST'])
