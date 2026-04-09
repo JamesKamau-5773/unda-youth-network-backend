@@ -665,10 +665,10 @@ def create_media_gallery():
             else:
                 current_app.logger.exception('Error creating gallery')
             flash(f'Error creating gallery: {str(e)}', 'danger')
-                return render_template('admin/media_gallery_form.html')
+            return render_template('admin/media_gallery_form.html')
 
     max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
-            return render_template('admin/media_gallery_form.html', max_file_size=max_file_size)
+    return render_template('admin/media_gallery_form.html', max_file_size=max_file_size)
 
 
 @admin_bp.route('/media-galleries/<int:gallery_id>/edit', methods=['GET', 'POST'])
