@@ -72,7 +72,12 @@ def _get_file_extension(fileobj) -> str:
 
 
 def save_file(fileobj, subdir='uploads') -> str:
-    """Validate and save a FileStorage object. Returns relative path."""
+    """Validate and save a FileStorage object. 
+    Returns:
+      - Cloudinary public URL if USE_CLOUDINARY is enabled
+      - S3 HTTPS URL if USE_S3 is enabled
+      - Relative local path if using local filesystem
+    """
     if not hasattr(fileobj, 'filename') or not hasattr(fileobj, 'save'):
         raise ValueError('Invalid file object')
 
@@ -89,6 +94,53 @@ def save_file(fileobj, subdir='uploads') -> str:
         else:
             allowed = get_allowed_extensions_display()
             raise ValueError(f'Cannot determine file type. Accepted formats: {allowed}')
+
+    # If Cloudinary is enabled, upload to Cloudinary
+    if current_app.config.get('USE_CLOUDINARY'):
+        try:
+            import cloudinary.uploader
+            import cloudinary
+            
+            # Read file content
+            fileobj.stream.seek(0)
+            data = fileobj.read()
+            fileobj.stream.seek(0)
+            
+            # Prepare upload options
+            timestamp = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')
+            public_id = f"{subdir}/{timestamp}_{filename.rsplit('.', 1)[0]}"
+            
+            # Get file extension to determine resource type
+            ext = filename.rsplit('.', 1)[-1].lower()
+            resource_type = 'auto'  # 'auto' detects if it's image, video, raw, etc.
+            
+            # Determine if video based on extension
+            video_extensions = {'mp4', 'mov', 'webm', 'mkv', 'avi', 'ogg', 'm4v', 'flv', 'wmv', 'asf', 'rm', 'rmvb'}
+            if ext in video_extensions:
+                resource_type = 'video'
+            
+            # Upload to Cloudinary
+            upload_result = cloudinary.uploader.upload(
+                data,
+                resource_type=resource_type,
+                public_id=public_id,
+                use_filename=True,
+                unique_filename=False,
+                folder=subdir,
+                overwrite=True
+            )
+            
+            # Return the secure HTTPS URL
+            url = upload_result.get('secure_url')
+            if not url:
+                url = upload_result.get('url', '')
+            
+            current_app.logger.info('File uploaded to Cloudinary: %s -> %s', filename, url)
+            return url
+            
+        except Exception as e:
+            current_app.logger.exception('Cloudinary upload failed: %s', str(e))
+            raise ValueError(f'Failed to upload to Cloudinary: {str(e)}')
 
     # If S3 is enabled, upload to S3 and return an HTTPS URL
     if current_app.config.get('USE_S3'):
@@ -140,10 +192,45 @@ def save_file(fileobj, subdir='uploads') -> str:
 
 
 def generate_thumbnail(rel_path: str, size=(300, 300)) -> str:
-    """Create a thumbnail for an image path or S3 URL.
-    Returns an HTTPS URL (for S3) or a path relative to app.root_path for local files.
+    """Create a thumbnail for an image path or cloud URL (Cloudinary/S3).
+    
+    Returns:
+      - Cloudinary thumbnail transformation URL (for Cloudinary uploads)
+      - S3 thumbnail URL (for S3 uploads)  
+      - Local thumbnail path (for local files)
     """
     try:
+        # If path is an HTTP URL and Cloudinary is enabled, use Cloudinary transformations
+        if rel_path.startswith('http') and current_app.config.get('USE_CLOUDINARY'):
+            try:
+                from cloudinary import CloudinaryResource
+                import cloudinary.api
+                
+                # Extract public_id from Cloudinary URL
+                # Cloudinary URLs are like: https://res.cloudinary.com/cloud_name/image/upload/...version/public_id
+                # We need to parse the public_id for transformations
+                
+                # For Cloudinary, we can use the transformation API directly
+                # Simply return a transformation URL that crops to 300x300
+                # Format: https://res.cloudinary.com/{cloud_name}/image/upload/c_fill,g_auto,h_300,w_300/v1/{public_id}
+                
+                # Use cloudinary's built-in URL transformation
+                from cloudinary.utils import cloudinary_url
+                thumb_url, _ = cloudinary_url(
+                    rel_path,
+                    crop='fill',
+                    gravity='auto',
+                    height=size[1],
+                    width=size[0],
+                    quality='auto'
+                )
+                return thumb_url
+                
+            except Exception as e:
+                current_app.logger.warning('Could not generate Cloudinary thumbnail for %s: %s', rel_path, str(e))
+                # Return original URL if transformation fails
+                return rel_path
+        
         # If path is an HTTP URL (S3), download object and create thumbnail in-memory then upload
         if rel_path.startswith('http') and current_app.config.get('USE_S3'):
             import boto3

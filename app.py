@@ -156,6 +156,27 @@ def create_app(test_config=None):
     # If S3_BUCKET is set, we consider S3 enabled
     app.config['USE_S3'] = bool(app.config.get('S3_BUCKET'))
     
+    # Cloudinary configuration (optional)
+    app.config['CLOUDINARY_CLOUD_NAME'] = os.environ.get('CLOUDINARY_CLOUD_NAME')
+    app.config['CLOUDINARY_API_KEY'] = os.environ.get('CLOUDINARY_API_KEY')
+    app.config['CLOUDINARY_API_SECRET'] = os.environ.get('CLOUDINARY_API_SECRET')
+    # If CLOUDINARY_CLOUD_NAME is set, we consider Cloudinary enabled
+    app.config['USE_CLOUDINARY'] = bool(app.config.get('CLOUDINARY_CLOUD_NAME'))
+    
+    # Initialize Cloudinary if configured
+    if app.config.get('USE_CLOUDINARY'):
+        try:
+            import cloudinary
+            cloudinary.config(
+                cloud_name=app.config['CLOUDINARY_CLOUD_NAME'],
+                api_key=app.config['CLOUDINARY_API_KEY'],
+                api_secret=app.config['CLOUDINARY_API_SECRET'],
+                secure=True
+            )
+            app.logger.info('Cloudinary initialized with cloud_name=%s', app.config['CLOUDINARY_CLOUD_NAME'])
+        except Exception as e:
+            app.logger.error('Failed to initialize Cloudinary: %s', str(e))
+    
     # WTF-CSRF Protection
     # Disable CSRF checks during tests to simplify API testing and avoid
     # brittle failures in CI/test environments that do not exercise the

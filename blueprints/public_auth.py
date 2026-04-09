@@ -1224,10 +1224,16 @@ def api_list_media_galleries():
 
 @public_auth_bp.route('/api/media/<category>/<filename>', methods=['GET'])
 def api_serve_categorized_media(category, filename):
-    """Serve media files by category (media_galleries, casts/podcasts)."""
+    """Serve media files by category (media_galleries, casts/podcasts).
+    
+    Supports:
+    - Local filesystem files (served via send_from_directory)
+    - S3 URLs (redirected to S3)
+    - Cloudinary URLs (redirected to Cloudinary)
+    """
     try:
         import os
-        from flask import send_from_directory
+        from flask import send_from_directory, redirect
         
         # Log the request for debugging
         current_app.logger.info('Media request: category=%s, filename=%s', category, filename)
@@ -1251,7 +1257,14 @@ def api_serve_categorized_media(category, filename):
         # Get the actual subdirectory name
         subdir = ALLOWED_CATEGORIES[category]
         
-        # Resolve the full path
+        # Check if Cloudinary or S3 is being used by trying to construct a cloud URL first
+        # If filename looks like a Cloudinary URL or S3 URL, redirect to it
+        if filename.startswith('http://') or filename.startswith('https://'):
+            # This is already a full URL (Cloudinary or S3)
+            current_app.logger.info('Redirecting to cloud URL: %s', filename)
+            return redirect(filename, code=302)
+        
+        # Resolve the full path for local filesystem
         uploads_root = current_app.config.get('UPLOAD_FOLDER') or os.path.join(current_app.instance_path, 'uploads')
         file_path = os.path.normpath(os.path.join(uploads_root, subdir, filename))
         uploads_root_normalized = os.path.normpath(uploads_root)
@@ -1309,12 +1322,23 @@ def api_serve_categorized_media(category, filename):
 
 @public_auth_bp.route('/api/media/<path:filepath>', methods=['GET'])
 def api_serve_public_media(filepath):
-    """Serve gallery media files publicly (no authentication required)."""
+    """Serve gallery media files publicly (no authentication required).
+    
+    Supports:
+    - Local filesystem files (served via send_from_directory)
+    - S3 URLs (redirected to S3)
+    - Cloudinary URLs (redirected to Cloudinary)
+    """
     try:
         import os
-        from flask import send_from_directory
+        from flask import send_from_directory, redirect
         
         current_app.logger.info('Generic media request: %s', filepath)
+        
+        # If filepath is already a full URL (Cloudinary or S3), redirect to it
+        if filepath.startswith('http://') or filepath.startswith('https://'):
+            current_app.logger.info('Redirecting to cloud URL: %s', filepath)
+            return redirect(filepath, code=302)
         
         # Prevent directory traversal attacks
         if '..' in filepath or filepath.startswith('/'):

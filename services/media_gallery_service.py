@@ -126,6 +126,17 @@ def delete_media_gallery(gallery_id: int) -> None:
     gallery = db.session.get(MediaGallery, gallery_id)
     if not gallery:
         raise ValueError('Media gallery not found')
+    
+    # Delete associated cloud files (Cloudinary, S3) if any
+    if gallery.media_items:
+        try:
+            from services.cloudinary_utils import delete_media_files
+            delete_media_files(gallery.media_items)
+        except Exception as e:
+            # Log but don't fail - database deletion should still proceed
+            from flask import current_app
+            current_app.logger.warning('Failed to delete cloud media files for gallery %d: %s', gallery_id, str(e))
+    
     db.session.delete(gallery)
     db.session.commit()
 
