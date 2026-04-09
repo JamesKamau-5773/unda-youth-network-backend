@@ -134,9 +134,33 @@ def _record_admin_visit():
 @login_required
 @admin_required
 def dashboard():
-    metrics = get_dashboard_metrics()
-    # Use asdict() to convert dataclass to mapping for template rendering
-    return render_template('admin/dashboard.html', **asdict(metrics))
+    try:
+        current_app.logger.debug(f'Loading admin dashboard for user_id={current_user.user_id}')
+        metrics = get_dashboard_metrics()
+        current_app.logger.info(f'Successfully loaded dashboard metrics for user_id={current_user.user_id}')
+        # Use asdict() to convert dataclass to mapping for template rendering
+        return render_template('admin/dashboard.html', **asdict(metrics))
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(
+            f'Dashboard error for user_id={current_user.user_id}: {type(e).__name__}: {str(e)}'
+        )
+        # Check if this looks like a database schema mismatch
+        error_str = str(e).lower()
+        if any(term in error_str for term in ['column', 'does not exist', 'undefined', 'no such column', 'programming error']):
+            current_app.logger.error(
+                'This appears to be a database schema mismatch. '
+                'Database migrations may not be applied. Run "flask db upgrade" to sync schema.'
+            )
+            flash(
+                'Database schema mismatch detected. '
+                'An administrator needs to run database migrations. '
+                'Please contact support if the issue persists.',
+                'danger'
+            )
+        else:
+            flash('Error loading dashboard. Please refresh the page or contact support.', 'danger')
+        return redirect(url_for('auth.login'))
 
 
 @admin_bp.route('/settings')
@@ -544,8 +568,36 @@ def list_symbolic_items():
 @login_required
 @admin_required
 def list_media_galleries():
-    galleries = media_gallery_service.list_media_galleries()
-    return render_template('admin/media_galleries.html', galleries=galleries)
+    try:
+        current_app.logger.debug(f'Loading media galleries list for user_id={current_user.user_id}')
+        galleries = media_gallery_service.list_media_galleries()
+        current_app.logger.info(f'Loaded {len(galleries)} media galleries for user_id={current_user.user_id}')
+        return render_template('admin/media_galleries.html', galleries=galleries)
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(
+            f'Error loading media galleries for user_id={current_user.user_id}: {type(e).__name__}: {str(e)}',
+            exc_info=True
+        )
+        # Check if this looks like a database schema mismatch
+        error_str = str(e).lower()
+        if any(term in error_str for term in ['column', 'does not exist', 'undefined', 'no such column', 'programming error', 'event_id']):
+            current_app.logger.critical(
+                '⚠️  DATABASE SCHEMA MISMATCH DETECTED ⚠️\n'
+                'The database schema does not match the application code.\n'
+                'Media gallery queries reference "event_id" column that does not exist in the database.\n'
+                'FIX: Run "flask db upgrade" to apply pending migrations.\n'
+                'Migration file: migrations/versions/zzad_add_event_id_to_media_gallery.py'
+            )
+            flash(
+                'Database schema is out of sync with application code. '
+                'The server has detected a missing column. '
+                'Migrations need to be applied. Please contact an administrator.',
+                'danger'
+            )
+        else:
+            flash('Error loading media galleries. Please refresh the page or contact support.', 'danger')
+        return redirect(url_for('admin.dashboard'))
 
 
 @admin_bp.route('/media-galleries/create', methods=['GET', 'POST'])
@@ -554,6 +606,7 @@ def list_media_galleries():
 def create_media_gallery():
     if request.method == 'POST':
         try:
+            current_app.logger.debug(f'Creating media gallery for user_id={current_user.user_id}')
             # collect files from file input and existing media_items JSON, merge into a list
             # Accept both `media_files` and `media_items` as file input keys for
             # compatibility with different frontends/tests that may use either.
@@ -593,17 +646,27 @@ def create_media_gallery():
                 'event_id': event_id,
                 'published': request.form.get('published', 'off')
             }
+            current_app.logger.debug(f'Calling media_gallery_service.create_media_gallery with event_id={event_id}')
             gallery = media_gallery_service.create_media_gallery(data, creator_id=current_user.user_id)
+            current_app.logger.info(f'Created media gallery {gallery.gallery_id} for user_id={current_user.user_id}')
             flash('Media gallery created', 'success')
             return redirect(url_for('admin.list_media_galleries'))
         except ValueError as e:
+            current_app.logger.warning(f'Validation error creating gallery: {str(e)}')
             flash(str(e), 'danger')
             max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
             events = Event.query.order_by(Event.event_date.desc()).all()
             return render_template('admin/media_gallery_form.html', max_file_size=max_file_size, events=events)
         except Exception as e:
             db.session.rollback()
-            current_app.logger.exception('Error creating gallery')
+            error_str = str(e).lower()
+            if any(term in error_str for term in ['column', 'does not exist', 'undefined', 'event_id']):
+                current_app.logger.critical(
+                    f'DATABASE SCHEMA MISMATCH creating gallery: {type(e).__name__}: {str(e)}\n'
+                    'Migration needed: flask db upgrade'
+                )
+            else:
+                current_app.logger.exception('Error creating gallery')
             flash(f'Error creating gallery: {str(e)}', 'danger')
             events = Event.query.order_by(Event.event_date.desc()).all()
             return render_template('admin/media_gallery_form.html', events=events)
@@ -617,53 +680,81 @@ def create_media_gallery():
 @login_required
 @admin_required
 def edit_media_gallery(gallery_id):
-    gallery = db.session.get(MediaGallery, gallery_id)
-    if not gallery:
-        abort(404)
-    if request.method == 'POST':
-        try:
-            uploaded = request.files.getlist('media_files') or []
-            form_media = request.form.get('media_items')
+    try:
+        current_app.logger.debug(f'Loading media gallery {gallery_id} for edit, user_id={current_user.user_id}')
+        gallery = db.session.get(MediaGallery, gallery_id)
+        if not gallery:
+            abort(404)
+        
+        if request.method == 'POST':
             try:
-                existing = json.loads(form_media) if form_media else []
-            except Exception:
-                existing = []
-            def _keep_existing_item(it):
-                if not isinstance(it, dict):
+                current_app.logger.debug(f'Updating media gallery {gallery_id} for user_id={current_user.user_id}')
+                uploaded = request.files.getlist('media_files') or []
+                form_media = request.form.get('media_items')
+                try:
+                    existing = json.loads(form_media) if form_media else []
+                except Exception:
+                    existing = []
+                def _keep_existing_item(it):
+                    if not isinstance(it, dict):
+                        return False
+                    if it.get('_delete') or it.get('marked_for_deletion'):
+                        return False
+                    if it.get('newly_uploaded') or it.get('__placeholder'):
+                        return False
+                    if any(k in it for k in ('path','id','url','filename','src','file_url')):
+                        return True
                     return False
-                if it.get('_delete') or it.get('marked_for_deletion'):
-                    return False
-                if it.get('newly_uploaded') or it.get('__placeholder'):
-                    return False
-                if any(k in it for k in ('path','id','url','filename','src','file_url')):
-                    return True
-                return False
-            kept = [it for it in existing if _keep_existing_item(it)]
-            combined_media = list(kept) + list(uploaded)
-            
-            # Parse event_id if provided
-            event_id = request.form.get('event_id')
-            event_id = int(event_id) if event_id and event_id.isdigit() else None
-            
-            data = {
-                'title': request.form.get('title', gallery.title),
-                'description': request.form.get('description', gallery.description),
-                'media_items': combined_media,
-                'event_id': event_id,
-                'published': request.form.get('published', 'off')
-            }
-            media_gallery_service.update_media_gallery(gallery_id, data)
-            flash('Media gallery updated', 'success')
-            return redirect(url_for('admin.list_media_galleries'))
-        except ValueError as e:
-            flash(str(e), 'danger')
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.exception('Error updating gallery')
-            flash(f'Error updating gallery: {str(e)}', 'danger')
-    max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
-    events = Event.query.order_by(Event.event_date.desc()).all()
-    return render_template('admin/media_gallery_form.html', gallery=gallery, max_file_size=max_file_size, events=events)
+                kept = [it for it in existing if _keep_existing_item(it)]
+                combined_media = list(kept) + list(uploaded)
+                
+                # Parse event_id if provided
+                event_id = request.form.get('event_id')
+                event_id = int(event_id) if event_id and event_id.isdigit() else None
+                
+                data = {
+                    'title': request.form.get('title', gallery.title),
+                    'description': request.form.get('description', gallery.description),
+                    'media_items': combined_media,
+                    'event_id': event_id,
+                    'published': request.form.get('published', 'off')
+                }
+                current_app.logger.debug(f'Calling media_gallery_service.update_media_gallery with event_id={event_id}')
+                media_gallery_service.update_media_gallery(gallery_id, data)
+                current_app.logger.info(f'Updated media gallery {gallery_id} for user_id={current_user.user_id}')
+                flash('Media gallery updated', 'success')
+                return redirect(url_for('admin.list_media_galleries'))
+            except ValueError as e:
+                current_app.logger.warning(f'Validation error updating gallery {gallery_id}: {str(e)}')
+                flash(str(e), 'danger')
+            except Exception as e:
+                db.session.rollback()
+                error_str = str(e).lower()
+                if any(term in error_str for term in ['column', 'does not exist', 'undefined', 'event_id']):
+                    current_app.logger.critical(
+                        f'DATABASE SCHEMA MISMATCH updating gallery {gallery_id}: {type(e).__name__}: {str(e)}\n'
+                        'Migration needed: flask db upgrade'
+                    )
+                else:
+                    current_app.logger.exception(f'Error updating gallery {gallery_id}')
+                flash(f'Error updating gallery: {str(e)}', 'danger')
+        
+        max_file_size = current_app.config.get('MAX_CONTENT_LENGTH')
+        events = Event.query.order_by(Event.event_date.desc()).all()
+        return render_template('admin/media_gallery_form.html', gallery=gallery, max_file_size=max_file_size, events=events)
+    
+    except Exception as e:
+        db.session.rollback()
+        error_str = str(e).lower()
+        if any(term in error_str for term in ['column', 'does not exist', 'undefined', 'event_id']):
+            current_app.logger.critical(
+                f'DATABASE SCHEMA MISMATCH loading gallery {gallery_id}: {type(e).__name__}: {str(e)}\n'
+                'Migration needed: flask db upgrade'
+            )
+        else:
+            current_app.logger.exception(f'Error loading gallery {gallery_id}')
+        flash('Error loading gallery. Please try again or contact support.', 'danger')
+        return redirect(url_for('admin.list_media_galleries'))
 
 
 @admin_bp.route('/media-galleries/<int:gallery_id>/delete', methods=['POST'])
@@ -671,11 +762,20 @@ def edit_media_gallery(gallery_id):
 @admin_required
 def delete_media_gallery(gallery_id):
     try:
+        current_app.logger.debug(f'Deleting media gallery {gallery_id}, user_id={current_user.user_id}')
         media_gallery_service.delete_media_gallery(gallery_id)
+        current_app.logger.info(f'Deleted media gallery {gallery_id}, user_id={current_user.user_id}')
         flash('Media gallery deleted', 'success')
     except Exception as e:
         db.session.rollback()
-        current_app.logger.exception('Error deleting gallery')
+        error_str = str(e).lower()
+        if any(term in error_str for term in ['column', 'does not exist', 'undefined', 'event_id']):
+            current_app.logger.critical(
+                f'DATABASE SCHEMA MISMATCH deleting gallery {gallery_id}: {type(e).__name__}: {str(e)}\n'
+                'Migration needed: flask db upgrade'
+            )
+        else:
+            current_app.logger.exception(f'Error deleting gallery {gallery_id}')
         flash(f'Error deleting gallery: {str(e)}', 'danger')
     return redirect(url_for('admin.list_media_galleries'))
 
