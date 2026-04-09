@@ -1,7 +1,7 @@
 """Add event_id field to media_gallery for event-based album grouping.
 
 Revision ID: zzad_add_event_id
-Revises: zzac_change_podcast_duration_to_bigint
+Revises: zzac_podcast_duration_bigint
 Create Date: 2026-04-09 08:30:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'zzad_add_event_id'
-down_revision = 'zzac_change_podcast_duration_to_bigint'
+down_revision = 'zzac_podcast_duration_bigint'
 branch_labels = None
 depends_on = None
 
